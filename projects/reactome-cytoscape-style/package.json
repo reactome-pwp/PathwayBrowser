@@ -1,0 +1,11 @@
+{
+  "name": "reactome-cytoscape-style",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "cytoscape": "^3.27.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
