@@ -35,7 +35,8 @@ export class AppComponent implements AfterViewInit {
     // if (!this.cytoscapeContainer) return;
 
     const amount = 100;
-    const peTypes = ['EWAS', 'EntitySet', 'GEE', 'RNA', 'DNA', 'Complex', 'SmallMolecule'];
+    const peTypes = ['Protein', 'EntitySet', 'GenomeEncodedEntity', 'RNA', 'Gene', 'Complex', 'Molecule'];
+    // const peTypes = ['EntitySet'];
     const reactionTypes = ['association', 'dissociation', 'transition', 'uncertain', 'omitted'];
 
     const physicalEntities: cytoscape.NodeDefinition[] = Array.from({length: amount}, (x, i) => ({
@@ -50,22 +51,23 @@ export class AppComponent implements AfterViewInit {
       classes: [this.pick(peTypes), "PhysicalEntity"]
     }));
 
+    const reactions: cytoscape.NodeDefinition[] = physicalEntities.map((node, i) =>
+      ({
+        group: 'nodes',
+        data: {
+          id: `${i}-react`,
+          parent: 'Compartment'
+        },
+        classes: [this.pick(reactionTypes), 'reaction']
+      })
+    );
+
     const nodes: cytoscape.NodeDefinition[] = physicalEntities.flatMap((node, i) =>
-      [
-        node,
-        {
-          group: 'nodes',
-          data: {
-            id: `${i}-react`,
-            parent: 'Compartment'
-          },
-          classes: [this.pick(reactionTypes), 'reaction']
-        }
-      ]
+      [node, reactions[i]]
     );
 
 
-    const edges: cytoscape.EdgeDefinition[] = physicalEntities.flatMap((node, i) => [
+    const inOut: cytoscape.EdgeDefinition[] = physicalEntities.flatMap((node, i) => [
       {
         group: 'edges',
         data: {
@@ -83,11 +85,21 @@ export class AppComponent implements AfterViewInit {
           stoichiometry: this.pick([undefined, -1, 0, 1, 2])
         },
 
-        classes: this.pick(['production', 'catalysis', 'positive-regulation', 'negative-regulation', 'set-to-member'])
+        classes: ['production']
       },
     ])
 
-    console.log(nodes, edges)
+    const additionalIn: cytoscape.EdgeDefinition[] = Array.from({length: amount / 4}).map(() => ({
+      group: 'edges',
+      data: {
+        source: this.pick(physicalEntities).data.id!,
+        target: this.pick(reactions).data.id!,
+      },
+      classes: this.pick(['catalysis', 'positive-regulation', 'negative-regulation', 'set-to-member'])
+    }));
+
+
+    const edges: cytoscape.EdgeDefinition[] = [...inOut, ...additionalIn]
 
 
     const container = this.cytoscapeContainer!.nativeElement;
@@ -111,11 +123,11 @@ export class AppComponent implements AfterViewInit {
         name: 'cose',
       }
     });
-    setTimeout(() => {
-      properties.global!.thickness = 4;
-      reactomeStyle.update(this.cy!)
-      this.redraw()
-    }, 5000)
+    // setTimeout(() => {
+    //   properties.global!.thickness = 4;
+    //   reactomeStyle.update(this.cy!)
+    //   this.redraw()
+    // }, 5000)
 
 
     this.cy.on("layoutstop", () => this.cy?.minZoom(this.cy?.zoom()))
