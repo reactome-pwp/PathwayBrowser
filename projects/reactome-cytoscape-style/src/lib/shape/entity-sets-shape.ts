@@ -55,6 +55,6 @@ function shape(width: number, height: number): string {
 `
 }
 
-export const entitySetsShape = memoize(shape)
+export const entitySetsShape = memoize(shape, (width, height)=> `${width}x${height}`)
 
 

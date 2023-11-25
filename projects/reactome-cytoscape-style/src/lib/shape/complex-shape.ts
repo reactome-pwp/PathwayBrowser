@@ -2,6 +2,8 @@ import {memoize} from "lodash";
 import { Reactome} from "../reactome-style";
 import {extract} from "../type-utils";
 
+
+// TODO Fix bug where sometimes the svg onlytakes hald of its allowed height
 /**
  * Rectangle with cut corners shape
  *
@@ -33,12 +35,12 @@ function shape(width: number, height: number): string {
       "/>
 </defs>
 
-<use href="#octogon" fill="${fill}" stroke="${fill}" stroke-width="${2*t2}" stroke-linejoin="round"/>
+<use href="#octogon" fill="${fill}" stroke="${fill}" stroke-width="${2 * t2}" stroke-linejoin="round"/>
 <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round"/>
 <use href="#octogon" fill="${fill}"/>
 `
 }
 
-export const complexShape = memoize(shape)
+export const complexShape = memoize(shape, (width, height)=> `${width}x${height}` )
 
 

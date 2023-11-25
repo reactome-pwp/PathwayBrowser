@@ -35,6 +35,6 @@ function shape(width: number, height: number): string {
   `
 }
 
-export const geneShape = memoize(shape)
+export const geneShape = memoize(shape, (width, height)=> `${width}x${height}`)
 
 

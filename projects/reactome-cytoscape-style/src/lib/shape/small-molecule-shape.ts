@@ -19,6 +19,6 @@ function shape(width: number, height: number): string {
   return `<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${height / 2}" stroke="${stroke}" fill="${fill}" stroke-width="${thick}"/>`
 }
 
-export const moleculeShape = memoize(shape)
+export const moleculeShape = memoize(shape, (width, height)=> `${width}x${height}`)
 
 
