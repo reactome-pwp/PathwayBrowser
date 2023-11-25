@@ -296,7 +296,11 @@ export namespace Reactome {
           style: {'target-arrow-shape': 'triangle'}
         }, {
           selector: 'edge.catalysis',
-          style: {'target-arrow-shape': 'circle', "target-arrow-fill": "hollow"}
+          style: {
+            'target-arrow-shape': 'circle',
+            // "target-arrow-fill": "hollow",
+            "target-arrow-color": this.p('global', 'positive')
+          }
         }, {
           selector: 'edge.positive-regulation',
           style: {
