@@ -39,3 +39,5 @@ export function defaultable<T>(object: T): Defaultable<T> {
 
 export const propertyExtractor = <G extends keyof Reactome.Properties, K extends keyof Reactome.Properties[G]>(group: G, key: K) => Reactome.Style.properties[group][key]
 export const propertyMapper = <G extends keyof Reactome.Properties, K extends keyof Reactome.Properties[G], T extends Reactome.Properties[G][K] extends Property<infer X> ? X : never,  M extends (t: T) => any>(group: G, key: K, mapper: M) => mapper(extract(Reactome.Style.properties[group][key]))
+
+

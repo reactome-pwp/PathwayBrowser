@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "run-p dev:*; ng serve",
     "dev:reactome-cytoscape-style": "ng build reactome-cytoscape-style --configuration development --watch &",
+    "build:reactome-cytoscape-style": "ng build reactome-cytoscape-style",
     "test:reactome-cytoscape-style": "ng test reactome-cytoscape-style",
     "deploy:reactome-cytoscape-style": "ng build reactome-cytoscape-style; cd dist reactome-cytoscape-style; npm publish",
     "build": "ng build",
@@ -22,6 +23,7 @@
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
     "cytoscape": "^3.26.0",
+    "reactome-cytoscape-style": "file:.yalc/reactome-cytoscape-style",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
@@ -30,8 +32,8 @@
     "@angular-devkit/build-angular": "^16.2.6",
     "@angular/cli": "^16.2.6",
     "@angular/compiler-cli": "^16.2.0",
-    "@types/jasmine": "~4.3.0",
     "@types/cytoscape": "^3.19.13",
+    "@types/jasmine": "~4.3.0",
     "@types/lodash": "^4.14.202",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",
@@ -40,7 +42,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "ng-packagr": "^16.2.0",
-    "typescript": "~5.1.3",
-    "npm-run-all": "^4.1.1"
+    "npm-run-all": "^4.1.1",
+    "typescript": "~5.1.3"
   }
 }

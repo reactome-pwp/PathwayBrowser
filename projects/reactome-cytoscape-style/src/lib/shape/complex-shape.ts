@@ -3,7 +3,6 @@ import { Reactome} from "../reactome-style";
 import {extract} from "../type-utils";
 
 
-// TODO Fix bug where sometimes the svg onlytakes hald of its allowed height
 /**
  * Rectangle with cut corners shape
  *

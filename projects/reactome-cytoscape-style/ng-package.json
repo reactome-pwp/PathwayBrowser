@@ -3,5 +3,6 @@
   "dest": "../../dist/reactome-cytoscape-style",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": ["types"]
 }

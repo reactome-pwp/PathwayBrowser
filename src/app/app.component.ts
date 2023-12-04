@@ -36,7 +36,7 @@ export class AppComponent implements AfterViewInit {
 
     const amount = 100;
     const peTypes = ['Protein', 'EntitySet', 'GenomeEncodedEntity', 'RNA', 'Gene', 'Complex', 'Molecule'];
-    // const peTypes = ['EntitySet'];
+    // const peTypes = ['Gene'];
     const reactionTypes = ['association', 'dissociation', 'transition', 'uncertain', 'omitted'];
 
     const physicalEntities: cytoscape.NodeDefinition[] = Array.from({length: amount}, (x, i) => ({
@@ -48,7 +48,7 @@ export class AppComponent implements AfterViewInit {
         displayName: `I am something`,
         parent: 'Compartment'
       },
-      classes: [this.pick(peTypes), "PhysicalEntity"]
+      classes: [this.pick(peTypes), "PhysicalEntity", this.pick(["disease", ""])]
     }));
 
     const reactions: cytoscape.NodeDefinition[] = physicalEntities.map((node, i) =>
@@ -118,9 +118,9 @@ export class AppComponent implements AfterViewInit {
         ...nodes,
         ...edges
       ],
-      style: reactomeStyle.toCytoscape(),
+      style: reactomeStyle.getStyleSheet(),
       layout: {
-        name: 'cose',
+        name: 'grid',
       }
     });
     // setTimeout(() => {
@@ -129,12 +129,14 @@ export class AppComponent implements AfterViewInit {
     //   this.redraw()
     // }, 5000)
 
+    reactomeStyle.bindToCytoscape(this.cy);
+
 
     this.cy.on("layoutstop", () => this.cy?.minZoom(this.cy?.zoom()))
 
-    this.cy.on('zoom', (e, extraParams) => {
-      console.log(this.cy!.zoom())
-    })
+    // this.cy.on('zoom', (e, extraParams) => {
+    //   console.log(this.cy!.zoom())
+    // })
 
   }
 }

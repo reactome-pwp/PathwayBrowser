@@ -1,9 +1,8 @@
 import cytoscape from "cytoscape";
 import {entitySetsShape} from "./shape/entity-sets-shape";
 import {complexShape} from "./shape/complex-shape";
-import {geneShape} from "./shape/gene-shape";
 import {moleculeShape} from "./shape/small-molecule-shape";
-import {svgStr} from "./svg-utils";
+import {backgroundData, classToDrawers, svgStr} from "./svg-utils";
 import {defaultable, extract, PropertiesType, Property, propertyExtractor, propertyMapper} from "./type-utils";
 
 export namespace Reactome {
@@ -17,6 +16,8 @@ export namespace Reactome {
       onPrimary: Property<string>
       positive: Property<string>
       negative: Property<string>
+      select: Property<string>
+      hover: Property<string>
     },
     compartment: {
       fill: Property<string>
@@ -36,7 +37,8 @@ export namespace Reactome {
       fill: Property<string>
       decorationHeight: Property<number>
       arrowHeadSize: Property<number>
-      radius: Property<number>
+      borderRadius: Property<number>
+      arrowRadius: Property<number>
     }
     molecule: {
       fill: Property<string>
@@ -58,11 +60,34 @@ export namespace Reactome {
     [k in keyof Properties]: Partial<Properties[k]>
   }>
 
+  export type SimpleEntity = 'Protein' | 'GenomeEncodedEntity' | 'RNA' | 'Gene' | 'Molecule';
+  export type ComposedEntity = 'EntitySet' | 'Complex' | 'Cell';
+  export type PhysicalEntity = SimpleEntity | ComposedEntity;
+  export type PhysicalEntityDefinition = [PhysicalEntity, 'PhysicalEntity', ...string[]];
+
+
+  export type Reaction = 'association' | 'dissociation' | 'transition' | 'uncertain' | 'omitted';
+  export type ReactionDefinition = [Reaction, 'Reaction', ...string[]];
+
+
+  export type IncomingEdge =
+    'consumption'
+    | 'catalysis'
+    | 'positive-regulation'
+    | 'negative-regulation'
+    | 'set-to-member';
+  export type OutgoingEdge = 'production';
+  export type EdgeType = IncomingEdge | OutgoingEdge;
+  export type IncomingEdgeDefinition = [IncomingEdge, 'incoming', ...string[]];
+  export type OutgoingEdgeDefinition = [OutgoingEdge, 'outgoing', ...string[]];
+  export type EdgeTypeDefinition = IncomingEdgeDefinition | OutgoingEdgeDefinition;
+
+
   export class Style {
     public static css: CSSStyleDeclaration;
     public static properties: Properties;
-    private p = propertyExtractor
-    private pm = propertyMapper
+    private p = propertyExtractor;
+    private pm = propertyMapper;
 
     constructor(container: HTMLElement, properties: UserProperties = {}) {
       Style.css = getComputedStyle(container);
@@ -75,6 +100,8 @@ export namespace Reactome {
         .setDefault('onPrimary', () => Style.css.getPropertyValue('--on-primary') || '#FFFFFF')
         .setDefault('positive', () => Style.css.getPropertyValue('--positive') || '#0C9509')
         .setDefault('negative', () => Style.css.getPropertyValue('--negative') || '#BA1A1A')
+        .setDefault('select', () => Style.css.getPropertyValue('--select') || '#6EB3E4')
+        .setDefault('hover', () => Style.css.getPropertyValue('--hover') || '#78E076')
 
       const compartment: Properties['compartment'] = defaultable(properties.compartment || {})
         .setDefault('opacity', 0.12)
@@ -93,7 +120,8 @@ export namespace Reactome {
       const gene: Properties['gene'] = defaultable(properties.gene || {})
         .setDefault('decorationHeight', 20)
         .setDefault("arrowHeadSize", 10)
-        .setDefault("radius", 8)
+        .setDefault("borderRadius", 12)
+        .setDefault("arrowRadius", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--primary-contrast-3') || '#004D62');
 
       const molecule: Properties['molecule'] = defaultable(properties.molecule || {})
@@ -124,7 +152,19 @@ export namespace Reactome {
       }
     }
 
-    toCytoscape(): cytoscape.Stylesheet[] {
+    bindToCytoscape(cy: cytoscape.Core) {
+      // cy.style(this.getStyleSheet());
+      console.log(cy)
+      cy.on('mouseover', e => {
+        if (e.target.addClass) e.target.addClass('hover')
+      });
+      cy.on('mouseout', e => {
+        if (e.target.removeClass) e.target?.removeClass('hover')
+      });
+    }
+
+
+    getStyleSheet(): cytoscape.Stylesheet[] {
       return [
         {
           selector: "*",
@@ -168,6 +208,7 @@ export namespace Reactome {
             "text-halign": 'center',
             "text-valign": 'center',
             "text-wrap": 'wrap',
+            "text-max-width": "data(width)",
 
             'color': this.p('global', 'onPrimary'),
           }
@@ -195,13 +236,30 @@ export namespace Reactome {
         }, {
           selector: 'node.Gene',
           style: {
-            "background-image": node => svgStr(geneShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
-            "background-clip": "none",
-            "background-image-containment": "over",
+            // @ts-ignore
+            "background-image": node => backgroundData(node)["background-image"],
+            // @ts-ignore
+            "background-position-y": node => backgroundData(node)["background-position-y"] || 0,
+            // @ts-ignore
+            "background-position-x": node => backgroundData(node)["background-position-x"] || 0,
+            // @ts-ignore
+            "background-height": node => backgroundData(node)["background-height"] || '100%',
+            // @ts-ignore
+            "background-width": node => backgroundData(node)["background-width"] || '100%',
+            // @ts-ignore
+            "background-clip": node => backgroundData(node)["background-clip"] || 'clipped',
+            // @ts-ignore
+            "background-image-containment": node => backgroundData(node)["background-image-containment"] || 'inside',
+
+            // "background-image": node => svgStr(geneShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
+            // "background-clip": "none",
+            // "background-image-containment": "over",
             "shape": "bottom-round-rectangle",
 
             "background-color": this.p('gene', 'fill'),
-            "background-position-y": this.pm('gene', 'decorationHeight', h => -h),
+            "background-opacity": 0,
+
+            // "background-position-y": this.pm('gene', 'decorationHeight', h => -h),
             "bounds-expansion": this.p('gene', 'decorationHeight'),
           }
         }, {
@@ -217,14 +275,32 @@ export namespace Reactome {
           style: {
             "background-image": node => svgStr(entitySetsShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
             "background-opacity": 0,
-            "shape": "round-rectangle"
+            "shape": "round-rectangle",
+            "text-max-width": (node: cytoscape.NodeSingular) =>
+              this.pm('global', 'thickness', t =>
+                this.pm('entitySet', 'radius', r => `${node.width() - 2 * r - 6 * t}px`
+                )
+              )
           }
         }, {
-          selector: ' node.Complex',
+          selector: 'node.Complex',
           style: {
             "background-image": node => svgStr(complexShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
             "background-opacity": 0,
             "shape": "cut-rectangle"
+          }
+        },
+
+        {
+          selector: 'node.disease',
+          style: {
+            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 26) + 'px'
+          }
+        },
+        {
+          selector: 'node.Pathway',
+          style: {
+            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 26) + 'px'
           }
         },
 
@@ -290,7 +366,7 @@ export namespace Reactome {
           }
         }, {
           selector: 'edge.consumption',
-          style: {"target-endpoint": "inside-to-node", "source-endpoint": "inside-to-node"}
+          style: {"target-endpoint": "inside-to-node", "source-endpoint": "outside-to-node"}
         }, {
           selector: 'edge.production',
           style: {'target-arrow-shape': 'triangle'}
@@ -298,14 +374,14 @@ export namespace Reactome {
           selector: 'edge.catalysis',
           style: {
             'target-arrow-shape': 'circle',
-            // "target-arrow-fill": "hollow",
+            "target-arrow-fill": "hollow",
             "target-arrow-color": this.p('global', 'positive')
           }
         }, {
           selector: 'edge.positive-regulation',
           style: {
             'target-arrow-shape': 'triangle',
-            // "target-arrow-fill": "hollow",
+            "target-arrow-fill": "hollow",
             "target-arrow-color": this.p('global', 'positive')
           }
         }, {
@@ -325,10 +401,7 @@ export namespace Reactome {
             "label": "data(stoichiometry)",
             "text-background-color": this.p('global', 'surface'),
             "text-background-opacity": 1,
-            "text-border-width": this.pm('global', 'thickness', t => {
-              console.log(t)
-              return t / 2
-            }),
+            "text-border-width": this.pm('global', 'thickness', t => t / 2),
             "text-border-opacity": 1,
             "text-border-color": this.p('global', 'onSurface'),
             "text-background-shape": 'roundrectangle',
@@ -343,15 +416,15 @@ export namespace Reactome {
       complexShape.cache.clear!()
       entitySetsShape.cache.clear!()
       moleculeShape.cache.clear!()
-      geneShape.cache.clear!()
-      cy.style(this.toCytoscape())
+      for (let value of classToDrawers.values()) {
+        value.cache.clear!()
+      }
+      cy.style(this.getStyleSheet())
     }
   }
 
   const OMMITED_ICON = svgStr('<line x1="2.5" y1="3" x2="4.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="#001F24"/><line x1="5.5" y1="3" x2="7.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="#001F24"/>', 10, 10)
 }
-
-
 
 
 
