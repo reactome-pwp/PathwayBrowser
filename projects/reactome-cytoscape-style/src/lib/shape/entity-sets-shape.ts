@@ -23,23 +23,23 @@ function shape(width: number, height: number): string {
   <path id="curly" d="
       M ${r2 + t} ${t}
       H ${width - r2 - t}
-      q ${r} 0 ${r} ${r}
+      a ${r} ${r} 0 0 1 ${r} ${r}
 
       v ${v}
-      q 0 ${r} ${r} ${r}
-      q -${r} 0 -${r} ${r}
+      a ${r} ${r} 0 0 0 ${r} ${r}
+      a ${r} ${r} 0 0 0 -${r} ${r}
       v ${v}
 
-      q 0 ${r} -${r} ${r}
+      a ${r} ${r} 0 0 1 -${r} ${r}
       H ${r2 + t}
-      q -${r} 0 -${r} -${r}
+      a ${r} ${r} 0 0 1 -${r} -${r}
 
       v -${v}
-      q 0 -${r} -${r} -${r}
-      q ${r} 0 ${r} -${r}
+      a ${r} ${r} 0 0 0 -${r} -${r}
+      a ${r} ${r} 0 0 0 ${r} -${r}
       v -${v}
 
-      q 0 -${r} ${r} -${r}
+      a ${r} ${r} 0 0 1 ${r} -${r}
       Z
       "/>
   <clipPath id="inside">
