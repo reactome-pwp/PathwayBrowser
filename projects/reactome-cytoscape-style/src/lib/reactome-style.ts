@@ -1,7 +1,6 @@
 import cytoscape from "cytoscape";
 import {entitySetsShape} from "./shape/entity-sets-shape";
 import {complexShape} from "./shape/complex-shape";
-import {moleculeShape} from "./shape/small-molecule-shape";
 import {backgroundData, classToDrawers, svgStr} from "./svg-utils";
 import {defaultable, extract, PropertiesType, Property, propertyExtractor, propertyMapper} from "./type-utils";
 
@@ -24,11 +23,13 @@ export namespace Reactome {
       opacity: Property<number>
     }
     protein: {
-      fill: Property<string>
+      fill: Property<string>,
+      radius: Property<number>
     }
     genomeEncodedEntity: {
       fill: Property<string>
       stroke: Property<string>
+      radius: Property<number>
     }
     rna: {
       fill: Property<string>
@@ -109,10 +110,12 @@ export namespace Reactome {
 
       const protein: Properties['protein'] = defaultable(properties.protein || {})
         .setDefault('fill', () => Style.css.getPropertyValue('--primary-contrast-1') || '#001F29')
+        .setDefault('radius', 8)
 
       const genomeEncodedEntity: Properties['genomeEncodedEntity'] = defaultable(properties.genomeEncodedEntity || {})
         .setDefault('fill', () => extract(protein.fill))
         .setDefault('stroke', () => extract(global.primary))
+        .setDefault('radius', 8)
 
       const rna: Properties['rna'] = defaultable(properties.rna || {})
         .setDefault('fill', () => Style.css.getPropertyValue('--primary-contrast-2') || '#003545')
@@ -202,14 +205,28 @@ export namespace Reactome {
             'label': 'data(displayName)',
             'width': 'data(width)',
             'height': 'data(height)',
-            "background-fit": "cover",
-            "background-height": "100%",
-            "background-width": "100%",
+            "background-fit": "none",
             "text-halign": 'center',
             "text-valign": 'center',
             "text-wrap": 'wrap',
             "text-max-width": "data(width)",
+            "background-image-smoothing": "no",
 
+            // @ts-ignore
+            "background-image": node => backgroundData(node)["background-image"],
+            // @ts-ignore
+            "background-position-y": node => backgroundData(node)["background-position-y"] || 0,
+            // @ts-ignore
+            "background-position-x": node => backgroundData(node)["background-position-x"] || 0,
+            // @ts-ignore
+            "background-height": node => backgroundData(node)["background-height"] || '100%',
+            // @ts-ignore
+            "background-width": node => backgroundData(node)["background-width"] || '100%',
+            // @ts-ignore
+            "background-clip": node => backgroundData(node)["background-clip"] || 'clipped',
+            // @ts-ignore
+            "background-image-containment": node => backgroundData(node)["background-image-containment"] || 'inside',
+            "bounds-expansion": this.p('global', 'thickness'),
             'color': this.p('global', 'onPrimary'),
           }
         }, {
@@ -231,41 +248,20 @@ export namespace Reactome {
           selector: 'node.RNA',
           style: {
             "shape": "bottom-round-rectangle",
-            "background-color": this.p('rna', 'fill')
+            "background-color": this.p('rna', 'fill'),
+            "background-opacity": 0
           }
         }, {
           selector: 'node.Gene',
           style: {
-            // @ts-ignore
-            "background-image": node => backgroundData(node)["background-image"],
-            // @ts-ignore
-            "background-position-y": node => backgroundData(node)["background-position-y"] || 0,
-            // @ts-ignore
-            "background-position-x": node => backgroundData(node)["background-position-x"] || 0,
-            // @ts-ignore
-            "background-height": node => backgroundData(node)["background-height"] || '100%',
-            // @ts-ignore
-            "background-width": node => backgroundData(node)["background-width"] || '100%',
-            // @ts-ignore
-            "background-clip": node => backgroundData(node)["background-clip"] || 'clipped',
-            // @ts-ignore
-            "background-image-containment": node => backgroundData(node)["background-image-containment"] || 'inside',
-
-            // "background-image": node => svgStr(geneShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
-            // "background-clip": "none",
-            // "background-image-containment": "over",
             "shape": "bottom-round-rectangle",
-
             "background-color": this.p('gene', 'fill'),
             "background-opacity": 0,
-
-            // "background-position-y": this.pm('gene', 'decorationHeight', h => -h),
             "bounds-expansion": this.p('gene', 'decorationHeight'),
           }
         }, {
           selector: 'node.Molecule',
           style: {
-            "background-image": node => svgStr(moleculeShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
             "background-opacity": 0,
             "shape": 'round-rectangle',
             "color": this.p("molecule", 'stroke'),
@@ -415,7 +411,6 @@ export namespace Reactome {
     update(cy: cytoscape.Core) {
       complexShape.cache.clear!()
       entitySetsShape.cache.clear!()
-      moleculeShape.cache.clear!()
       for (let value of classToDrawers.values()) {
         value.cache.clear!()
       }

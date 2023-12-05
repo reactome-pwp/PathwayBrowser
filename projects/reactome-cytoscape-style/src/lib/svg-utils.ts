@@ -2,9 +2,13 @@ import cytoscape from "cytoscape";
 import {Reactome} from "./reactome-style";
 import {gene} from "./shape/gene-shape";
 import _, {memoize} from "lodash";
+import {molecule} from "./shape/small-molecule-shape";
 import PhysicalEntity = Reactome.PhysicalEntity;
 import BackgroundImage = cytoscape.Css.BackgroundImage;
 import PropertyValueNode = cytoscape.Css.PropertyValueNode;
+import {protein} from "./shape/protein-shape";
+import {rna} from "./shape/rna-shape";
+import {genomeEncodedEntity} from "./shape/gee-shape";
 
 function svg(svgStr: string, width = 100, height = 100) {
   const parser = new DOMParser();
@@ -40,11 +44,11 @@ export interface DrawerProvider {
 const dim = (width: number, height: number) => `${width}x${height}`;
 export type Memo<T> = T & _.MemoizedFunction;
 export const classToDrawers = new Map<Reactome.PhysicalEntity, Memo<DrawerProvider>>([
-  // ["Protein", ],
-  // ["GenomeEncodedEntity", {background: undefined}],
-  // ["RNA", {background: undefined}],
+  ["Protein", memoize(protein, dim)],
+  ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
+  ["RNA", memoize(rna, dim)],
   ["Gene", memoize(gene, dim)],
-  // ["Molecule", {background: moleculeShape}],
+  ["Molecule", memoize(molecule, dim)],
   // ["Complex", {background: complexShape}],
   // ["EntitySet", {background: entitySetsShape}],
 ]);
@@ -63,7 +67,7 @@ const defaultBg: Image = {
   "background-height": "100%",
   "background-fit": "none",
   "background-clip": "none",
-  "background-image-containment": "inside",
+  "background-image-containment": "over",
   "background-image-smoothing": "yes",
   "background-height-relative-to": "inner",
   "background-width-relative-to": "inner",
@@ -74,8 +78,9 @@ const defaultBg: Image = {
 
 function aggregate<T extends Object, K extends keyof T>(toAggregate: T[], defaultValue: T): Aggregated<T> {
   const aggregate: Aggregated<T> = {} as Aggregated<T>;
-  const keys = new Set<K>(toAggregate.flatMap(t => Object.keys(t)) as K[]);
-  // @ts-ignore
+  // const keys = new Set<K>(toAggregate.flatMap(t => Object.keys(t)) as K[]);
+  //@ts-ignore
+  const keys = new Set<K>(Object.keys(defaultValue));
   keys.forEach(key => aggregate[key] = toAggregate.map(t => t[key] || defaultValue[key]));
   return aggregate;
 }
@@ -90,7 +95,7 @@ const RX = (width: number, height: number): Image => ({
 
 
 export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
-  console.log("backgroundData() called", node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
+  // console.log("backgroundData() called", node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
   let layers: Image[] = [];
   const clazz = node.classes().find(clazz => classToDrawers.has(clazz as PhysicalEntity)) as PhysicalEntity
   if (!clazz) return aggregate(layers, defaultBg);
@@ -121,5 +126,6 @@ export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated
     })
   );
 
-  return aggregate(layers, defaultBg);
+  const combined = aggregate(layers, defaultBg);
+  return combined;
 }, node => node.id() + '-' + node.classes().toString() + '-s:' + node.selected())

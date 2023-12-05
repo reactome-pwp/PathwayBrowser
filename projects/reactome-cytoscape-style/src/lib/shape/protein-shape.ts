@@ -2,22 +2,16 @@ import {Reactome} from "../reactome-style";
 import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
-export const molecule: DrawerProvider = (width, height) => {
+export const protein: DrawerProvider = (width, height) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
   const thick = extract(Reactome.Style.properties.global.thickness);
-  const stroke = extract(Reactome.Style.properties.molecule.stroke);
-  const fill = extract(Reactome.Style.properties.molecule.fill);
+  const radius = extract(Reactome.Style.properties.protein.radius);
 
-  const ht = thick / 2;
-  const halfHeight = height / 2;
-  const oR = halfHeight + thick;
-  const iR = halfHeight - thick;
+  const oR = radius + thick;
+  const iR = radius - thick;
 
   return {
-    background: {
-      "background-image": `<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${stroke}" fill="${fill}" stroke-width="${thick}"/>`
-    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
@@ -48,7 +42,7 @@ export const molecule: DrawerProvider = (width, height) => {
             a ${oR} ${iR} 0 0 1 -${oR} -${iR}
             Z"/>
 `,
-      "background-position-y": halfHeight ,
+      "background-position-y": height - radius ,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",
