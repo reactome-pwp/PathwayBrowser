@@ -10,6 +10,7 @@
     "deploy:reactome-cytoscape-style": "ng build reactome-cytoscape-style; cd dist reactome-cytoscape-style; npm publish",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "page": "ng deploy --base-href=/PathwayBrowser/",
     "test": "ng test"
   },
   "private": true,
@@ -35,6 +36,7 @@
     "@types/cytoscape": "^3.19.13",
     "@types/jasmine": "~4.3.0",
     "@types/lodash": "^4.14.202",
+    "angular-cli-ghpages": "^1.0.6",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
