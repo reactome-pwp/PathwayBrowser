@@ -71,9 +71,11 @@ export namespace Reactome {
   export type PhysicalEntity = SimpleEntity | ComposedEntity;
   export type PhysicalEntityDefinition = [PhysicalEntity, 'PhysicalEntity', ...string[]];
 
+  export type CompartmentDefinition = ['Compartment', ...string[]];
+
 
   export type Reaction = 'association' | 'dissociation' | 'transition' | 'uncertain' | 'omitted';
-  export type ReactionDefinition = [Reaction, 'Reaction', ...string[]];
+  export type ReactionDefinition = [Reaction, 'reaction', ...string[]];
 
 
   export type IncomingEdge =
@@ -143,13 +145,13 @@ export namespace Reactome {
       ;
 
       const complex: Properties['complex'] = defaultable(properties.complex || {})
-        .setDefault("cut", 15)
+        .setDefault("cut", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--tertiary-contrast-1') || '#00315C')
         .setDefault("stroke", () => Style.css.getPropertyValue('--on-tertiary') || '#FFFFFF')
         .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-4') || '#7E2549')
 
       const entitySet: Properties['entitySet'] = defaultable(properties.entitySet || {})
-        .setDefault("radius", 10)
+        .setDefault("radius", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--tertiary-contrast-2') || '#1660A5')
         .setDefault("stroke", () => Style.css.getPropertyValue('--on-tertiary') || '#FFFFFF')
         .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-5') || '#BB557A')

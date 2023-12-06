@@ -1,12 +1,9 @@
 /// <reference path="../../../../node_modules/@types/cytoscape/index.d.ts"/>
 import {Reactome} from "../../src/lib/reactome-style";
 import cytoscape from 'cytoscape';
-
 import ReactionDefinition = Reactome.ReactionDefinition;
 import PhysicalEntityDefinition = Reactome.PhysicalEntityDefinition;
 import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
-
-import PropertyValueNode = cytoscape.Css.PropertyValueNode;
 
 
 declare module 'cytoscape' {

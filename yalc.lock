@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "reactome-cytoscape-style": {
+      "signature": "ad9843fb4416ba9ac178d4b13c6a8744",
+      "file": true,
+      "replaced": "0.0.1"
+    }
+  }
+}
