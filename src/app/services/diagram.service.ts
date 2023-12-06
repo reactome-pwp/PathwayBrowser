@@ -50,6 +50,12 @@ export class DiagramService {
     ]
   )
 
+  linkClassMap = new Map<string, EdgeTypeDefinition>([
+    ['EntitySetAndMemberLink', ['set-to-member', 'incoming']],
+    ['EntitySetAndEntitySet', ['set-to-member', 'incoming']],
+    ['Interaction', ['consumption', 'incoming']]
+  ])
+
 
   random(min: number, max: number) {
     return Math.floor((Math.random()) * (max - min + 1)) + min;
@@ -68,6 +74,7 @@ export class DiagramService {
         console.log("edge.reactionType", new Set(data.edges.flatMap(edge => edge.reactionType)))
         console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
+        console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
@@ -188,10 +195,10 @@ export class DiagramService {
                 id: link.id,
                 source: link.inputs[0].id,
                 target: link.outputs[0].id,
-                class: link.renderableClass, //EntitySetAndEntitySetLink
                 portSource: link.inputs[0].id,
                 portTarget: link.outputs[0].id
               },
+              classes: this.linkClassMap.get(link.renderableClass),
               pannable: true,
               grabbable: false,
             }
