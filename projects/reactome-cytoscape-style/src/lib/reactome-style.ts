@@ -1,6 +1,4 @@
 import cytoscape from "cytoscape";
-import {entitySetsShape} from "./shape/entity-sets-shape";
-import {complexShape} from "./shape/complex-shape";
 import {backgroundData, classToDrawers, svgStr} from "./svg-utils";
 import {defaultable, extract, PropertiesType, Property, propertyExtractor, propertyMapper} from "./type-utils";
 
@@ -33,6 +31,7 @@ export namespace Reactome {
     }
     rna: {
       fill: Property<string>
+      radius: Property<number>
     }
     gene: {
       fill: Property<string>
@@ -269,7 +268,6 @@ export namespace Reactome {
         }, {
           selector: 'node.EntitySet',
           style: {
-            "background-image": node => svgStr(entitySetsShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
             "background-opacity": 0,
             "shape": "round-rectangle",
             "text-max-width": (node: cytoscape.NodeSingular) =>
@@ -281,7 +279,6 @@ export namespace Reactome {
         }, {
           selector: 'node.Complex',
           style: {
-            "background-image": node => svgStr(complexShape(node.data('width'), node.data('height')), node.data('width'), node.data('height')),
             "background-opacity": 0,
             "shape": "cut-rectangle"
           }
@@ -409,8 +406,6 @@ export namespace Reactome {
     }
 
     update(cy: cytoscape.Core) {
-      complexShape.cache.clear!()
-      entitySetsShape.cache.clear!()
       for (let value of classToDrawers.values()) {
         value.cache.clear!()
       }

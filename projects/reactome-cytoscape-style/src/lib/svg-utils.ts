@@ -9,6 +9,8 @@ import PropertyValueNode = cytoscape.Css.PropertyValueNode;
 import {protein} from "./shape/protein-shape";
 import {rna} from "./shape/rna-shape";
 import {genomeEncodedEntity} from "./shape/gee-shape";
+import {complex} from "./shape/complex-shape";
+import {entitySet} from "./shape/entity-sets-shape";
 
 function svg(svgStr: string, width = 100, height = 100) {
   const parser = new DOMParser();
@@ -32,8 +34,8 @@ export interface Drawer {
   background?: Image;
   select?: Image;
   hover?: Image;
-  decorators?: Image[];
   flag?: Image;
+  decorators?: Image[];
 }
 
 export interface DrawerProvider {
@@ -49,8 +51,8 @@ export const classToDrawers = new Map<Reactome.PhysicalEntity, Memo<DrawerProvid
   ["RNA", memoize(rna, dim)],
   ["Gene", memoize(gene, dim)],
   ["Molecule", memoize(molecule, dim)],
-  // ["Complex", {background: complexShape}],
-  // ["EntitySet", {background: entitySetsShape}],
+  ["Complex", memoize(complex, dim)],
+  ["EntitySet", memoize(entitySet, dim)],
 ]);
 
 type Aggregated<T> = {
