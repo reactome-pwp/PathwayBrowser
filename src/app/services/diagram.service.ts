@@ -52,7 +52,7 @@ export class DiagramService {
 
   linkClassMap = new Map<string, EdgeTypeDefinition>([
     ['EntitySetAndMemberLink', ['set-to-member', 'incoming']],
-    ['EntitySetAndEntitySet', ['set-to-member', 'incoming']],
+    ['EntitySetAndEntitySetLink', ['set-to-member', 'incoming']],
     ['Interaction', ['consumption', 'incoming']]
   ])
 
