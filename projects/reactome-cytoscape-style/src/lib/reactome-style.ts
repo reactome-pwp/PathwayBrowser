@@ -118,11 +118,12 @@ export namespace Reactome {
 
       const rna: Properties['rna'] = defaultable(properties.rna || {})
         .setDefault('fill', () => Style.css.getPropertyValue('--primary-contrast-2') || '#003545')
+        .setDefault('radius', 8)
 
       const gene: Properties['gene'] = defaultable(properties.gene || {})
         .setDefault('decorationHeight', 20)
         .setDefault("arrowHeadSize", 10)
-        .setDefault("borderRadius", 12)
+        .setDefault("borderRadius", 8)
         .setDefault("arrowRadius", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--primary-contrast-3') || '#004D62');
 
@@ -248,14 +249,12 @@ export namespace Reactome {
           style: {
             "shape": "bottom-round-rectangle",
             "background-color": this.p('rna', 'fill'),
-            "background-opacity": 0
           }
         }, {
           selector: 'node.Gene',
           style: {
             "shape": "bottom-round-rectangle",
             "background-color": this.p('gene', 'fill'),
-            "background-opacity": 0,
             "bounds-expansion": this.p('gene', 'decorationHeight'),
           }
         }, {

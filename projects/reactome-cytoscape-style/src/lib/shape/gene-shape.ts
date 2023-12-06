@@ -19,18 +19,6 @@ export const gene: DrawerProvider = (width, height) => {
   const oR = r + thick;
   const iR = r - thick;
   return {
-    background: {
-      "background-image": `
-          <path fill="${fill}" d="
-            M 0 0
-            v ${height - r}
-            a ${r} ${r} 0 0 0 ${r} ${r}
-            h ${width - 2 * r}
-            a ${r} ${r} 0 0 0 ${r} -${r}
-            v -${height - r}
-            Z
-          "/>`,
-    },
     decorators: [
       {
         "background-image": `

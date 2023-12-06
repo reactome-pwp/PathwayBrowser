@@ -11,22 +11,10 @@ export const rna: DrawerProvider = (width, height) => {
 
   const halfWidth = width / 2;
 
-  const r = extract(Reactome.Style.properties.gene.borderRadius);
+  const r = extract(Reactome.Style.properties.rna.radius);
   const oR = r + thick;
   const iR = r - thick;
   return {
-    background: {
-      "background-image": `
-          <path fill="${fill}" d="
-            M 0 0
-            v ${height - r}
-            a ${r} ${r} 0 0 0 ${r} ${r}
-            h ${width - 2 * r}
-            a ${r} ${r} 0 0 0 ${r} -${r}
-            v -${height - r}
-            Z
-          "/>`,
-    },
     hover: {
       "background-image": `<rect x="0" y="0" width="${width}" height="${2*thick}" fill="${hover}"/>`,
       "background-position-y": -thick,
