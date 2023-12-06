@@ -39,17 +39,20 @@ export class AppComponent implements AfterViewInit {
     // const peTypes = ['Gene'];
     const reactionTypes = ['association', 'dissociation', 'transition', 'uncertain', 'omitted'];
 
-    const physicalEntities: cytoscape.NodeDefinition[] = Array.from({length: amount}, (x, i) => ({
-      group: 'nodes',
-      data: {
-        id: i.toString(),
-        width: this.random(150, 300),
-        height: this.random(50, 150),
-        displayName: `I am something`,
-        parent: 'Compartment'
-      },
-      classes: [this.pick(peTypes), "PhysicalEntity", this.pick(["disease", ""])]
-    }));
+    const physicalEntities: cytoscape.NodeDefinition[] = Array.from({length: amount}, (x, i) => {
+      const clazz = this.pick(peTypes);
+      return {
+        group: 'nodes',
+        data: {
+          id: i.toString(),
+          width: this.random(150, 300),
+          height: this.random(50, 150),
+          displayName: clazz,
+          parent: 'Compartment'
+        },
+        classes: [clazz, "PhysicalEntity", this.pick(["disease", ""])]
+      };
+    });
 
     const reactions: cytoscape.NodeDefinition[] = physicalEntities.map((node, i) =>
       ({
@@ -120,7 +123,7 @@ export class AppComponent implements AfterViewInit {
       ],
       style: reactomeStyle.getStyleSheet(),
       layout: {
-        name: 'grid',
+        name: 'cose',
       }
     });
     // setTimeout(() => {
