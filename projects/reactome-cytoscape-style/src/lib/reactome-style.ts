@@ -241,8 +241,6 @@ export namespace Reactome {
             "shape": "round-rectangle",
             "border-style": "dashed",
             "background-color": this.p('genomeEncodedEntity', 'fill'),
-            "border-width": this.p('global', 'thickness'),
-            "border-color": this.p('genomeEncodedEntity', 'stroke')
           }
         }, {
           selector: 'node.RNA',

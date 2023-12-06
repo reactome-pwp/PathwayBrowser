@@ -6,13 +6,32 @@ import {DrawerProvider} from "../svg-utils";
 export const genomeEncodedEntity: DrawerProvider = (width, height) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
-  const thick = extract(Reactome.Style.properties.global.thickness);
+  const t = extract(Reactome.Style.properties.global.thickness);
   const radius = extract(Reactome.Style.properties.genomeEncodedEntity.radius);
+  const fill = extract(Reactome.Style.properties.genomeEncodedEntity.fill);
+  const stroke = extract(Reactome.Style.properties.genomeEncodedEntity.stroke);
 
-  const oR = radius + thick;
-  const iR = radius - thick;
+  const oR = radius + t;
+  const iR = radius - t;
 
+  const st = 2 * t;
+  const pattern = 3 * st;
+
+  const defs = `
+  <defs>
+    <rect id="rect" rx="${radius}" ry="${radius}" x="0" y="0" width="${width}" height="${height}"/>
+    <clipPath id="clip">
+      <use href="#rect"/>
+    </clipPath>
+  </defs>
+  `
   return {
+    background: {
+      "background-image": `
+        ${defs}
+        <use href="#rect" clip-path="url(#clip)" stroke-width="${st}" stroke="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${pattern} ${pattern}"/>
+      `
+    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
@@ -25,8 +44,8 @@ export const genomeEncodedEntity: DrawerProvider = (width, height) => {
             a ${oR} ${iR} 0 0 0 -${oR} ${iR}
             Z"/>
 `,
-      "background-position-y": -thick,
-      "bounds-expansion": thick,
+      "background-position-y": -t,
+      "bounds-expansion": t,
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
@@ -43,8 +62,8 @@ export const genomeEncodedEntity: DrawerProvider = (width, height) => {
             a ${oR} ${iR} 0 0 1 -${oR} -${iR}
             Z"/>
 `,
-      "background-position-y": height - radius ,
-      "bounds-expansion": thick,
+      "background-position-y": height - radius,
+      "bounds-expansion": t,
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
