@@ -2,11 +2,13 @@ import {Reactome} from "../reactome-style";
 import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
-export const molecule: DrawerProvider = (width, height) => {
+export const molecule: DrawerProvider = (width, height, disease) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
   const thick = extract(Reactome.Style.properties.global.thickness);
-  const stroke = extract(Reactome.Style.properties.molecule.stroke);
+  const stroke = !disease ?
+    extract(Reactome.Style.properties.molecule.stroke) :
+    extract(Reactome.Style.properties.molecule.disease);
   const fill = extract(Reactome.Style.properties.molecule.fill);
 
   const ht = thick / 2;
@@ -48,7 +50,7 @@ export const molecule: DrawerProvider = (width, height) => {
             a ${oR} ${iR} 0 0 1 -${oR} -${iR}
             Z"/>
 `,
-      "background-position-y": halfHeight ,
+      "background-position-y": halfHeight,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",

@@ -2,7 +2,7 @@ import {Reactome} from "../reactome-style";
 import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
-export const protein: DrawerProvider = (width, height) => {
+export const protein: DrawerProvider = (width, height, disease) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
   const thick = extract(Reactome.Style.properties.global.thickness);

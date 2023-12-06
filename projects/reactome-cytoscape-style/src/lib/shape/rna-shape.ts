@@ -3,9 +3,8 @@ import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
 
-export const rna: DrawerProvider = (width, height) => {
+export const rna: DrawerProvider = (width, height, disease) => {
   const thick = extract(Reactome.Style.properties.global.thickness);
-  const fill = extract(Reactome.Style.properties.rna.fill);
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
 

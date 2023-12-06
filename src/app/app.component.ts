@@ -32,7 +32,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // if (!this.cytoscapeContainer) return;
 
     const amount = 100;
     const peTypes = ['Protein', 'EntitySet', 'GenomeEncodedEntity', 'RNA', 'Gene', 'Complex', 'Molecule'];
@@ -50,7 +49,7 @@ export class AppComponent implements AfterViewInit {
           displayName: clazz,
           parent: 'Compartment'
         },
-        classes: [clazz, "PhysicalEntity", this.pick(["disease", ""])]
+        classes: [clazz, "PhysicalEntity", this.pick(["disease", "", ""])]
       };
     });
 

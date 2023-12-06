@@ -3,12 +3,11 @@ import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
 // TODO Switch to dashed line
-export const genomeEncodedEntity: DrawerProvider = (width, height) => {
+export const genomeEncodedEntity: DrawerProvider = (width, height, disease) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
   const t = extract(Reactome.Style.properties.global.thickness);
   const radius = extract(Reactome.Style.properties.genomeEncodedEntity.radius);
-  const fill = extract(Reactome.Style.properties.genomeEncodedEntity.fill);
   const stroke = extract(Reactome.Style.properties.genomeEncodedEntity.stroke);
 
   const oR = radius + t;
