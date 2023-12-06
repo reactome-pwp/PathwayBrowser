@@ -10,6 +10,9 @@ MIT
 @angular/platform-browser
 MIT
 
+@angular/router
+MIT
+
 cytoscape
 MIT
 Copyright (c) 2016-2023, The Cytoscape Consortium.
