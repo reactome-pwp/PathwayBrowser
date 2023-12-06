@@ -156,8 +156,6 @@ export namespace Reactome {
     }
 
     bindToCytoscape(cy: cytoscape.Core) {
-      // cy.style(this.getStyleSheet());
-      console.log(cy)
       cy.on('mouseover', e => {
         if (e.target.addClass) e.target.addClass('hover')
       });
