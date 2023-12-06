@@ -37,6 +37,7 @@ export class DiagramService {
       ['Association', ['association', 'reaction']],
       ['Dissociation', ['dissociation', 'reaction']],
       ['Omitted Process', ['omitted', 'reaction']],
+      ['Uncertain Process', ['uncertain', 'reaction']],
     ]
   )
 
@@ -64,6 +65,7 @@ export class DiagramService {
       map((data) => {
         //compartments map  compartment id as key, a list of nodes as value
 
+        console.log("edge.reactionType", new Set(data.edges.flatMap(edge => edge.reactionType)))
         console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         const compartments = new Map<number, number>(
