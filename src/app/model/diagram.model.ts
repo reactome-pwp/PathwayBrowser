@@ -58,7 +58,7 @@ export interface Prop {
 interface Connectors {
   edgeId: number;
   type: string;
-  stoichiometry: number
+  stoichiometry: { value: number }
 }
 
 // entities
@@ -82,8 +82,8 @@ export interface Compartments {
 
 }
 
-export interface Links{
-  id:number
+export interface Links {
+  id: number
   inputs: Input[];
   outputs: Output[];
   renderableClass: string;

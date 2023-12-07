@@ -119,10 +119,7 @@ export class DiagramService {
           position: {
             x: item.reactionShape.centre.x * scaleFactor,
             y: item.reactionShape.centre.y * scaleFactor,
-
           }
-
-          //  grabbable: false
         }));
 
 
@@ -158,7 +155,7 @@ export class DiagramService {
                   source: node.id,
                   target: connector.edgeId,
                   type: 'input',
-                  cardinality: connector.stoichiometry,
+                  stoichiometry: connector.stoichiometry.value,
                   portSource: node.id,
                   portTarget: connector.edgeId,
                 },
