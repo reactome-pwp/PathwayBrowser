@@ -213,6 +213,11 @@ export namespace Reactome {
           }
         },
         {
+          selector: 'node.drug',
+          style: {
+            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
+          }
+        }, {
           selector: 'node.PhysicalEntity',
           style: {
             'label': 'data(displayName)',
@@ -305,24 +310,27 @@ export namespace Reactome {
                 )
               )
           }
+        },{
+          selector: 'node.EntitySet.drug',
+          style: {
+            "text-max-width": (node: cytoscape.NodeSingular) =>
+              this.pm('global', 'thickness', t =>
+                this.pm('entitySet', 'radius', r => `${node.width() - 2 * r - 6 * t - 44}px`
+                )
+              )
+          }
         }, {
           selector: 'node.Complex',
           style: {
             "background-opacity": 0,
-            "shape": "cut-rectangle"
-          }
-        },
-
-        {
-          selector: 'node.drug',
-          style: {
-            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 26) + 'px'
+            "shape": "cut-rectangle",
+            "text-max-width": (node: cytoscape.NodeSingular) =>  this.pm('global', 'thickness', t => (node.width() - t * 3) + 'px')
           }
         },
         {
           selector: 'node.Pathway',
           style: {
-            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 26) + 'px'
+            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
           }
         },
 
