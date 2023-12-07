@@ -1,12 +1,15 @@
 import {Injectable} from '@angular/core';
 import {map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Diagram} from "../model/diagram.model";
+import {Diagram, Edges, Position} from "../model/diagram.model";
 import {Reactome} from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
+import {array} from "vectorious";
 import PhysicalEntityDefinition = Reactome.PhysicalEntityDefinition;
 import ReactionDefinition = Reactome.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
+
+type RelativePosition = { distances: number[], weights: number[] };
 
 @Injectable({
   providedIn: 'root'
@@ -75,6 +78,9 @@ export class DiagramService {
         console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
+
+        // const idToNode = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
+        const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
@@ -136,61 +142,48 @@ export class DiagramService {
             pannable: true,
             grabbable: false,
             position: {
-              x: (item.position.x + 0.5 ) * scaleFactor,
-              y: (item.position.y + 0.5 ) * scaleFactor
+              x: (item.position.x + 0.5) * scaleFactor,
+              y: (item.position.y + 0.5) * scaleFactor
             }
-            // position: item.position,
-            // grabbable: false
           }
         ));
 
-        //all in one?
-        const edges = data.nodes.flatMap(node => {
-          const inputs: any[] = [];
-          const outputs: any[] = [];
-          node.connectors.forEach(connector => {
-            if (connector.type !== 'OUTPUT') {
-              inputs.push({
+        const edges: cytoscape.EdgeDefinition[] =
+          data.nodes.flatMap(node =>
+            node.connectors.map(connector => {
+              const [source, target] = connector.type !== 'OUTPUT' ?
+                [node, idToEdges.get(connector.edgeId)!] :
+                [idToEdges.get(connector.edgeId)!, node];
+
+              const relatives = this.absoluteToRelative(
+                this.scale(source.position, scaleFactor), this.scale(target.position, scaleFactor),
+                connector.segments.flatMap(segment => [segment.from, segment.to]).map(pos => this.scale(pos, scaleFactor))
+              );
+
+              const edge: cytoscape.EdgeDefinition = {
                 data: {
-                  source: node.id,
-                  target: connector.edgeId,
-                  type: 'input',
+                  source: source.id + '',
+                  target: target.id + '',
                   stoichiometry: connector.stoichiometry.value,
                   portSource: node.id,
                   portTarget: connector.edgeId,
+                  weights: relatives.weights.join(" "),
+                  distances: relatives.distances.join(" ")
                 },
                 classes: this.edgeTypeMap.get(connector.type),
                 pannable: true,
                 grabbable: false,
-              });
-            }
-            if (connector.type === 'OUTPUT') {
-              outputs.push({
-                data: {
-                  source: connector.edgeId,
-                  target: node.id,
-                  type: 'output',
-                  portSource: connector.edgeId,
-                  portTarget: node.id,
-                },
-                classes: this.edgeTypeMap.get(connector.type),
-                pannable: true,
-                grabbable: false,
-              });
-            }
-          });
-
-          return [...inputs, ...outputs]
-        });
+              };
+              return edge
+            })
+          );
 
 
-        const linkEdges = data.links?.map(link => ({
+        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => ({
               data: {
-                id: link.id,
-                source: link.inputs[0].id,
-                target: link.outputs[0].id,
-                portSource: link.inputs[0].id,
-                portTarget: link.outputs[0].id
+                id: link.id + '',
+                source: link.inputs[0].id + '',
+                target: link.outputs[0].id + '',
               },
               classes: this.linkClassMap.get(link.renderableClass),
               pannable: true,
@@ -204,6 +197,39 @@ export class DiagramService {
           edges: [...edges, ...linkEdges]
         };
       }))
+  }
+
+  private absoluteToRelative(source: Position, target: Position, toConvert: Position[]): RelativePosition {
+    const relatives: RelativePosition = {distances: [], weights: []};
+    if (toConvert.length === 0) return relatives;
+    console.log(source, target, toConvert);
+    const mainVector = array([target.x - source.x, target.y - source.y]);
+    const orthoVector = array([-mainVector.y, mainVector.x]).normalize();
+    let transform = array([
+      [mainVector.x, mainVector.y],
+      [orthoVector.x, orthoVector.y],
+    ]);
+    try {
+      transform = transform.inv();
+      for (let coord of toConvert) {
+        const absolute = array([[coord.x - source.x, coord.y - source.y]]);
+        // console.log(absolute.toString(), absolute.shape)
+        const relative = absolute.multiply(transform);
+        console.log(absolute.toString(), " ==> ", relative.toString())
+        relatives.weights.push(relative.get(0, 0))
+        relatives.distances.push(relative.get(0, 1))
+      }
+    } catch (e) {
+      console.error(transform.toString(), transform.shape, e)
+    }
+    return relatives;
+  }
+
+  private scale(pos: Position, scale: number): Position {
+    return {
+      x: pos.x * scale,
+      y: pos.y * scale
+    }
   }
 
   public randomNetwork(): Observable<cytoscape.ElementsDefinition> {

@@ -55,9 +55,10 @@ export interface Prop {
   height: number;
 }
 
-interface Connectors {
+export interface Connectors {
   edgeId: number;
-  type: string;
+  type: 'INPUT' | 'OUTPUT' | 'CATALYST' | 'ACTIVATOR' | 'INHIBITOR';
+  segments: { from: Position, to: Position }[]
   stoichiometry: { value: number }
 }
 
