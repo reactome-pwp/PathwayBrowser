@@ -38,11 +38,11 @@ export interface Drawer {
 }
 
 export interface DrawerProvider {
-  (width: number, height: number, disease: boolean): Drawer
+  (width: number, height: number, drug: boolean): Drawer
 }
 
 
-const dim = (width: number, height: number, disease: boolean) => `${width}x${height}-${disease}`;
+const dim = (width: number, height: number, drug: boolean) => `${width}x${height}-${drug}`;
 export type Memo<T> = T & _.MemoizedFunction;
 export const classToDrawers = new Map<Reactome.PhysicalEntity, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
@@ -90,7 +90,7 @@ const RX = (width: number, height: number, clazz: Reactome.PhysicalEntity): Imag
   const t = extract(Reactome.Style.properties.global.thickness);
   const color = clazz !== 'Molecule' ?
     extract(Reactome.Style.properties.global.onPrimary) :
-    extract(Reactome.Style.properties.molecule.disease);
+    extract(Reactome.Style.properties.molecule.drug);
 
   const x = (clazz !== 'EntitySet' ? 0 : extract(Reactome.Style.properties.entitySet.radius)) + 3 * t;
 
@@ -113,8 +113,8 @@ export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
-  const [width, height, disease] = [node.data("width"), node.data("height"), node.hasClass('disease')];
-  const drawer = provider(width, height, disease);
+  const [width, height, drug] = [node.data("width"), node.data("height"), node.hasClass('drug')];
+  const drawer = provider(width, height, drug);
 
   if (drawer.background) layers.push(drawer.background);
 
@@ -127,7 +127,7 @@ export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated
 
   if (drawer.decorators) layers.push(...drawer.decorators);
 
-  if (disease) {
+  if (drug) {
     layers.push(RX(width, height, clazz));
   }
 

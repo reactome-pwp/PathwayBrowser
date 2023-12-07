@@ -3,7 +3,7 @@ import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
 // TODO Switch to dashed line
-export const genomeEncodedEntity: DrawerProvider = (width, height, disease) => {
+export const genomeEncodedEntity: DrawerProvider = (width, height, drug) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
   const t = extract(Reactome.Style.properties.global.thickness);

@@ -22,18 +22,18 @@ export namespace Reactome {
     }
     protein: {
       fill: Property<string>
-      disease: Property<string>
+      drug: Property<string>
       radius: Property<number>
     }
     genomeEncodedEntity: {
       fill: Property<string>
       stroke: Property<string>
-      disease: Property<string>
+      drug: Property<string>
       radius: Property<number>
     }
     rna: {
       fill: Property<string>
-      disease: Property<string>
+      drug: Property<string>
       radius: Property<number>
     }
     gene: {
@@ -46,18 +46,18 @@ export namespace Reactome {
     molecule: {
       fill: Property<string>
       stroke: Property<string>
-      disease: Property<string>
+      drug: Property<string>
     }
     entitySet: {
       fill: Property<string>
       stroke: Property<string>
-      disease: Property<string>
+      drug: Property<string>
       radius: Property<number>
     }
     complex: {
       fill: Property<string>
       stroke: Property<string>
-      disease: Property<string>
+      drug: Property<string>
       cut: Property<number>
     }
   }
@@ -117,18 +117,18 @@ export namespace Reactome {
 
       const protein: Properties['protein'] = defaultable(properties.protein || {})
         .setDefault('fill', () => Style.css.getPropertyValue('--primary-contrast-1') || '#001F29')
-        .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-1') || '#3E001D')
+        .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-1') || '#3E001D')
         .setDefault('radius', 8)
 
       const genomeEncodedEntity: Properties['genomeEncodedEntity'] = defaultable(properties.genomeEncodedEntity || {})
         .setDefault('fill', () => extract(protein.fill))
         .setDefault('stroke', () => extract(global.primary))
-        .setDefault('disease', () => extract(protein.disease))
+        .setDefault('drug', () => extract(protein.drug))
         .setDefault('radius', 8)
 
       const rna: Properties['rna'] = defaultable(properties.rna || {})
         .setDefault('fill', () => Style.css.getPropertyValue('--primary-contrast-2') || '#003545')
-        .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-2') || '#610B33')
+        .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-2') || '#610B33')
         .setDefault('radius', 8)
 
       const gene: Properties['gene'] = defaultable(properties.gene || {})
@@ -141,20 +141,20 @@ export namespace Reactome {
       const molecule: Properties['molecule'] = defaultable(properties.molecule || {})
         .setDefault("fill", () => extract(global.surface))
         .setDefault("stroke", () => extract(global.onSurface))
-        .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-4') || '#9C3D61')
+        .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-4') || '#9C3D61')
       ;
 
       const complex: Properties['complex'] = defaultable(properties.complex || {})
         .setDefault("cut", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--tertiary-contrast-1') || '#00315C')
         .setDefault("stroke", () => Style.css.getPropertyValue('--on-tertiary') || '#FFFFFF')
-        .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-4') || '#7E2549')
+        .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-4') || '#7E2549')
 
       const entitySet: Properties['entitySet'] = defaultable(properties.entitySet || {})
         .setDefault("radius", 8)
         .setDefault("fill", () => Style.css.getPropertyValue('--tertiary-contrast-2') || '#1660A5')
         .setDefault("stroke", () => Style.css.getPropertyValue('--on-tertiary') || '#FFFFFF')
-        .setDefault('disease', () => Style.css.getPropertyValue('--disease-contrast-5') || '#BB557A')
+        .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-5') || '#BB557A')
 
 
       Style.properties = {
@@ -249,9 +249,9 @@ export namespace Reactome {
             "background-color": this.p('protein', 'fill')
           }
         }, {
-          selector: 'node.Protein.disease',
+          selector: 'node.Protein.drug',
           style: {
-            "background-color": this.p('protein', 'disease')
+            "background-color": this.p('protein', 'drug')
           }
         }, {
           selector: 'node.GenomeEncodedEntity',
@@ -260,9 +260,9 @@ export namespace Reactome {
             "background-color": this.p('genomeEncodedEntity', 'fill'),
           }
         }, {
-          selector: 'node.GenomeEncodedEntity.disease',
+          selector: 'node.GenomeEncodedEntity.drug',
           style: {
-            "background-color": this.p('genomeEncodedEntity', 'disease'),
+            "background-color": this.p('genomeEncodedEntity', 'drug'),
           }
         }, {
           selector: 'node.RNA',
@@ -271,9 +271,9 @@ export namespace Reactome {
             "background-color": this.p('rna', 'fill'),
           }
         }, {
-          selector: 'node.RNA.disease',
+          selector: 'node.RNA.drug',
           style: {
-            "background-color": this.p('rna', 'disease'),
+            "background-color": this.p('rna', 'drug'),
           }
         }, {
           selector: 'node.Gene',
@@ -290,9 +290,9 @@ export namespace Reactome {
             "color": this.p("molecule", 'stroke'),
           }
         }, {
-          selector: 'node.Molecule.disease',
+          selector: 'node.Molecule.drug',
           style: {
-            "color": this.p("molecule", 'disease'),
+            "color": this.p("molecule", 'drug'),
           }
         }, {
           selector: 'node.EntitySet',
@@ -314,7 +314,7 @@ export namespace Reactome {
         },
 
         {
-          selector: 'node.disease',
+          selector: 'node.drug',
           style: {
             "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 26) + 'px'
           }

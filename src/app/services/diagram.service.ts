@@ -25,10 +25,10 @@ export class DiagramService {
       ['Gene', ['Gene', 'PhysicalEntity']],
       ['Chemical', ['Molecule', 'PhysicalEntity']],
 
-      ['ProteinDrug', ['Protein', 'PhysicalEntity', 'disease']],
-      ['ComplexDrug', ['Complex', 'PhysicalEntity', 'disease']],
-      ['ChemicalDrug', ['Molecule', 'PhysicalEntity', 'disease']],
-      ['EntitySetDrug', ['EntitySet', 'PhysicalEntity', 'disease']],
+      ['ProteinDrug', ['Protein', 'PhysicalEntity', 'drug']],
+      ['ComplexDrug', ['Complex', 'PhysicalEntity', 'drug']],
+      ['ChemicalDrug', ['Molecule', 'PhysicalEntity', 'drug']],
+      ['EntitySetDrug', ['EntitySet', 'PhysicalEntity', 'drug']],
     ]
   )
 
@@ -229,7 +229,7 @@ export class DiagramService {
           displayName: clazz,
           parent: 'Compartment'
         },
-        classes: [clazz, "PhysicalEntity", this.pick(["disease", "", ""])]
+        classes: [clazz, "PhysicalEntity", this.pick(["drug", "", ""])]
       };
     });
 

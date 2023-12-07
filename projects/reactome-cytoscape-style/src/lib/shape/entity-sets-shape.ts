@@ -4,15 +4,15 @@ import {extract} from "../type-utils";
 import {DrawerProvider} from "../svg-utils";
 
 
-export const entitySet: DrawerProvider = (width, height, disease) => {
+export const entitySet: DrawerProvider = (width, height, drug) => {
   const select = extract(Reactome.Style.properties.global.select);
   const hover = extract(Reactome.Style.properties.global.hover);
 
   const t = extract(Reactome.Style.properties.global.thickness);
   const r = extract(Reactome.Style.properties.entitySet.radius);
-  const fill = !disease ?
+  const fill = !drug ?
     extract(Reactome.Style.properties.entitySet.fill) :
-    extract(Reactome.Style.properties.entitySet.disease);
+    extract(Reactome.Style.properties.entitySet.drug);
   const stroke = extract(Reactome.Style.properties.entitySet.stroke);
 
   const r2 = r * 2;
