@@ -86,14 +86,11 @@ export class DiagramService {
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.map(item => ({
           data: {
             id: item.id + '',
-            parent: Object.entries(compartments).find(([key, value]) => value.includes(item.id))?.[0],
+            parent: compartments.get(item.id)?.toString() || undefined,
             displayName: item.displayName,
             width: item.prop.width * scaleFactor,
             height: item.prop.height * scaleFactor,
             class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
-            clonemarker: false,
-            stateVariables: [],
-            unitsOfInformation: []
           },
           classes: ['Compartment'],
           position: {
@@ -142,8 +139,8 @@ export class DiagramService {
             pannable: true,
             grabbable: false,
             position: {
-              x: (item.position.x + 0.5 * (item.prop.width)) * scaleFactor,
-              y: (item.position.y + 0.5 * (item.prop.height)) * scaleFactor
+              x: (item.position.x + 0.5 ) * scaleFactor,
+              y: (item.position.y + 0.5 ) * scaleFactor
             }
             // position: item.position,
             // grabbable: false
