@@ -68,9 +68,7 @@ export const entitySet: DrawerProvider = (width, height, drug) => {
          v ${v}
          a ${r} ${r} 0 0 0 ${r} ${r}
          a ${r} ${r} 0 0 0 -${r} ${r}
-       "/>
-       <line stroke-width="${t}" stroke="${stroke}" x1="${r2 + t}" x2="${width - r2 - t}" y1="${2.5 * t}" y2="${2.5 * t}"/>
-       `,
+       "/>`,
       "background-position-y": -t,
       "background-height": stateHeight
     },
@@ -87,9 +85,7 @@ export const entitySet: DrawerProvider = (width, height, drug) => {
          v -${v}
          a ${r} ${r} 0 0 1 ${r} -${r}
          a ${r} ${r} 0 0 1 -${r} -${r}
-       "/>
-       <line stroke-width="${t}" stroke="${stroke}" x1="${r2 + t}" x2="${width - r2 - t}" y1="${stateHeight - 2.5 * t}" y2="${stateHeight - 2.5 * t}"/>
-        `,
+       "/>`,
       "background-position-y": height / 2,
       "background-height": stateHeight
     },
