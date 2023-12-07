@@ -15,7 +15,7 @@ export const molecule: DrawerProvider = (width, height, drug) => {
   const halfHeight = height / 2;
   const oR = halfHeight + thick;
   const iR = halfHeight - thick;
-
+  const oRx = Math.min(oR, width/2)
   return {
     background: {
       "background-image": `<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${stroke}" fill="${fill}" stroke-width="${thick}"/>`
@@ -24,12 +24,12 @@ export const molecule: DrawerProvider = (width, height, drug) => {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
             M 0 ${oR}
-            a ${oR} ${oR} 0 0 1 ${oR} -${oR}
-            h ${width - 2 * oR}
-            a ${oR} ${oR} 0 0 1 ${oR} ${oR}
-            a ${oR} ${iR} 0 0 0 -${oR} -${iR}
-            h -${width - 2 * oR}
-            a ${oR} ${iR} 0 0 0 -${oR} ${iR}
+            a ${oRx} ${oR} 0 0 1 ${oRx} -${oR}
+            h ${width - 2 * oRx}
+            a ${oRx} ${oR} 0 0 1 ${oRx} ${oR}
+            a ${oRx} ${iR} 0 0 0 -${oRx} -${iR}
+            h -${width - 2 * oRx}
+            a ${oRx} ${iR} 0 0 0 -${oRx} ${iR}
             Z"/>
 `,
       "background-position-y": -thick,
@@ -42,12 +42,12 @@ export const molecule: DrawerProvider = (width, height, drug) => {
       "background-image": `
           <path fill="${select}" stroke-linejoin="round" stroke-linecap="round"  d="
             M 0 0
-            a ${oR} ${oR} 0 0 0 ${oR} ${oR}
-            h ${width - 2 * oR}
-            a ${oR} ${oR} 0 0 0 ${oR} -${oR}
-            a ${oR} ${iR} 0 0 1 -${oR} ${iR}
-            h -${width - 2 * oR}
-            a ${oR} ${iR} 0 0 1 -${oR} -${iR}
+            a ${oRx} ${oR} 0 0 0 ${oRx} ${oR}
+            h ${width - 2 * oRx}
+            a ${oRx} ${oR} 0 0 0 ${oRx} -${oR}
+            a ${oRx} ${iR} 0 0 1 -${oRx} ${iR}
+            h -${width - 2 * oRx}
+            a ${oRx} ${iR} 0 0 1 -${oRx} -${iR}
             Z"/>
 `,
       "background-position-y": halfHeight,

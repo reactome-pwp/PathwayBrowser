@@ -2,7 +2,7 @@ import cytoscape from "cytoscape";
 import {Reactome} from "./reactome-style";
 import {gene} from "./shape/gene-shape";
 import _, {memoize} from "lodash";
-import {molecule} from "./shape/small-molecule-shape";
+import {molecule} from "./shape/molecule-shape";
 import {protein} from "./shape/protein-shape";
 import {rna} from "./shape/rna-shape";
 import {genomeEncodedEntity} from "./shape/gee-shape";
