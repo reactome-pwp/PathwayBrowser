@@ -8,10 +8,10 @@ import {rna} from "./shape/rna-shape";
 import {genomeEncodedEntity} from "./shape/gee-shape";
 import {complex} from "./shape/complex-shape";
 import {entitySet} from "./shape/entity-sets-shape";
+import {extract} from "./type-utils";
 import PhysicalEntity = Reactome.PhysicalEntity;
 import BackgroundImage = cytoscape.Css.BackgroundImage;
 import PropertyValueNode = cytoscape.Css.PropertyValueNode;
-import {extract} from "./type-utils";
 
 function svg(svgStr: string, width = 100, height = 100) {
   const parser = new DOMParser();
@@ -107,7 +107,6 @@ const RX = (width: number, height: number, clazz: Reactome.PhysicalEntity): Imag
 
 
 export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
-  // console.log("backgroundData() called", node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
   let layers: Image[] = [];
   const clazz = node.classes().find(clazz => classToDrawers.has(clazz as PhysicalEntity)) as PhysicalEntity
   if (!clazz) return aggregate(layers, defaultBg);
@@ -119,7 +118,6 @@ export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated
   if (drawer.background) layers.push(drawer.background);
 
   if (node.selected() && drawer.select) layers.push(drawer.select);
-
 
   if (node.hasClass('hover') && drawer.hover) layers.push(drawer.hover);
 
@@ -142,7 +140,5 @@ export const backgroundData = memoize((node: cytoscape.NodeSingular): Aggregated
     })
   );
 
-
-  const combined = aggregate(layers, defaultBg);
-  return combined;
+  return aggregate(layers, defaultBg);
 }, node => node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
