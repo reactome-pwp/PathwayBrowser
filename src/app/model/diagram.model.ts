@@ -6,11 +6,6 @@ export interface Diagram {
   links: Links[];
 }
 
-interface Activator {
-  id: number;
-  points: Position;
-}
-
 
 export interface ReactionShape {
   a: Position;
@@ -19,29 +14,34 @@ export interface ReactionShape {
   type: string;
 }
 
+export interface ConnectorHolder {
+  [k: string]: EdgeConnectors[]
+
+  catalysts: EdgeConnectors[];
+  inputs: EdgeConnectors[];
+  outputs: EdgeConnectors[];
+  inhibitors: EdgeConnectors[];
+  activators: EdgeConnectors[];
+}
+
 // reactions
-export interface Edges {
+export type Edges = {
   id: number
   displayName: string;
-  inputs: Input[];
-  outputs: Output[];
   position: Position;
   renderableClass: string;
   schemaClass: string;
-  activators: Activator[];
   reactionShape: ReactionShape;
   reactionType: string;
-}
+} & ConnectorHolder;
 
-export interface Input {
+
+export interface EdgeConnectors {
   id: number,
-  points: Position[],
-  stoichiometry: number
+  points?: Position[],
+  stoichiometry?: number
 }
 
-export interface Output {
-  id: number
-}
 
 export interface Position {
   x: number;
@@ -85,7 +85,7 @@ export interface Compartments {
 
 export interface Links {
   id: number
-  inputs: Input[];
-  outputs: Output[];
+  inputs: EdgeConnectors[];
+  outputs: EdgeConnectors[];
   renderableClass: string;
 }
