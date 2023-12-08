@@ -115,9 +115,6 @@ export class DiagramService {
             displayName: item.displayName,
             inputs: item.inputs,
             output: item.outputs,
-            stateVariables: [],
-            renderableClass: item.renderableClass,
-            unitsOfInformation: []
           },
           classes: this.reactionTypeMap.get(item.reactionType),
           pannable: true,
@@ -149,33 +146,39 @@ export class DiagramService {
         ));
 
         const edges: cytoscape.EdgeDefinition[] =
-          data.nodes.flatMap(node =>
-            node.connectors.map(connector => {
-              const [source, target] = connector.type !== 'OUTPUT' ?
-                [node, idToEdges.get(connector.edgeId)!] :
-                [idToEdges.get(connector.edgeId)!, node];
+          data.nodes.flatMap(node => {
+              return node.connectors.map(connector => {
+                const reaction = idToEdges.get(connector.edgeId)!;
+                const [source, target] = connector.type !== 'OUTPUT' ?
+                  [node, reaction] :
+                  [reaction, node];
 
-              const relatives = this.absoluteToRelative(
-                this.scale(source.position, scaleFactor), this.scale(target.position, scaleFactor),
-                connector.segments.flatMap(segment => [segment.from, segment.to]).map(pos => this.scale(pos, scaleFactor))
-              );
+                const toConvert = connector.segments
+                  .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+                  .map(pos => this.scale(pos, scaleFactor));
+                if (connector.type === 'OUTPUT') toConvert.reverse();
 
-              const edge: cytoscape.EdgeDefinition = {
-                data: {
-                  source: source.id + '',
-                  target: target.id + '',
-                  stoichiometry: connector.stoichiometry.value,
-                  portSource: node.id,
-                  portTarget: connector.edgeId,
-                  weights: relatives.weights.join(" "),
-                  distances: relatives.distances.join(" ")
-                },
-                classes: this.edgeTypeMap.get(connector.type),
-                pannable: true,
-                grabbable: false,
-              };
-              return edge
-            })
+                const relatives = this.absoluteToRelative(
+                  this.scale(source.position, scaleFactor), this.scale(target.position, scaleFactor),
+                  toConvert
+                );
+
+                const edge: cytoscape.EdgeDefinition = {
+                  data: {
+                    id: source.id + '-->' + target.id,
+                    source: source.id + '',
+                    target: target.id + '',
+                    stoichiometry: connector.stoichiometry.value,
+                    weights: relatives.weights.join(" "),
+                    distances: relatives.distances.join(" ")
+                  },
+                  classes: this.edgeTypeMap.get(connector.type),
+                  pannable: true,
+                  grabbable: false,
+                };
+                return edge
+              });
+            }
           );
 
 
@@ -199,28 +202,33 @@ export class DiagramService {
       }))
   }
 
+  /**
+   * Use Matrix power to convert points from an absolute coordinate system to an edge relative system
+   *
+   * Visually explained by https://youtu.be/kYB8IZa5AuE?si=vJKi-MUv2dCRQ5oA<br>
+   * Short version ==> https://math.stackexchange.com/q/1855051/683621
+   * @param source Position position of the edge source:  {x:number, y:number}
+   * @param target Position position of the edge target:  {x:number, y:number}
+   * @param toConvert Array of Position to convert to the edge-relative system
+   * @return The points converted to relative coordinates {distances: number[], weights: number[]}
+   */
   private absoluteToRelative(source: Position, target: Position, toConvert: Position[]): RelativePosition {
     const relatives: RelativePosition = {distances: [], weights: []};
     if (toConvert.length === 0) return relatives;
-    console.log(source, target, toConvert);
-    const mainVector = array([target.x - source.x, target.y - source.y]);
-    const orthoVector = array([-mainVector.y, mainVector.x]).normalize();
+
+    const mainVector = array([target.x - source.x, target.y - source.y]); // Edge vector
+    const orthoVector = array([-mainVector.y, mainVector.x]) // Perpendicular vector
+      .normalize(); //Normalized to have the distance expressed in pixels https://math.stackexchange.com/a/413235/683621
     let transform = array([
       [mainVector.x, mainVector.y],
       [orthoVector.x, orthoVector.y],
-    ]);
-    try {
-      transform = transform.inv();
-      for (let coord of toConvert) {
-        const absolute = array([[coord.x - source.x, coord.y - source.y]]);
-        // console.log(absolute.toString(), absolute.shape)
-        const relative = absolute.multiply(transform);
-        console.log(absolute.toString(), " ==> ", relative.toString())
-        relatives.weights.push(relative.get(0, 0))
-        relatives.distances.push(relative.get(0, 1))
-      }
-    } catch (e) {
-      console.error(transform.toString(), transform.shape, e)
+    ]).inv(); // Should always be invertible if the ortho vector is indeed perpendicular
+
+    for (let coord of toConvert) {
+      const absolute = array([[coord.x - source.x, coord.y - source.y]]);
+      const relative = absolute.multiply(transform);
+      relatives.weights.push(relative.get(0, 0))
+      relatives.distances.push(relative.get(0, 1))
     }
     return relatives;
   }
