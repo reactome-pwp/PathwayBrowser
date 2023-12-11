@@ -2,12 +2,13 @@ import {Injectable} from '@angular/core';
 import {map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
-import {Reactome} from "reactome-cytoscape-style";
+import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {array} from "vectorious";
-import PhysicalEntityDefinition = Reactome.PhysicalEntityDefinition;
-import ReactionDefinition = Reactome.ReactionDefinition;
-import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
+
+import PhysicalEntityDefinition = Reactome.Types.PhysicalEntityDefinition;
+import ReactionDefinition = Reactome.Types.ReactionDefinition;
+import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 
 type RelativePosition = { distances: number[], weights: number[] };
 

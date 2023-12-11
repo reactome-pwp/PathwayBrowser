@@ -1,22 +1,22 @@
-import {Reactome} from "../reactome-style";
-import {extract} from "../type-utils";
-import {DrawerProvider} from "../svg-utils";
+import {Style} from "../../style";
+import {extract} from "../../properties-utils";
+import {DrawerProvider} from "../types";
 
 
 export const gene: DrawerProvider = (width, height, drug) => {
-  const thick = extract(Reactome.Style.properties.global.thickness);
-  const dHeight = extract(Reactome.Style.properties.gene.decorationHeight);
-  const dWidth = extract(Reactome.Style.properties.gene.decorationExtraWidth);
-  const headSize = extract(Reactome.Style.properties.gene.arrowHeadSize);
-  const radius = extract(Reactome.Style.properties.gene.arrowRadius);
-  const fill = extract(Reactome.Style.properties.gene.fill);
-  const select = extract(Reactome.Style.properties.global.select);
-  const hover = extract(Reactome.Style.properties.global.hover);
+  const thick = extract(Style.properties.global.thickness);
+  const dHeight = extract(Style.properties.gene.decorationHeight);
+  const dWidth = extract(Style.properties.gene.decorationExtraWidth);
+  const headSize = extract(Style.properties.gene.arrowHeadSize);
+  const radius = extract(Style.properties.gene.arrowRadius);
+  const fill = extract(Style.properties.gene.fill);
+  const select = extract(Style.properties.global.select);
+  const hover = extract(Style.properties.global.hover);
   const hh = Math.sqrt(Math.pow(headSize, 2) * 3 / 4)
 
   const halfWidth = width / 2;
 
-  const r = extract(Reactome.Style.properties.gene.borderRadius);
+  const r = extract(Style.properties.gene.borderRadius);
   const oR = r + thick;
   const iR = r - thick;
   return {

@@ -1,19 +1,19 @@
 import {memoize} from "lodash";
-import {Reactome} from "../reactome-style";
-import {extract} from "../type-utils";
-import {DrawerProvider} from "../svg-utils";
+import {Style} from "../../style";
+import {extract} from "../../properties-utils";
+import {DrawerProvider} from "../types";
 
 
 export const entitySet: DrawerProvider = (width, height, drug) => {
-  const select = extract(Reactome.Style.properties.global.select);
-  const hover = extract(Reactome.Style.properties.global.hover);
+  const select = extract(Style.properties.global.select);
+  const hover = extract(Style.properties.global.hover);
 
-  const t = extract(Reactome.Style.properties.global.thickness);
-  const r = extract(Reactome.Style.properties.entitySet.radius);
+  const t = extract(Style.properties.global.thickness);
+  const r = extract(Style.properties.entitySet.radius);
   const fill = !drug ?
-    extract(Reactome.Style.properties.entitySet.fill) :
-    extract(Reactome.Style.properties.entitySet.drug);
-  const stroke = extract(Reactome.Style.properties.entitySet.stroke);
+    extract(Style.properties.entitySet.fill) :
+    extract(Style.properties.entitySet.drug);
+  const stroke = extract(Style.properties.entitySet.stroke);
 
   const r2 = r * 2;
   const t2 = t * 2;

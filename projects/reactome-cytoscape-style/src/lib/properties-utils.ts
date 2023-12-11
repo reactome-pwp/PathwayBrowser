@@ -1,13 +1,15 @@
-import {Reactome} from "./reactome-style";
+import {Style} from "./style";
+import {Properties} from "./properties";
 
 export type Provider<T> = () => T;
 
 export type Property<T> = T | Provider<T>;
 
 /**
- * The function checks if the apply property of the property object (cast to Provider<T>) is not undefined.
+ * This is a guard function to check if a property is a Provider function, or a direct value
  *
- * @param property A value of type Property<T>.
+ * @param property The value to check
+ * @return true if is a Provider function
  */
 export function isProvider<T>(property: Property<T>): property is Provider<T> {
   return (property as Provider<T>).apply !== undefined;
@@ -47,7 +49,7 @@ export function defaultable<T>(object: T): Defaultable<T> {
   return defaultable;
 }
 
-export const propertyExtractor = <G extends keyof Reactome.Properties, K extends keyof Reactome.Properties[G]>(group: G, key: K) => Reactome.Style.properties[group][key]
-export const propertyMapper = <G extends keyof Reactome.Properties, K extends keyof Reactome.Properties[G], T extends Reactome.Properties[G][K] extends Property<infer X> ? X : never,  M extends (t: T) => any>(group: G, key: K, mapper: M) => mapper(extract(Reactome.Style.properties[group][key]))
+export const propertyExtractor = <G extends keyof Properties, K extends keyof Properties[G]>(group: G, key: K) => Style.properties[group][key]
+export const propertyMapper = <G extends keyof Properties, K extends keyof Properties[G], T extends Properties[G][K] extends Property<infer X> ? X : never,  M extends (t: T) => any>(group: G, key: K, mapper: M) => mapper(extract(Style.properties[group][key]))
 
 

@@ -1,14 +1,14 @@
-import {Reactome} from "../reactome-style";
-import {extract} from "../type-utils";
-import {DrawerProvider} from "../svg-utils";
+import {Style} from "../../style";
+import {extract} from "../../properties-utils";
+import {DrawerProvider} from "../types";
 
 // TODO Switch to dashed line
 export const genomeEncodedEntity: DrawerProvider = (width, height, drug) => {
-  const select = extract(Reactome.Style.properties.global.select);
-  const hover = extract(Reactome.Style.properties.global.hover);
-  const t = extract(Reactome.Style.properties.global.thickness);
-  const radius = extract(Reactome.Style.properties.genomeEncodedEntity.radius);
-  const stroke = extract(Reactome.Style.properties.genomeEncodedEntity.stroke);
+  const select = extract(Style.properties.global.select);
+  const hover = extract(Style.properties.global.hover);
+  const t = extract(Style.properties.global.thickness);
+  const radius = extract(Style.properties.genomeEncodedEntity.radius);
+  const stroke = extract(Style.properties.genomeEncodedEntity.stroke);
 
   const oR = radius + t;
   const iR = radius - t;
