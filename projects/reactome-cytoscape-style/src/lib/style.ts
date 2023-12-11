@@ -277,7 +277,6 @@ export class Style {
       }, {
         selector: 'edge[stoichiometry > 1]',
         style: {
-          "label": "data(stoichiometry)",
           "text-background-color": this.p('global', 'surface'),
           "text-background-opacity": 1,
           "text-border-width": this.pm('global', 'thickness', t => t / 2),
@@ -287,6 +286,18 @@ export class Style {
           "text-background-padding": this.pm('global', 'thickness', t => t + 'px'),
         }
       }, {
+        selector: 'edge[stoichiometry > 1].incoming',
+        style: {
+          "source-label": "data(stoichiometry)",
+          "source-text-offset": 30,
+        }
+      }, {
+        selector: 'edge[stoichiometry > 1].outgoing',
+        style: {
+          "target-label": "data(stoichiometry)",
+          "target-text-offset": 35,
+        }
+      },{
         selector: "edge[?weights]",
         style: {
           "curve-style": "segments",

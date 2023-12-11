@@ -201,7 +201,6 @@ export class DiagramService {
 
                 const relatives = this.absoluteToRelative(from, to, points);
 
-                // TODO Fix stoichiometry on overlapping edges
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
                     id: this.getEdgeId(source, connector, target, edgeIds),
