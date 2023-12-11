@@ -443,7 +443,30 @@ export namespace Reactome {
             "curve-style": "segments",
             "segment-distances": "data(distances)",
             "segment-weights": "data(weights)",
-            "edge-distances": "node-position"
+            // @ts-ignore
+            "edge-distances": "endpoints",
+            // "edge-distances": "node-position"
+          }
+        }, {
+          selector: "edge[?sourceEndpoint]",
+          style: {
+            // @ts-ignore
+            "source-endpoint": "data(sourceEndpoint)",
+          }
+        }, {
+          selector: "edge[?targetEndpoint]",
+          style: {
+            // @ts-ignore
+            "target-endpoint": "data(targetEndpoint)",
+          }
+        }, {
+          selector: "node.debug",
+          style: {
+            label: "data(id)",
+            "text-outline-width" : 4,
+            "text-outline-color": 'black',
+            "text-outline-opacity": 1,
+            color: 'white'
           }
         }
       ]

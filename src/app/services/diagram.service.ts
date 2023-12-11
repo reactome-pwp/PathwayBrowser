@@ -11,6 +11,16 @@ import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
 
 type RelativePosition = { distances: number[], weights: number[] };
 
+const posToStr = (pos: Position) => `${pos.x},${pos.y}`
+
+const scale = <T extends Position | number>(pos: T, scale = 2): T => {
+  if (typeof pos === 'number') return pos * scale as T
+  return {
+    x: pos.x * scale,
+    y: pos.y * scale
+  } as T
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -79,8 +89,12 @@ export class DiagramService {
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
 
+
         // const idToNode = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
+        const extraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])));
+        const reverseExtraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])));
+        console.log(extraLine)
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
@@ -88,21 +102,17 @@ export class DiagramService {
         );
 
         //compartment nodes
-        const scaleFactor = 2;
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.map(item => ({
           data: {
             id: item.id + '',
             parent: compartments.get(item.id)?.toString() || undefined,
             displayName: item.displayName,
-            width: item.prop.width * scaleFactor,
-            height: item.prop.height * scaleFactor,
+            width: scale(item.prop.width),
+            height: scale(item.prop.height),
             class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
           },
           classes: ['Compartment'],
-          position: {
-            x: item.position.x * scaleFactor,
-            y: item.position.y * scaleFactor
-          },
+          position: scale(item.position),
           pannable: true,
           grabbable: false,
           selectable: false,
@@ -119,10 +129,7 @@ export class DiagramService {
           classes: this.reactionTypeMap.get(item.reactionType),
           pannable: true,
           grabbable: false,
-          position: {
-            x: item.reactionShape.centre.x * scaleFactor,
-            y: item.reactionShape.centre.y * scaleFactor,
-          }
+          position: scale(item.position)
         }));
 
 
@@ -132,16 +139,13 @@ export class DiagramService {
               id: item.id + '',
               parent: compartments.get(item.id)?.toString() || undefined,
               displayName: item.displayName.replace(/([,:;])/g, "$1\u200b"),
-              height: item.prop.height * scaleFactor,
-              width: item.prop.width * scaleFactor,
+              height: scale(item.prop.height),
+              width: scale(item.prop.width),
             },
             classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
             pannable: true,
             grabbable: false,
-            position: {
-              x: (item.position.x + 0.5) * scaleFactor,
-              y: (item.position.y + 0.5) * scaleFactor
-            }
+            position: scale(item.position)
           }
         ));
 
@@ -153,14 +157,99 @@ export class DiagramService {
                   [node, reaction] :
                   [reaction, node];
 
-                const toConvert = connector.segments
+                const sourceP = scale(source.position);
+                const targetP = scale(target.position);
+
+                let points = connector.segments
                   .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
-                  .map(pos => this.scale(pos, scaleFactor));
-                if (connector.type === 'OUTPUT') toConvert.reverse();
+                  .map(pos => scale(pos));
+
+                if (connector.type === 'OUTPUT') points.reverse();
+                // if (points.length === 0) points = [sourceP, targetP]
+
+
+                const sourceKey = posToStr(sourceP);
+                const targetKey = posToStr(targetP);
+                let key: string;
+
+                if (points.length !== 0) {
+                  let firstPosition = points.at(0)!;
+                  key = posToStr(firstPosition)
+                  if (node.id === 5656 && reaction.id === 5655) console.log(key, sourceKey)
+                  while (reverseExtraLine.has(key) && key !== sourceKey) {
+                    points.unshift(reverseExtraLine.get(key)!)
+                    firstPosition = points.at(0)!;
+                    key = posToStr(firstPosition)
+                  }
+
+                  let lastPosition = points.at(-1)!;
+                  key = posToStr(lastPosition)
+                  if (node.id === 5656 && reaction.id === 5655) console.log(key, targetKey)
+                  while (extraLine.has(key) && key !== targetKey) {
+                    points.push(extraLine.get(key)!)
+                    lastPosition = points.at(-1)!;
+                    key = posToStr(lastPosition)
+                  }
+                } else {
+
+                  if (connector.type !== 'OUTPUT') {
+                    let firstPosition = targetP;
+                    key = posToStr(firstPosition)
+                    if (reverseExtraLine.has(key)) points = [targetP]
+                    while (reverseExtraLine.has(key) && key !== sourceKey) {
+                      points.unshift(reverseExtraLine.get(key)!)
+                      firstPosition = points.at(0)!;
+                      key = posToStr(firstPosition)
+                    }
+
+                  } else {
+                    let lastPosition = sourceP;
+                    key = posToStr(lastPosition)
+                    if (node.id === 5656 && reaction.id === 5655) console.log(key, targetKey)
+                    if (extraLine.has(key)) points = [sourceP]
+                    while (extraLine.has(key) && key !== targetKey) {
+                      points.push(extraLine.get(key)!)
+                      lastPosition = points.at(-1)!;
+                      key = posToStr(lastPosition)
+                    }
+                  }
+                }
+
+
+                // const genePositions = {} as any;
+                let [from, to] = [sourceP, targetP];
+
+                let positions = {} as any;
+
+                if (node.renderableClass === 'Gene' && points.length !== 0) {
+                  // const geneStart = scale({
+                  //   x: node.position.x + node.prop.width / 2,
+                  //   y: node.position.y - node.prop.height / 2 - 7
+                  // }, scaleFactor);
+                  // if (node === source) {
+                  //   from = geneStart;
+                  //   points.shift();
+                  // } else {
+                  //   to = geneStart;
+                  //   points.pop();
+                  // }
+                  // else {
+                  //   to = points.shift()! ;
+                  //   genePositions.targetEndpoint = this.endpoint(targetP, to)
+                  // }
+                  // console.log(genePositions, node.prop.width * 2)
+                }
+
+                if (points.length >= 2) {
+                  from = points.shift()!;
+                  to = points.pop()!;
+                  positions.sourceEndpoint = this.endpoint(sourceP, from)
+                  positions.targetEndpoint = this.endpoint(targetP, to)
+                }
 
                 const relatives = this.absoluteToRelative(
-                  this.scale(source.position, scaleFactor), this.scale(target.position, scaleFactor),
-                  toConvert
+                  from, to,
+                  points
                 );
 
                 const edge: cytoscape.EdgeDefinition = {
@@ -170,12 +259,15 @@ export class DiagramService {
                     target: target.id + '',
                     stoichiometry: connector.stoichiometry.value,
                     weights: relatives.weights.join(" "),
-                    distances: relatives.distances.join(" ")
+                    distances: relatives.distances.join(" "),
+                    ...positions
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,
                   grabbable: false,
                 };
+
+                // console.log(edge.data.id, relatives)
                 return edge
               });
             }
@@ -200,6 +292,10 @@ export class DiagramService {
           edges: [...edges, ...linkEdges]
         };
       }))
+  }
+
+  private endpoint(source: Position, point: Position): string {
+    return `${point.x - source.x} ${point.y - source.y}`
   }
 
   /**
@@ -231,13 +327,6 @@ export class DiagramService {
       relatives.distances.push(relative.get(0, 1))
     }
     return relatives;
-  }
-
-  private scale(pos: Position, scale: number): Position {
-    return {
-      x: pos.x * scale,
-      y: pos.y * scale
-    }
   }
 
   public randomNetwork(): Observable<cytoscape.ElementsDefinition> {
