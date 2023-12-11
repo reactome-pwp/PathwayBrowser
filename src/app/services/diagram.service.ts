@@ -60,11 +60,23 @@ export class DiagramService {
   edgeTypeMap = new Map<string, EdgeTypeDefinition>([
       ['INPUT', ['consumption', 'incoming']],
       ['ACTIVATOR', ['positive-regulation', 'incoming']],
+      ['REQUIRED', ['positive-regulation', 'incoming']],
       ['INHIBITOR', ['negative-regulation', 'incoming']],
       ['CATALYST', ['catalysis', 'incoming']],
       ['OUTPUT', ['production', 'outgoing']],
     ]
   )
+
+  edgeTypeToStr = new Map<string, string>([
+      ['INPUT', '-'],
+      ['ACTIVATOR', '+'],
+      ['REQUIRED', '+>'],
+      ['INHIBITOR', '|'],
+      ['CATALYST', 'o'],
+      ['OUTPUT', '>'],
+    ]
+  )
+
 
   linkClassMap = new Map<string, EdgeTypeDefinition>([
     ['EntitySetAndMemberLink', ['set-to-member', 'incoming']],
@@ -92,11 +104,15 @@ export class DiagramService {
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
 
-
-        // const idToNode = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
-        this.extraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])));
-        this.reverseExtraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])));
+        const edgeIds = new Map<string, number>();
+        const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])) as [string, Position][];
+        this.extraLine = new Map<string, Position>(forwardArray);
+        console.assert(forwardArray.length === this.extraLine.size, "Some edge data have been lost because 2 segments are starting from the same point")
+
+        const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])) as [string, Position][];
+        this.reverseExtraLine = new Map<string, Position>(backwardArray);
+        console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
 
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
@@ -191,9 +207,20 @@ export class DiagramService {
                   points
                 );
 
+                let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
+
+                if (edgeIds.has(edgeId)) {
+                  let count = edgeIds.get(edgeId)!;
+                  edgeIds.set(edgeId, count++);
+                  edgeId += ` (${count})`;
+                  console.warn('Conflicting edge id: ', edgeId)
+                } else {
+                  edgeIds.set(edgeId, 0)
+                }
+
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
-                    id: source.id + '-->' + target.id,
+                    id: edgeId,
                     source: source.id + '',
                     target: target.id + '',
                     stoichiometry: connector.stoichiometry.value,
@@ -212,7 +239,7 @@ export class DiagramService {
             }
           );
 
-
+        // TODO add anchor points
         const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => ({
               data: {
                 id: link.id + '',
