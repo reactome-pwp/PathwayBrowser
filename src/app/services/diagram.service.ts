@@ -163,60 +163,30 @@ export class DiagramService {
                 let points = connector.segments
                   .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
                   .map(pos => scale(pos));
-
                 if (connector.type === 'OUTPUT') points.reverse();
-                // if (points.length === 0) points = [sourceP, targetP]
+                if (points.length === 0) points.push(scale(reaction.position))
 
 
                 const sourceKey = posToStr(sourceP);
                 const targetKey = posToStr(targetP);
                 let key: string;
 
-                if (points.length !== 0) {
-                  let firstPosition = points.at(0)!;
+                let firstPosition = points.at(0)!;
+                key = posToStr(firstPosition)
+                while (reverseExtraLine.has(key) && key !== sourceKey) {
+                  points.unshift(reverseExtraLine.get(key)!)
+                  firstPosition = points.at(0)!;
                   key = posToStr(firstPosition)
-                  if (node.id === 5656 && reaction.id === 5655) console.log(key, sourceKey)
-                  while (reverseExtraLine.has(key) && key !== sourceKey) {
-                    points.unshift(reverseExtraLine.get(key)!)
-                    firstPosition = points.at(0)!;
-                    key = posToStr(firstPosition)
-                  }
-
-                  let lastPosition = points.at(-1)!;
-                  key = posToStr(lastPosition)
-                  if (node.id === 5656 && reaction.id === 5655) console.log(key, targetKey)
-                  while (extraLine.has(key) && key !== targetKey) {
-                    points.push(extraLine.get(key)!)
-                    lastPosition = points.at(-1)!;
-                    key = posToStr(lastPosition)
-                  }
-                } else {
-
-                  if (connector.type !== 'OUTPUT') {
-                    let firstPosition = targetP;
-                    key = posToStr(firstPosition)
-                    if (reverseExtraLine.has(key)) points = [targetP]
-                    while (reverseExtraLine.has(key) && key !== sourceKey) {
-                      points.unshift(reverseExtraLine.get(key)!)
-                      firstPosition = points.at(0)!;
-                      key = posToStr(firstPosition)
-                    }
-
-                  } else {
-                    let lastPosition = sourceP;
-                    key = posToStr(lastPosition)
-                    if (node.id === 5656 && reaction.id === 5655) console.log(key, targetKey)
-                    if (extraLine.has(key)) points = [sourceP]
-                    while (extraLine.has(key) && key !== targetKey) {
-                      points.push(extraLine.get(key)!)
-                      lastPosition = points.at(-1)!;
-                      key = posToStr(lastPosition)
-                    }
-                  }
                 }
 
+                let lastPosition = points.at(-1)!;
+                key = posToStr(lastPosition)
+                while (extraLine.has(key) && key !== targetKey) {
+                  points.push(extraLine.get(key)!)
+                  lastPosition = points.at(-1)!;
+                  key = posToStr(lastPosition)
+                }
 
-                // const genePositions = {} as any;
                 let [from, to] = [sourceP, targetP];
 
                 let positions = {} as any;
