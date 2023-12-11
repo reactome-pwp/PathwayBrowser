@@ -189,12 +189,14 @@ export class DiagramService {
                 this.addEdgeInfo(points, 'backward', sourceP);
                 this.addEdgeInfo(points, 'forward', targetP);
 
-                let positions = {} as any;
-
                 if (node.renderableClass === 'Gene') {
                 }
 
-                const [from, to] = [points.shift()!, points.pop()!]
+                let [from, to] = [points.shift()!, points.pop()!]
+
+                if (connector.type === 'CATALYST') {
+                  to = scale(connector.endShape.centre)
+                }
 
                 const relatives = this.absoluteToRelative(from, to, points);
 
@@ -222,19 +224,19 @@ export class DiagramService {
           );
 
         const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => {
-          const source = idToNodes.get(link.inputs[0].id)!;
-          const target = idToNodes.get(link.outputs[0].id)!;
+            const source = idToNodes.get(link.inputs[0].id)!;
+            const target = idToNodes.get(link.outputs[0].id)!;
 
-          const sourceP = scale(source.position);
-          const targetP = scale(target.position);
+            const sourceP = scale(source.position);
+            const targetP = scale(target.position);
 
-          let points = link.segments
-            .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
-            .map(pos => scale(pos));
+            let points = link.segments
+              .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+              .map(pos => scale(pos));
 
-          const [from, to] = [points.shift()!, points.pop()!]
+            const [from, to] = [points.shift()!, points.pop()!]
 
-          const relatives = this.absoluteToRelative(from, to, points);
+            const relatives = this.absoluteToRelative(from, to, points);
 
             return {
               data: {

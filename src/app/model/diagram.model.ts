@@ -65,6 +65,7 @@ export interface Connectors {
   type: 'INPUT' | 'OUTPUT' | 'CATALYST' | 'ACTIVATOR' | 'INHIBITOR';
   segments: Segment[]
   stoichiometry: { value: number }
+  endShape: {centre: Position}
 }
 
 // entities
