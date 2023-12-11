@@ -187,6 +187,7 @@ export namespace Reactome {
           style: {
             "font-family": "Helvetica",
             "font-weight": 600,
+            // "font-size": 10
           }
         },
         {
@@ -338,8 +339,8 @@ export namespace Reactome {
         {
           selector: 'node.reaction',
           style: {
-            "width": 24,
-            "height": 24,
+            "width": this.pm('global', 'thickness', t => t * 6),
+            "height": this.pm('global', 'thickness', t => t * 6),
             "shape": "round-rectangle",
             "text-halign": "center",
             "text-valign": "center",
