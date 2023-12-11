@@ -93,4 +93,5 @@ export interface Links {
   inputs: EdgeConnectors[];
   outputs: EdgeConnectors[];
   renderableClass: string;
+  segments: Segment[];
 }

@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Diagram, Edges, Position} from "../model/diagram.model";
+import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
 import {Reactome} from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {array} from "vectorious";
@@ -105,6 +105,7 @@ export class DiagramService {
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
 
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
+        const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const edgeIds = new Map<string, number>();
         const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])) as [string, Position][];
         this.extraLine = new Map<string, Position>(forwardArray);
@@ -188,45 +189,25 @@ export class DiagramService {
                 this.addEdgeInfo(points, 'backward', sourceP);
                 this.addEdgeInfo(points, 'forward', targetP);
 
-                let [from, to] = [sourceP, targetP];
-
                 let positions = {} as any;
 
                 if (node.renderableClass === 'Gene') {
                 }
 
-                if (points.length >= 2) {
-                  from = points.shift()!;
-                  to = points.pop()!;
-                  positions.sourceEndpoint = this.endpoint(sourceP, from)
-                  positions.targetEndpoint = this.endpoint(targetP, to)
-                }
+                const [from, to] = [points.shift()!, points.pop()!]
 
-                const relatives = this.absoluteToRelative(
-                  from, to,
-                  points
-                );
-
-                let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
-
-                if (edgeIds.has(edgeId)) {
-                  let count = edgeIds.get(edgeId)!;
-                  edgeIds.set(edgeId, count++);
-                  edgeId += ` (${count})`;
-                  console.warn('Conflicting edge id: ', edgeId)
-                } else {
-                  edgeIds.set(edgeId, 0)
-                }
+                const relatives = this.absoluteToRelative(from, to, points);
 
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
-                    id: edgeId,
+                    id: this.getEdgeId(source, connector, target, edgeIds),
                     source: source.id + '',
                     target: target.id + '',
                     stoichiometry: connector.stoichiometry.value,
                     weights: relatives.weights.join(" "),
                     distances: relatives.distances.join(" "),
-                    ...positions
+                    sourceEndpoint: this.endpoint(sourceP, from),
+                    targetEndpoint: this.endpoint(targetP, to)
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,
@@ -239,18 +220,36 @@ export class DiagramService {
             }
           );
 
-        // TODO add anchor points
-        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => ({
+        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => {
+          const source = idToNodes.get(link.inputs[0].id)!;
+          const target = idToNodes.get(link.outputs[0].id)!;
+
+          const sourceP = scale(source.position);
+          const targetP = scale(target.position);
+
+          let points = link.segments
+            .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+            .map(pos => scale(pos));
+
+          const [from, to] = [points.shift()!, points.pop()!]
+
+          const relatives = this.absoluteToRelative(from, to, points);
+
+            return {
               data: {
                 id: link.id + '',
                 source: link.inputs[0].id + '',
                 target: link.outputs[0].id + '',
+                weights: relatives.weights.join(" "),
+                distances: relatives.distances.join(" "),
+                sourceEndpoint: this.endpoint(sourceP, from),
+                targetEndpoint: this.endpoint(targetP, to)
               },
               classes: this.linkClassMap.get(link.renderableClass),
               pannable: true,
               grabbable: false,
             }
-          )
+          }
         )
 
         return {
@@ -258,6 +257,20 @@ export class DiagramService {
           edges: [...edges, ...linkEdges]
         };
       }))
+  }
+
+  private getEdgeId(source: Edges | Nodes, connector: Connectors, target: Edges | Nodes, edgeIds: Map<string, number>) {
+    let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
+
+    if (edgeIds.has(edgeId)) {
+      let count = edgeIds.get(edgeId)!;
+      edgeIds.set(edgeId, count++);
+      edgeId += ` (${count})`;
+      console.warn('Conflicting edge id: ', edgeId)
+    } else {
+      edgeIds.set(edgeId, 0)
+    }
+    return edgeId;
   }
 
   private addEdgeInfo(points: Position[], direction: 'forward' | 'backward', stop: Position) {
