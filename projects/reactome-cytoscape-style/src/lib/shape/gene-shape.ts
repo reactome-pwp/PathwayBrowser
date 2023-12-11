@@ -6,6 +6,7 @@ import {DrawerProvider} from "../svg-utils";
 export const gene: DrawerProvider = (width, height, drug) => {
   const thick = extract(Reactome.Style.properties.global.thickness);
   const dHeight = extract(Reactome.Style.properties.gene.decorationHeight);
+  const dWidth = extract(Reactome.Style.properties.gene.decorationExtraWidth);
   const headSize = extract(Reactome.Style.properties.gene.arrowHeadSize);
   const radius = extract(Reactome.Style.properties.gene.arrowRadius);
   const fill = extract(Reactome.Style.properties.gene.fill);
@@ -19,33 +20,49 @@ export const gene: DrawerProvider = (width, height, drug) => {
   const oR = r + thick;
   const iR = r - thick;
   return {
+    background: {
+      "background-image": `
+          <path fill="${fill}" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"  d="
+            M ${0} ${dHeight}
+            H ${width}
+            v ${height - dHeight - radius}
+            a ${radius} ${radius} 0 0 1 -${radius} ${radius}
+            H ${radius}
+            a ${radius} ${radius} 0 0 1 -${radius} -${radius}
+            Z
+          "/>`,
+      "background-position-y": 0,
+      "background-position-x": 0,
+
+    },
     decorators: [
       {
         "background-image": `
-          <path fill="none" stroke="${fill}" stroke-width="${thick}" stroke-linejoin="round" stroke-linecap="round"  d="
-            M ${halfWidth} ${dHeight + thick}
-            v -${dHeight - radius - (headSize + thick) / 2 + thick}
+          <path fill="none" stroke="${fill}" stroke-width="${thick}"  d="
+            M ${halfWidth} ${dHeight + 2 * thick}
+            v -${dHeight - radius - (headSize + thick) / 2 + 2 * thick}
             a ${radius} ${radius} 0 0 1 ${radius} -${radius}
-            h ${halfWidth - thick - radius}
+            h ${halfWidth - thick - radius + dWidth}
           "/>
             <path fill="${fill}" stroke="${fill}" stroke-width="${thick}" stroke-linejoin="round"  d="
-            M ${width - hh - thick / 2} ${headSize / 2 + thick / 2}
+            M ${width - hh - thick / 2 + dWidth} ${headSize / 2 + thick / 2}
             v -${headSize / 2}
             l ${hh} ${headSize / 2}
             l -${hh} ${headSize / 2}
             v -${headSize / 2}
             z
           "/>`,
-        "background-position-y": -dHeight,
+        "background-position-y": -thick / 2,
         "bounds-expansion": dHeight,
-        "background-height": dHeight + thick,
+        "background-height": dHeight + 1.5 * thick,
+        "background-width": width + dWidth,
         "background-clip": "none",
         "background-image-containment": "over",
       }
     ],
     hover: {
-      "background-image": `<rect x="0" y="0" width="${width}" height="${2*thick}" fill="${hover}"/>`,
-      "background-position-y": -thick,
+      "background-image": `<rect x="0" y="0" width="${width}" height="${2 * thick}" fill="${hover}"/>`,
+      "background-position-y": dHeight - thick,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",

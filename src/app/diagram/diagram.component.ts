@@ -41,7 +41,7 @@ export class DiagramComponent implements AfterViewInit {
         }
       });
       reactomeStyle.bindToCytoscape(this.cy);
-      this.cy.nodes().addClass('debug')
+      // this.cy.nodes().addClass('debug')
 
 
       // this.cy.on("ready", () => ))

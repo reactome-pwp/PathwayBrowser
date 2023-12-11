@@ -39,6 +39,7 @@ export namespace Reactome {
     gene: {
       fill: Property<string>
       decorationHeight: Property<number>
+      decorationExtraWidth: Property<number>
       arrowHeadSize: Property<number>
       borderRadius: Property<number>
       arrowRadius: Property<number>
@@ -133,6 +134,7 @@ export namespace Reactome {
 
       const gene: Properties['gene'] = defaultable(properties.gene || {})
         .setDefault('decorationHeight', 20)
+        .setDefault('decorationExtraWidth', 17)
         .setDefault("arrowHeadSize", 10)
         .setDefault("borderRadius", 8)
         .setDefault("arrowRadius", 8)
@@ -285,8 +287,10 @@ export namespace Reactome {
           selector: 'node.Gene',
           style: {
             "shape": "bottom-round-rectangle",
+            "background-opacity": 0,
             "background-color": this.p('gene', 'fill'),
-            "bounds-expansion": this.p('gene', 'decorationHeight'),
+            "bounds-expansion": this.p('gene', 'decorationExtraWidth'),
+            "text-margin-y": this.pm('gene', 'decorationHeight', h => h / 2)
           }
         }, {
           selector: 'node.Molecule',
@@ -464,7 +468,7 @@ export namespace Reactome {
           selector: "node.debug",
           style: {
             label: "data(id)",
-            "text-outline-width" : 4,
+            "text-outline-width": 4,
             "text-outline-color": 'black',
             "text-outline-opacity": 1,
             color: 'white'
