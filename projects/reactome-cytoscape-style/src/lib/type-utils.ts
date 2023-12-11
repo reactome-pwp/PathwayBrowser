@@ -4,10 +4,20 @@ export type Provider<T> = () => T;
 
 export type Property<T> = T | Provider<T>;
 
+/**
+ * The function checks if the apply property of the property object (cast to Provider<T>) is not undefined.
+ *
+ * @param property A value of type Property<T>.
+ */
 export function isProvider<T>(property: Property<T>): property is Provider<T> {
   return (property as Provider<T>).apply !== undefined;
 }
 
+/**
+ * This function extracts the value from a property, and if the property is a Provider<T>, it calls the property function to get the actual value.
+ *
+ * @param property A value of type Property<T>.
+ */
 export function extract<T>(property: Property<T>): T {
   return isProvider(property) ? property() : property;
 }
