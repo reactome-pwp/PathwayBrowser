@@ -1,7 +1,4 @@
-import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
-import cytoscape from 'cytoscape';
-import {Reactome} from "reactome-cytoscape-style";
-import {DiagramService} from "./services/diagram.service";
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'cr-root',
@@ -9,4 +6,5 @@ import {DiagramService} from "./services/diagram.service";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  title = 'PathwayBrowser'
 }
