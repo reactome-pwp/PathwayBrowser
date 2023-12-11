@@ -26,6 +26,9 @@ const scale = <T extends Position | number>(pos: T, scale = 2): T => {
 })
 export class DiagramService {
 
+  extraLine: Map<string, Position> = new Map<string, Position>();
+  reverseExtraLine: Map<string, Position> = new Map<string, Position>();
+
   constructor(private http: HttpClient) {
   }
 
@@ -92,9 +95,9 @@ export class DiagramService {
 
         // const idToNode = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
-        const extraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])));
-        const reverseExtraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])));
-        console.log(extraLine)
+        this.extraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])));
+        this.reverseExtraLine = new Map<string, Position>(data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])));
+
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
@@ -166,48 +169,14 @@ export class DiagramService {
                 if (connector.type === 'OUTPUT') points.reverse();
                 if (points.length === 0) points.push(scale(reaction.position))
 
-
-                const sourceKey = posToStr(sourceP);
-                const targetKey = posToStr(targetP);
-                let key: string;
-
-                let firstPosition = points.at(0)!;
-                key = posToStr(firstPosition)
-                while (reverseExtraLine.has(key) && key !== sourceKey) {
-                  points.unshift(reverseExtraLine.get(key)!)
-                  firstPosition = points.at(0)!;
-                  key = posToStr(firstPosition)
-                }
-
-                let lastPosition = points.at(-1)!;
-                key = posToStr(lastPosition)
-                while (extraLine.has(key) && key !== targetKey) {
-                  points.push(extraLine.get(key)!)
-                  lastPosition = points.at(-1)!;
-                  key = posToStr(lastPosition)
-                }
+                this.addEdgeInfo(points, 'backward', sourceP);
+                this.addEdgeInfo(points, 'forward', targetP);
 
                 let [from, to] = [sourceP, targetP];
 
                 let positions = {} as any;
 
-                if (node.renderableClass === 'Gene' && points.length !== 0) {
-                  // const geneStart = scale({
-                  //   x: node.position.x + node.prop.width / 2,
-                  //   y: node.position.y - node.prop.height / 2 - 7
-                  // }, scaleFactor);
-                  // if (node === source) {
-                  //   from = geneStart;
-                  //   points.shift();
-                  // } else {
-                  //   to = geneStart;
-                  //   points.pop();
-                  // }
-                  // else {
-                  //   to = points.shift()! ;
-                  //   genePositions.targetEndpoint = this.endpoint(targetP, to)
-                  // }
-                  // console.log(genePositions, node.prop.width * 2)
+                if (node.renderableClass === 'Gene') {
                 }
 
                 if (points.length >= 2) {
@@ -262,6 +231,25 @@ export class DiagramService {
           edges: [...edges, ...linkEdges]
         };
       }))
+  }
+
+  private addEdgeInfo(points: Position[], direction: 'forward' | 'backward', stop: Position) {
+    const stopPos = posToStr(stop);
+    if (direction === 'forward') {
+      const map = this.extraLine;
+      let pos = posToStr(points.at(-1)!)
+      while (map.has(pos) && pos !== stopPos) {
+        points.push(map.get(pos)!)
+        pos = posToStr(points.at(-1)!)
+      }
+    } else {
+      const map = this.reverseExtraLine;
+      let pos = posToStr(points.at(0)!)
+      while (map.has(pos) && pos !== stopPos) {
+        points.unshift(map.get(pos)!)
+        pos = posToStr(points.at(0)!)
+      }
+    }
   }
 
   private endpoint(source: Position, point: Position): string {
