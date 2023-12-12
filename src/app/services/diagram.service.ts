@@ -304,7 +304,7 @@ export class DiagramService {
    * at a distance of radius from the original anchor point.
    *
    * With Cytoscape Bezier edges, this renders as a segmented edges with smoothed corner.
-   * For a schematic explanation, @see https://github.com/reactome-pwp/PathwayBrowser/doc/smooth-segments.png
+   * For a schematic explanation, @see https://raw.githubusercontent.com/reactome-pwp/PathwayBrowser/main/doc/smooth-segments.png
    *
    * @param source The position of the source node
    * @param target The position of the target node
