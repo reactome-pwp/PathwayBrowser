@@ -5,9 +5,10 @@ import {Diagram, Edges, Position} from "../model/diagram.model";
 import {Reactome} from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {array} from "vectorious";
-import PhysicalEntityDefinition = Reactome.PhysicalEntityDefinition;
 import ReactionDefinition = Reactome.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
+import NodeDefinition = Reactome.NodeDefinition;
+
 
 type RelativePosition = { distances: number[], weights: number[] };
 
@@ -20,7 +21,7 @@ export class DiagramService {
   }
 
 
-  nodeTypeMap = new Map<string, PhysicalEntityDefinition>([
+  nodeTypeMap = new Map<string, NodeDefinition>([
       ['Protein', ['Protein', 'PhysicalEntity']],
       ['EntitySet', ['EntitySet', 'PhysicalEntity']],
       ['Complex', ['Complex', 'PhysicalEntity']],
@@ -32,6 +33,9 @@ export class DiagramService {
       ['ComplexDrug', ['Complex', 'PhysicalEntity', 'drug']],
       ['ChemicalDrug', ['Molecule', 'PhysicalEntity', 'drug']],
       ['EntitySetDrug', ['EntitySet', 'PhysicalEntity', 'drug']],
+
+      ['ProcessNode', ['SUB', 'Pathway']],
+      ['EncapsulatedNode', ['Interacting', 'Pathway']]
     ]
   )
 
@@ -112,7 +116,7 @@ export class DiagramService {
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => ({
           data: {
             id: item.id + '',
-            displayName: item.displayName,
+            displayName: item.id,
             inputs: item.inputs,
             output: item.outputs,
           },
@@ -145,6 +149,26 @@ export class DiagramService {
           }
         ));
 
+
+        //subpathways
+        const shadowNodes = data?.shadows.map(item => ({
+            data: {
+              id: item.id + '',
+              displayName: item.displayName,
+              height: item.prop.height * scaleFactor,
+              width: item.prop.width * scaleFactor,
+              class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
+            },
+            position: item.position,
+            pannable: true,
+            grabbable: false,
+          })
+        );
+
+        /**
+         * iterate nodes connectors to get all edges information based on the connector type.
+         *
+         */
         const edges: cytoscape.EdgeDefinition[] =
           data.nodes.flatMap(node => {
               return node.connectors.map(connector => {

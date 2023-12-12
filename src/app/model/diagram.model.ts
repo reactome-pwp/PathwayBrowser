@@ -4,6 +4,10 @@ export interface Diagram {
   nodes: Nodes[];
   compartments: Compartments[];
   links: Links[];
+  /**
+   * The list of contained shadows(subpathways)
+   */
+  shadows: Shadows[];
 }
 
 
@@ -64,7 +68,6 @@ export interface Connectors {
 
 // entities
 export interface Nodes {
-
   id: number;
   displayName: string;
   renderableClass: string;
@@ -88,4 +91,13 @@ export interface Links {
   inputs: EdgeConnectors[];
   outputs: EdgeConnectors[];
   renderableClass: string;
+}
+
+interface Shadows {
+  id: number
+  displayName: string;
+  position: Position;
+  renderableClass: string;
+  schemaClass: string;
+  prop: Prop,
 }
