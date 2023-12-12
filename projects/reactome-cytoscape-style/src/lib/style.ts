@@ -300,9 +300,9 @@ export class Style {
       },{
         selector: "edge[?weights]",
         style: {
-          "curve-style": "segments",
-          "segment-distances": "data(distances)",
-          "segment-weights": "data(weights)",
+          "curve-style": "unbundled-bezier",
+          "control-point-distances": "data(distances)",
+          "control-point-weights": "data(weights)",
           // @ts-ignore
           "edge-distances": "endpoints",
           // "edge-distances": "node-position"
