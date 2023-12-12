@@ -60,6 +60,11 @@ export namespace Reactome {
       drug: Property<string>
       cut: Property<number>
     }
+    interactingPathway: {
+      fill: Property<string>
+      stroke: Property<string>
+      disease: Property<string>
+    }
   }
 
   export type UserProperties = Partial<{
@@ -71,9 +76,14 @@ export namespace Reactome {
   export type PhysicalEntity = SimpleEntity | ComposedEntity;
   export type PhysicalEntityDefinition = [PhysicalEntity, 'PhysicalEntity', ...string[]];
 
+  export type PathwayEntity = 'Interacting' | 'SUB';
+  export type PathwayEntityDefinition = [PathwayEntity, 'Pathway', ...string[]];
+
+  export type Node = PhysicalEntity | PathwayEntity;
+  export type NodeDefinition = PathwayEntityDefinition | PhysicalEntityDefinition;
+
+
   export type CompartmentDefinition = ['Compartment', ...string[]];
-
-
   export type Reaction = 'association' | 'dissociation' | 'transition' | 'uncertain' | 'omitted';
   export type ReactionDefinition = [Reaction, 'reaction', ...string[]];
 
@@ -156,6 +166,10 @@ export namespace Reactome {
         .setDefault("stroke", () => Style.css.getPropertyValue('--on-tertiary') || '#FFFFFF')
         .setDefault('drug', () => Style.css.getPropertyValue('--drug-contrast-5') || '#BB557A')
 
+      const interactingPathway: Properties['interactingPathway'] = defaultable(properties.interactingPathway || {})
+        .setDefault("fill", () => extract(global.primary))
+        .setDefault("stroke", () => extract(global.onPrimary))
+        .setDefault('disease', () => extract(global.negative))
 
       Style.properties = {
         global,
@@ -166,7 +180,8 @@ export namespace Reactome {
         gene,
         molecule,
         complex,
-        entitySet
+        entitySet,
+        interactingPathway
       }
     }
 
@@ -218,7 +233,7 @@ export namespace Reactome {
             "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
           }
         }, {
-          selector: 'node.PhysicalEntity',
+          selector: 'node.PhysicalEntity, node.Pathway',
           style: {
             'label': 'data(displayName)',
             'width': 'data(width)',
@@ -330,7 +345,16 @@ export namespace Reactome {
         {
           selector: 'node.Pathway',
           style: {
-            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
+            "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px',
+            "background-color": this.p('interactingPathway', 'fill'),
+            "border-color": this.p('interactingPathway', 'stroke'),
+            "border-width": this.pm('global', 'thickness', t => 3 * t),
+          }
+        },
+        {
+          selector: 'node.Interacting.Pathway',
+          style: {
+            "shape": "rectangle",
           }
         },
 

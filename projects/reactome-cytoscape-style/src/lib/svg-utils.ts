@@ -12,6 +12,7 @@ import {extract} from "./type-utils";
 import PhysicalEntity = Reactome.PhysicalEntity;
 import BackgroundImage = cytoscape.Css.BackgroundImage;
 import PropertyValueNode = cytoscape.Css.PropertyValueNode;
+import {interactingPathway} from "./shape/interacting-pathway";
 
 function svg(svgStr: string, width = 100, height = 100) {
   const parser = new DOMParser();
@@ -44,7 +45,7 @@ export interface DrawerProvider {
 
 const dim = (width: number, height: number, drug: boolean) => `${width}x${height}-${drug}`;
 export type Memo<T> = T & _.MemoizedFunction;
-export const classToDrawers = new Map<Reactome.PhysicalEntity, Memo<DrawerProvider>>([
+export const classToDrawers = new Map<Reactome.Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
   ["RNA", memoize(rna, dim)],
@@ -52,6 +53,7 @@ export const classToDrawers = new Map<Reactome.PhysicalEntity, Memo<DrawerProvid
   ["Molecule", memoize(molecule, dim)],
   ["Complex", memoize(complex, dim)],
   ["EntitySet", memoize(entitySet, dim)],
+  ["Interacting", memoize(interactingPathway, dim)],
 ]);
 
 type Aggregated<T> = {
