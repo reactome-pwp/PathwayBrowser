@@ -303,7 +303,8 @@ export class DiagramService {
    * Add roundness to a segment edge by adding for each anchor position an additional point just before and just after
    * at a distance of radius from the original anchor point.
    *
-   * With Cytoscape Bezier edges, this renders as a segmented edges with smoothed corner
+   * With Cytoscape Bezier edges, this renders as a segmented edges with smoothed corner.
+   * For a schematic explanation, @see https://github.com/reactome-pwp/PathwayBrowser/doc/smooth-segments.png
    *
    * @param source The position of the source node
    * @param target The position of the target node
