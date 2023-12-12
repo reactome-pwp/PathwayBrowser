@@ -9,6 +9,7 @@ import {add, array, NDArray, subtract} from "vectorious";
 import PhysicalEntityDefinition = Reactome.Types.PhysicalEntityDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
+import {addRoundness} from "./roundness";
 
 type RelativePosition = { distances: number[], weights: number[] };
 
@@ -196,9 +197,7 @@ export class DiagramService {
                   to = scale(connector.endShape.centre)
                 }
 
-                console.log(points)
-                points = this.addRoundness(from, to, points);
-                console.log(points)
+                points = addRoundness(from, to, points);
                 const relatives = this.absoluteToRelative(from, to, points);
 
                 const edge: cytoscape.EdgeDefinition = {
@@ -216,8 +215,6 @@ export class DiagramService {
                   pannable: true,
                   grabbable: false,
                 };
-
-                // console.log(edge.data.id, relatives)
                 return edge
               });
             }
@@ -236,6 +233,7 @@ export class DiagramService {
 
             const [from, to] = [points.shift()!, points.pop()!]
 
+            points = addRoundness(from, to, points);
             const relatives = this.absoluteToRelative(from, to, points);
 
             return {
@@ -300,45 +298,6 @@ export class DiagramService {
   }
 
   /**
-   * Add roundness to a segment edge by adding for each anchor position an additional point just before and just after
-   * at a distance of radius from the original anchor point.
-   *
-   * With Cytoscape Bezier edges, this renders as a segmented edges with smoothed corner.
-   * For a schematic explanation, @see https://raw.githubusercontent.com/reactome-pwp/PathwayBrowser/main/doc/smooth-segments.png
-   *
-   * @param source The position of the source node
-   * @param target The position of the target node
-   * @param anchors The intermediate segment points
-   * @param radius How far away the new points need to be from the anchor points.
-   * A bigger radius means smoother corners,
-   * but it shouldn't be bigger than the segment
-   * @private
-   */
-  private addRoundness(source: Position, target: Position, anchors: Position[], radius = 40): Position[] {
-    const output: NDArray[] = []
-    if (anchors.length === 0) return output;
-
-    const points = [source, ...anchors, target];
-    for (let i = 1; i < points.length - 1; i++) {
-      let previousPoint = this.toVector(points[i - 1]);
-      let currentPoint = this.toVector(points[i]);
-      let nextPoint = this.toVector(points[i + 1]);
-
-      const previousVector = subtract(previousPoint.copy(), currentPoint);
-      const nextVector = subtract(nextPoint.copy(), currentPoint);
-
-      // Scaling to fit to radius
-      this.scaleTo([previousVector, nextVector], radius);
-
-      previousPoint = add(currentPoint.copy(), previousVector);
-      nextPoint = add(currentPoint.copy(), nextVector);
-
-      output.push(previousPoint, currentPoint, nextPoint);
-    }
-    return output.map(this.toPosition);
-  }
-
-  /**
    * Use Matrix power to convert points from an absolute coordinate system to an edge relative system
    *
    * Visually explained by https://youtu.be/kYB8IZa5AuE?si=vJKi-MUv2dCRQ5oA<br>
@@ -367,32 +326,6 @@ export class DiagramService {
       relatives.distances.push(relative.get(0, 1))
     }
     return relatives;
-  }
-
-  private toVector(position: Position): NDArray {
-    return array([position.x, position.y]);
-  }
-
-  private toPosition(vector: NDArray): Position {
-    return {x: vector.x, y: vector.y}
-  }
-
-  /**
-   * Scale a list of vectors to a desired length.
-   *
-   * If limit is true, limiting the resulting length to half the minimum norm of all vectors, in order to avoid clashing
-   * @param vectors
-   * @param length
-   * @param limit
-   * @private
-   */
-  private scaleTo(vectors: NDArray[], length: number, limit = true): NDArray[] {
-    const norms = vectors.map(vector => vector.norm());
-    if (limit) {
-      const minNorm = Math.min(...norms);
-      if (length >= minNorm) length = minNorm / 2.1;
-    }
-    return vectors.map((vector, i) => vector.scale(length / norms[i]));
   }
 
   public randomNetwork(): Observable<cytoscape.ElementsDefinition> {
