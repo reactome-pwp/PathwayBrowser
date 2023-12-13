@@ -22,14 +22,14 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
            M 0 0
            H ${realWidth}
-           V ${2*t}
+           V ${t}
            H 0
            V 0
            Z
            "/>
 `,
-      "background-position-y": -t/2,
-      "background-position-x": -t/2,
+      "background-position-y": -t / 2,
+      "background-position-x": -t / 2,
       "background-width": realWidth,
       "bounds-expansion": t,
       "background-clip": "none",
@@ -39,14 +39,16 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
       "background-image": `
           <path fill="${select}" stroke-linejoin="round" stroke-linecap="round"  d="
            M 0 0
-           H ${width}
-           V ${height}
+           H ${realWidth}
+           V ${t}
            H 0
            V 0
            Z"/>
 `,
-      "background-position-y": height - thick,
-      "bounds-expansion": thick,
+      "background-position-y": height - t / 2,
+      "background-position-x": -t / 2,
+      "background-width": realWidth,
+      "bounds-expansion": t,
       "background-clip": "none",
       "background-image-containment": "over",
     }
