@@ -1,16 +1,18 @@
-import {DrawerProvider} from "../svg-utils";
-import {extract} from "../type-utils";
-import {Reactome} from "../reactome-style";
+import {DrawerProvider} from "../types";
+import {extract} from "../../properties-utils";
+import {Style} from "../../style";
+
 
 export const interactingPathway: DrawerProvider = (width, height, drug) => {
-  const select = extract(Reactome.Style.properties.global.select);
-  const hover = extract(Reactome.Style.properties.global.hover);
-  const thick = extract(Reactome.Style.properties.global.thickness);
+  const select = extract(Style.properties.global.select);
+  const hover = extract(Style.properties.global.hover);
+  const thick = extract(Style.properties.global.thickness);
+
 
   const stroke = !drug ?
-    extract(Reactome.Style.properties.interactingPathway.stroke) :
-    extract(Reactome.Style.properties.interactingPathway.disease);
-  const fill = extract(Reactome.Style.properties.molecule.fill);
+    extract(Style.properties.interactingPathway.stroke) :
+    extract(Style.properties.interactingPathway.disease);
+  const fill = extract(Style.properties.molecule.fill);
 
 
   let realWidth = width + 3 * thick;

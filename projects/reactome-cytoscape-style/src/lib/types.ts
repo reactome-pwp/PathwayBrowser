@@ -2,6 +2,12 @@ export type SimpleEntity = 'Protein' | 'GenomeEncodedEntity' | 'RNA' | 'Gene' | 
 export type ComposedEntity = 'EntitySet' | 'Complex' | 'Cell';
 export type PhysicalEntity = SimpleEntity | ComposedEntity;
 export type PhysicalEntityDefinition = [PhysicalEntity, 'PhysicalEntity', ...string[]];
+export type PathwayEntity = 'Interacting' | 'SUB';
+export type PathwayEntityDefinition = [PathwayEntity, 'Pathway', ...string[]];
+
+export type Node = PhysicalEntity | PathwayEntity;
+export type NodeDefinition = PathwayEntityDefinition | PhysicalEntityDefinition;
+
 
 export type CompartmentDefinition = ['Compartment', ...string[]];
 

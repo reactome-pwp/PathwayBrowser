@@ -7,15 +7,17 @@ import {rna} from "./shape/rna-shape";
 import {genomeEncodedEntity} from "./shape/gee-shape";
 import {complex} from "./shape/complex-shape";
 import {entitySet} from "./shape/entity-sets-shape";
-import {interactingPathway} from "./shape/interacting-pathway";
+import {interactingPathway} from "./shape/interacting-pathway-shape";
+
 import {extract} from "../properties-utils";
 import {Style} from "../style";
-import {PhysicalEntity} from "../types";
+import {Node} from "../types";
 import {Aggregated, DrawerProvider, Image, Memo} from "./types";
+
 
 export const imageBuilder = memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
   let layers: Image[] = [];
-  const clazz = node.classes().find(clazz => classToDrawers.has(clazz as PhysicalEntity)) as PhysicalEntity
+  const clazz = node.classes().find(clazz => classToDrawers.has(clazz as Node)) as Node
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
@@ -83,7 +85,7 @@ function svgStr(svgText: string, viewPortWidth: number, viewPortHeight: number) 
 
 
 const dim = (width: number, height: number, drug: boolean) => `${width}x${height}-${drug}`;
-const classToDrawers = new Map<PhysicalEntity, Memo<DrawerProvider>>([
+const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
   ["RNA", memoize(rna, dim)],
@@ -109,7 +111,7 @@ function aggregate<T extends Object, K extends keyof T>(toAggregate: T[], defaul
   return aggregate;
 }
 
-const RX = (width: number, height: number, clazz: PhysicalEntity): Image => {
+const RX = (width: number, height: number, clazz: Node): Image => {
   const t = extract(Style.properties.global.thickness);
   const color = clazz !== 'Molecule' ?
     extract(Style.properties.global.onPrimary) :

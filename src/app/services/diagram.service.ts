@@ -6,9 +6,9 @@ import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {add, array, NDArray, subtract} from "vectorious";
 
-import NodeDefinition = Reactome.NodeDefinition;
-import ReactionDefinition = Reactome.ReactionDefinition;
-import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
+import NodeDefinition = Reactome.Types.NodeDefinition;
+import ReactionDefinition = Reactome.Types.ReactionDefinition;
+import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 
 import {addRoundness} from "./roundness";
 
@@ -181,8 +181,8 @@ export class DiagramService {
             data: {
               id: item.id + '',
               displayName: item.displayName,
-              height: item.prop.height * scaleFactor,
-              width: item.prop.width * scaleFactor,
+              height: scale(item.prop.height),
+              width: scale(item.prop.width),
               class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
             },
             position: item.position,
