@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-import {Reactome} from "reactome-cytoscape-style";
+import {Style, UserProperties} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {switchMap} from "rxjs";
 
@@ -28,8 +28,8 @@ export class DiagramComponent implements AfterViewInit {
       switchMap(params => this.diagram.getDiagram(params['id']))
     ).subscribe(elements => {
       const container = this.cytoscapeContainer!.nativeElement;
-      const properties: Reactome.UserProperties = {global: {thickness: 8}};
-      const reactomeStyle = new Reactome.Style(container, {});
+      const properties: UserProperties = {global: {thickness: 8}};
+      const reactomeStyle = new Style(container, {});
       this.cy = cytoscape({
         container: container,
         elements: elements,
@@ -41,6 +41,7 @@ export class DiagramComponent implements AfterViewInit {
         }
       });
       reactomeStyle.bindToCytoscape(this.cy);
+      // this.cy.nodes().addClass('debug')
 
 
       // this.cy.on("ready", () => ))

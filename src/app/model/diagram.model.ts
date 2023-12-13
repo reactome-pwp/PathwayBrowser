@@ -1,3 +1,5 @@
+import SegmentsEdges = cytoscape.Css.SegmentsEdges;
+
 export interface Diagram {
   displayName: string;
   edges: Edges[];
@@ -37,6 +39,7 @@ export type Edges = {
   schemaClass: string;
   reactionShape: ReactionShape;
   reactionType: string;
+  segments: Segment[];
 } & ConnectorHolder;
 
 
@@ -59,11 +62,14 @@ export interface Prop {
   height: number;
 }
 
+export type Segment = { from: Position, to: Position };
+
 export interface Connectors {
   edgeId: number;
   type: 'INPUT' | 'OUTPUT' | 'CATALYST' | 'ACTIVATOR' | 'INHIBITOR';
-  segments: { from: Position, to: Position }[]
+  segments: Segment[]
   stoichiometry: { value: number }
+  endShape: {centre: Position}
 }
 
 // entities
@@ -91,6 +97,7 @@ export interface Links {
   inputs: EdgeConnectors[];
   outputs: EdgeConnectors[];
   renderableClass: string;
+  segments: Segment[];
 }
 
 interface Shadows {

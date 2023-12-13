@@ -1,21 +1,36 @@
 import {Injectable} from '@angular/core';
 import {map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Diagram, Edges, Position} from "../model/diagram.model";
-import {Reactome} from "reactome-cytoscape-style";
+import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
+import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
-import {array} from "vectorious";
+import {add, array, NDArray, subtract} from "vectorious";
+
+import NodeDefinition = Reactome.NodeDefinition;
 import ReactionDefinition = Reactome.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.EdgeTypeDefinition;
-import NodeDefinition = Reactome.NodeDefinition;
 
+import {addRoundness} from "./roundness";
 
 type RelativePosition = { distances: number[], weights: number[] };
+
+const posToStr = (pos: Position) => `${pos.x},${pos.y}`
+
+const scale = <T extends Position | number>(pos: T, scale = 2): T => {
+  if (typeof pos === 'number') return pos * scale as T
+  return {
+    x: pos.x * scale,
+    y: pos.y * scale
+  } as T
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class DiagramService {
+
+  extraLine: Map<string, Position> = new Map<string, Position>();
+  reverseExtraLine: Map<string, Position> = new Map<string, Position>();
 
   constructor(private http: HttpClient) {
   }
@@ -51,16 +66,28 @@ export class DiagramService {
   edgeTypeMap = new Map<string, EdgeTypeDefinition>([
       ['INPUT', ['consumption', 'incoming']],
       ['ACTIVATOR', ['positive-regulation', 'incoming']],
+      ['REQUIRED', ['positive-regulation', 'incoming']],
       ['INHIBITOR', ['negative-regulation', 'incoming']],
       ['CATALYST', ['catalysis', 'incoming']],
       ['OUTPUT', ['production', 'outgoing']],
     ]
   )
 
+  edgeTypeToStr = new Map<string, string>([
+      ['INPUT', '-'],
+      ['ACTIVATOR', '+'],
+      ['REQUIRED', '+>'],
+      ['INHIBITOR', '|'],
+      ['CATALYST', 'o'],
+      ['OUTPUT', '>'],
+    ]
+  )
+
+
   linkClassMap = new Map<string, EdgeTypeDefinition>([
     ['EntitySetAndMemberLink', ['set-to-member', 'incoming']],
     ['EntitySetAndEntitySetLink', ['set-to-member', 'incoming']],
-    ['Interaction', ['consumption', 'incoming']]
+    ['Interaction', ['production', 'outgoing']]
   ])
 
 
@@ -83,8 +110,17 @@ export class DiagramService {
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
 
-        // const idToNode = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
+        const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
+        const edgeIds = new Map<string, number>();
+        const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])) as [string, Position][];
+        this.extraLine = new Map<string, Position>(forwardArray);
+        console.assert(forwardArray.length === this.extraLine.size, "Some edge data have been lost because 2 segments are starting from the same point")
+
+        const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])) as [string, Position][];
+        this.reverseExtraLine = new Map<string, Position>(backwardArray);
+        console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
+
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
@@ -92,21 +128,17 @@ export class DiagramService {
         );
 
         //compartment nodes
-        const scaleFactor = 2;
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.map(item => ({
           data: {
             id: item.id + '',
             parent: compartments.get(item.id)?.toString() || undefined,
             displayName: item.displayName,
-            width: item.prop.width * scaleFactor,
-            height: item.prop.height * scaleFactor,
+            width: scale(item.prop.width),
+            height: scale(item.prop.height),
             class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
           },
           classes: ['Compartment'],
-          position: {
-            x: item.position.x * scaleFactor,
-            y: item.position.y * scaleFactor
-          },
+          position: scale(item.position),
           pannable: true,
           grabbable: false,
           selectable: false,
@@ -116,17 +148,14 @@ export class DiagramService {
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => ({
           data: {
             id: item.id + '',
-            displayName: item.id,
+            displayName: item.displayName,
             inputs: item.inputs,
             output: item.outputs,
           },
           classes: this.reactionTypeMap.get(item.reactionType),
           pannable: true,
           grabbable: false,
-          position: {
-            x: item.reactionShape.centre.x * scaleFactor,
-            y: item.reactionShape.centre.y * scaleFactor,
-          }
+          position: scale(item.position)
         }));
 
 
@@ -136,16 +165,13 @@ export class DiagramService {
               id: item.id + '',
               parent: compartments.get(item.id)?.toString() || undefined,
               displayName: item.displayName.replace(/([,:;])/g, "$1\u200b"),
-              height: item.prop.height * scaleFactor,
-              width: item.prop.width * scaleFactor,
+              height: scale(item.prop.height),
+              width: scale(item.prop.width),
             },
             classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
             pannable: true,
             grabbable: false,
-            position: {
-              x: (item.position.x + 0.5) * scaleFactor,
-              y: (item.position.y + 0.5) * scaleFactor
-            }
+            position: scale(item.position)
           }
         ));
 
@@ -177,24 +203,37 @@ export class DiagramService {
                   [node, reaction] :
                   [reaction, node];
 
-                const toConvert = connector.segments
-                  .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
-                  .map(pos => this.scale(pos, scaleFactor));
-                if (connector.type === 'OUTPUT') toConvert.reverse();
+                const sourceP = scale(source.position);
+                const targetP = scale(target.position);
 
-                const relatives = this.absoluteToRelative(
-                  this.scale(source.position, scaleFactor), this.scale(target.position, scaleFactor),
-                  toConvert
-                );
+                let points = connector.segments
+                  .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+                  .map(pos => scale(pos));
+                if (connector.type === 'OUTPUT') points.reverse();
+                if (points.length === 0) points.push(scale(reaction.position))
+
+                this.addEdgeInfo(points, 'backward', sourceP);
+                this.addEdgeInfo(points, 'forward', targetP);
+
+                let [from, to] = [points.shift()!, points.pop()!]
+
+                if (connector.type === 'CATALYST') {
+                  to = scale(connector.endShape.centre)
+                }
+
+                points = addRoundness(from, to, points);
+                const relatives = this.absoluteToRelative(from, to, points);
 
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
-                    id: source.id + '-->' + target.id,
+                    id: this.getEdgeId(source, connector, target, edgeIds),
                     source: source.id + '',
                     target: target.id + '',
                     stoichiometry: connector.stoichiometry.value,
                     weights: relatives.weights.join(" "),
-                    distances: relatives.distances.join(" ")
+                    distances: relatives.distances.join(" "),
+                    sourceEndpoint: this.endpoint(sourceP, from),
+                    targetEndpoint: this.endpoint(targetP, to)
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,
@@ -205,18 +244,37 @@ export class DiagramService {
             }
           );
 
+        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => {
+            const source = idToNodes.get(link.inputs[0].id)!;
+            const target = idToNodes.get(link.outputs[0].id)!;
 
-        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => ({
+            const sourceP = scale(source.position);
+            const targetP = scale(target.position);
+
+            let points = link.segments
+              .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+              .map(pos => scale(pos));
+
+            const [from, to] = [points.shift()!, points.pop()!]
+
+            points = addRoundness(from, to, points);
+            const relatives = this.absoluteToRelative(from, to, points);
+
+            return {
               data: {
                 id: link.id + '',
                 source: link.inputs[0].id + '',
                 target: link.outputs[0].id + '',
+                weights: relatives.weights.join(" "),
+                distances: relatives.distances.join(" "),
+                sourceEndpoint: this.endpoint(sourceP, from),
+                targetEndpoint: this.endpoint(targetP, to)
               },
               classes: this.linkClassMap.get(link.renderableClass),
               pannable: true,
               grabbable: false,
             }
-          )
+          }
         )
 
         return {
@@ -224,6 +282,43 @@ export class DiagramService {
           edges: [...edges, ...linkEdges]
         };
       }))
+  }
+
+  private getEdgeId(source: Edges | Nodes, connector: Connectors, target: Edges | Nodes, edgeIds: Map<string, number>) {
+    let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
+
+    if (edgeIds.has(edgeId)) {
+      let count = edgeIds.get(edgeId)!;
+      edgeIds.set(edgeId, count++);
+      edgeId += ` (${count})`;
+      console.warn('Conflicting edge id: ', edgeId)
+    } else {
+      edgeIds.set(edgeId, 0)
+    }
+    return edgeId;
+  }
+
+  private addEdgeInfo(points: Position[], direction: 'forward' | 'backward', stop: Position) {
+    const stopPos = posToStr(stop);
+    if (direction === 'forward') {
+      const map = this.extraLine;
+      let pos = posToStr(points.at(-1)!)
+      while (map.has(pos) && pos !== stopPos) {
+        points.push(map.get(pos)!)
+        pos = posToStr(points.at(-1)!)
+      }
+    } else {
+      const map = this.reverseExtraLine;
+      let pos = posToStr(points.at(0)!)
+      while (map.has(pos) && pos !== stopPos) {
+        points.unshift(map.get(pos)!)
+        pos = posToStr(points.at(0)!)
+      }
+    }
+  }
+
+  private endpoint(source: Position, point: Position): string {
+    return `${point.x - source.x} ${point.y - source.y}`
   }
 
   /**
@@ -255,13 +350,6 @@ export class DiagramService {
       relatives.distances.push(relative.get(0, 1))
     }
     return relatives;
-  }
-
-  private scale(pos: Position, scale: number): Position {
-    return {
-      x: pos.x * scale,
-      y: pos.y * scale
-    }
   }
 
   public randomNetwork(): Observable<cytoscape.ElementsDefinition> {

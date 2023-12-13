@@ -1,18 +1,18 @@
-import {Reactome} from "../reactome-style";
-import {extract} from "../type-utils";
-import {DrawerProvider} from "../svg-utils";
+import {Style} from "../../style";
+import {extract} from "../../properties-utils";
+import {DrawerProvider} from "../types";
 
 
 export const complex: DrawerProvider = (width, height, drug) => {
-  const select = extract(Reactome.Style.properties.global.select);
-  const hover = extract(Reactome.Style.properties.global.hover);
+  const select = extract(Style.properties.global.select);
+  const hover = extract(Style.properties.global.hover);
 
-  const t = extract(Reactome.Style.properties.global.thickness);
-  const cut = extract(Reactome.Style.properties.complex.cut);
+  const t = extract(Style.properties.global.thickness);
+  const cut = extract(Style.properties.complex.cut);
   const fill = !drug ?
-    extract(Reactome.Style.properties.complex.fill) :
-    extract(Reactome.Style.properties.complex.drug);
-  const stroke = extract(Reactome.Style.properties.complex.stroke);
+    extract(Style.properties.complex.fill) :
+    extract(Style.properties.complex.drug);
+  const stroke = extract(Style.properties.complex.stroke);
 
   const cut2 = cut * 2;
   const t2 = t * 2;
