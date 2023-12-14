@@ -251,6 +251,10 @@ export class Style {
           'mid-source-arrow-color': this.p('global', 'onSurface'),
           'mid-target-arrow-color': this.p('global', 'onSurface'),
           'source-arrow-color': this.p('global', 'onSurface'),
+          // @ts-ignore
+          'source-arrow-width': '100%',
+          // @ts-ignore
+          'target-arrow-width': '100%',
         }
       }, {
         selector: 'edge.consumption',
