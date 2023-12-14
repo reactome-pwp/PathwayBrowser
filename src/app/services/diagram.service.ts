@@ -4,13 +4,12 @@ import {HttpClient} from "@angular/common/http";
 import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
-import {add, array, NDArray, subtract} from "vectorious";
+import {array} from "vectorious";
 
+import {addRoundness} from "./roundness";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
-
-import {addRoundness} from "./roundness";
 
 type RelativePosition = { distances: number[], weights: number[] };
 
