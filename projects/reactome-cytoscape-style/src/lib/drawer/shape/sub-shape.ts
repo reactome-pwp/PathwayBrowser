@@ -13,7 +13,7 @@ export const sub: DrawerProvider = (width, height, disease) => {
 
   const ht = thick / 2;
   const halfHeight = height / 2;
-  const oR = halfHeight + thick;
+  const oR = halfHeight;
   const iR = halfHeight - thick;
   const oRx = Math.min(oR, width / 2)
   return {
@@ -32,8 +32,6 @@ export const sub: DrawerProvider = (width, height, disease) => {
             a ${oRx} ${iR} 0 0 0 -${oRx} ${iR}
             Z"/>
 `,
-      "background-position-y": -thick,
-      "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
@@ -51,7 +49,6 @@ export const sub: DrawerProvider = (width, height, disease) => {
             Z"/>
 `,
       "background-position-y": halfHeight,
-      "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
