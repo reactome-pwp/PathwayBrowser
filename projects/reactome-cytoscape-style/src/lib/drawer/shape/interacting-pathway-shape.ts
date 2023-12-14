@@ -10,9 +10,9 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
 
 
   const stroke = !drug ?
-    extract(Style.properties.interactingPathway.stroke) :
-    extract(Style.properties.interactingPathway.disease);
-  const fill = extract(Style.properties.molecule.fill);
+    extract(Style.properties.pathway.stroke) :
+    extract(Style.properties.pathway.disease);
+  const fill = extract(Style.properties.pathway.fill);
 
 
   let realWidth = width + 3 * thick;

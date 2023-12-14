@@ -179,18 +179,28 @@ export class Style {
       {
         selector: 'node.Pathway',
         style: {
-          "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px',
-          "background-color": this.p('interactingPathway', 'fill'),
-          "border-color": this.p('interactingPathway', 'stroke'),
-          "border-width": this.pm('global', 'thickness', t => 3 * t),
+          "background-color": this.p('pathway', 'fill'),
+          "text-max-width": (node: cytoscape.NodeSingular) =>
+            this.pm('global', 'thickness', t => `${node.width() - 8 * t - 96}px`
+            )
         }
       },
       {
         selector: 'node.Interacting.Pathway',
         style: {
           "shape": "rectangle",
+          "border-color": this.p('pathway', 'stroke'),
+          "border-width": this.pm('global', 'thickness', t => 3 * t)
         }
       },
+      {
+        selector: 'node.SUB.Pathway',
+        style: {
+          "background-opacity": 0,
+          "shape": 'round-rectangle'
+        }
+      },
+
 
 
       {

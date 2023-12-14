@@ -57,7 +57,8 @@ export interface Properties extends PropertiesType {
     drug: Property<string>
     cut: Property<number>
   }
-  interactingPathway: {
+  //interacting pathway and sub pathway
+  pathway: {
     fill: Property<string>
     stroke: Property<string>
     disease: Property<string>
@@ -122,11 +123,10 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
     .setDefault('drug', () => css.getPropertyValue('--drug-contrast-5') || '#BB557A')
 
-  const interactingPathway: Properties['interactingPathway'] = defaultable(properties.interactingPathway || {})
+  const pathway: Properties['pathway'] = defaultable(properties.pathway || {})
     .setDefault("fill", () => extract(global.primary))
     .setDefault("stroke", () => extract(global.onPrimary))
     .setDefault('disease', () => extract(global.negative))
-
 
   return {
     global,
@@ -138,7 +138,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     molecule,
     complex,
     entitySet,
-    interactingPathway
+    pathway
   }
 }
 

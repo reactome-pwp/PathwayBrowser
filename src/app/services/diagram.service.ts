@@ -164,7 +164,7 @@ export class DiagramService {
             data: {
               id: item.id + '',
               parent: compartments.get(item.id)?.toString() || undefined,
-              displayName: item.displayName.replace(/([,:;])/g, "$1\u200b"),
+              displayName: item.displayName.replace(/([,:;-])/g, "$1\u200b"),
               height: scale(item.prop.height),
               width: scale(item.prop.width),
             },
