@@ -26,6 +26,7 @@ export class Style {
   }
 
 
+
   getStyleSheet(): cytoscape.Stylesheet[] {
     return [
       {
@@ -57,6 +58,16 @@ export class Style {
           "background-color": this.p('compartment', 'fill'),
           "background-opacity": this.p('compartment', 'opacity'),
           "border-width": this.pm('global', 'thickness', t => 3 * t)
+        }
+      },
+      {
+        selector: 'node.Shadow',
+        style: {
+          'label': 'data(displayName)',
+          "font-size": 40,
+          "background-opacity": 0,
+          "color": this.p('shadow', 'fill'),
+
         }
       },
       {

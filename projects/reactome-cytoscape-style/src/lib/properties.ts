@@ -16,6 +16,9 @@ export interface Properties extends PropertiesType {
     fill: Property<string>
     opacity: Property<number>
   }
+  shadow: {
+    fill: Property<string>
+  }
   protein: {
     fill: Property<string>
     drug: Property<string>
@@ -81,6 +84,10 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('opacity', 0.12)
     .setDefault('fill', () => css.getPropertyValue('--compartment') || '#E5834A')
 
+  const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
+   // .setDefault('opacity', 0.12)
+    .setDefault('fill', () => css.getPropertyValue('--shadow') || '#C826CB')
+
   const protein: Properties['protein'] = defaultable(properties.protein || {})
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-1') || '#001F29')
     .setDefault('drug', () => css.getPropertyValue('--drug-contrast-1') || '#3E001D')
@@ -131,6 +138,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   return {
     global,
     compartment,
+    shadow,
     protein,
     genomeEncodedEntity,
     rna,
