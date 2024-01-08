@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
-import {map, Observable, of, tap} from "rxjs";
+import {forkJoin, map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
+import {Graph} from "../model/graph.model";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {array} from "vectorious";
@@ -99,15 +100,21 @@ export class DiagramService {
   }
 
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
-    return this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`).pipe(
-      tap((data) => console.log(data)),
-      map((data) => {
-        //compartments map  compartment id as key, a list of nodes as value
+    return forkJoin({
+      diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
+      graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
+    }).pipe(
+      tap((response) => console.log(response)),
+      map((response) => {
+
+        const data = response.diagram;
+        const graph = response.graph
 
         console.log("edge.reactionType", new Set(data.edges.flatMap(edge => edge.reactionType)))
         console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
         console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
+        console.log("shadow.renderableClass", new Set(data.shadows.flatMap(shadow => shadow.renderableClass)))
 
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
         const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
@@ -119,6 +126,8 @@ export class DiagramService {
         const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])) as [string, Position][];
         this.reverseExtraLine = new Map<string, Position>(backwardArray);
         console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
+
+        const reactomeIdToEdgeIds = new Map<number, number>(data.edges.map(edge => [edge.reactomeId, edge.id]));
 
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
@@ -174,21 +183,24 @@ export class DiagramService {
           }
         ));
 
-
-        //subpathways
-        const shadowNodes = data?.shadows.map(item => ({
+        //sub pathways
+        const shadowNodes = data?.shadows.map(item => {
+          const entityNodeIds = graph.subpathways.find(subpathway => subpathway.dbId == item.reactomeId)?.events
+          return{
             data: {
               id: item.id + '',
               displayName: item.displayName,
               height: scale(item.prop.height),
               width: scale(item.prop.width),
               class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
+              events:  entityNodeIds?.map(reactomeId => reactomeIdToEdgeIds.get(reactomeId))
             },
+            classes: ['Shadow'],
             position: item.position,
             pannable: true,
             grabbable: false,
-          })
-        );
+          }
+        });
 
         /**
          * iterate nodes connectors to get all edges information based on the connector type.
@@ -232,7 +244,8 @@ export class DiagramService {
                     weights: relatives.weights.join(" "),
                     distances: relatives.distances.join(" "),
                     sourceEndpoint: this.endpoint(sourceP, from),
-                    targetEndpoint: this.endpoint(targetP, to)
+                    targetEndpoint: this.endpoint(targetP, to),
+                    shadows: reaction.reactomeId in [] ? "shadow" : "",
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,
@@ -277,7 +290,7 @@ export class DiagramService {
         )
 
         return {
-          nodes: [...reactionNodes, ...entityNodes, ...compartmentNodes],
+          nodes: [...reactionNodes, ...entityNodes, ...compartmentNodes, ...shadowNodes],
           edges: [...edges, ...linkEdges]
         };
       }))

@@ -32,7 +32,8 @@ export interface ConnectorHolder {
 
 // reactions
 export type Edges = {
-  id: number
+  id: number;
+  reactomeId: number;
   displayName: string;
   position: Position;
   renderableClass: string;
@@ -72,14 +73,17 @@ export interface Connectors {
   endShape: {centre: Position}
 }
 
+
 // entities
 export interface Nodes {
   id: number;
   displayName: string;
   renderableClass: string;
+  schemaClass: string;
   position: Position;
   prop: Prop,
   connectors: Connectors[]
+  interactorsSummary: InteractorsSummary;
 }
 
 export interface Compartments {
@@ -107,4 +111,15 @@ interface Shadows {
   renderableClass: string;
   schemaClass: string;
   prop: Prop,
+  reactomeId: number
+}
+
+
+interface InteractorsSummary {
+ shape: Shape;
+ type: string;
+}
+
+interface Shape{
+  type: string
 }
