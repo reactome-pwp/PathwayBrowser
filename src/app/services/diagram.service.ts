@@ -99,6 +99,8 @@ export class DiagramService {
     return values[this.random(0, values.length - 1)];
   }
 
+  private readonly COMPARTMENT_SHIFT = 35;
+
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
       diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
@@ -136,21 +138,37 @@ export class DiagramService {
         );
 
         //compartment nodes
-        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.map(item => ({
-          data: {
-            id: item.id + '',
-            parent: compartments.get(item.id)?.toString() || undefined,
-            displayName: item.displayName,
-            width: scale(item.prop.width),
-            height: scale(item.prop.height),
-            class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
-          },
-          classes: ['Compartment'],
-          position: scale(item.position),
-          pannable: true,
-          grabbable: false,
-          selectable: false,
-        }));
+        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => (
+          [
+            {
+              data: {
+                id: item.id + '-outer',
+                width: scale(item.prop.width),
+                height: scale(item.prop.height),
+              },
+              classes: ['Compartment', 'outer'],
+              position: scale(item.position),
+              pannable: true,
+              grabbable: false,
+              selectable: false,
+            },
+            {
+              data: {
+                id: item.id + '-inner',
+                displayName: item.displayName,
+                textX: scale(item.textPosition.x - (item.insets.x + item.insets.width)) + this.COMPARTMENT_SHIFT,
+                textY: scale(item.textPosition.y - (item.insets.y + item.insets.height)) + this.COMPARTMENT_SHIFT,
+                width: scale(item.insets.width),
+                height: scale(item.insets.height),
+              },
+              classes: ['Compartment', 'inner'],
+              position: scale({x: item.insets.x + item.insets.width / 2, y: item.insets.y + item.insets.height / 2}),
+              pannable: true,
+              grabbable: false,
+              selectable: false,
+            },
+
+          ]));
 
         //reaction nodes
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => ({
@@ -171,7 +189,7 @@ export class DiagramService {
         const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.map(item => ({
             data: {
               id: item.id + '',
-              parent: compartments.get(item.id)?.toString() || undefined,
+              // parent: compartments.get(item.id)?.toString() || undefined,
               displayName: item.displayName.replace(/([,:;-])/g, "$1\u200b"),
               height: scale(item.prop.height),
               width: scale(item.prop.width),
@@ -290,7 +308,7 @@ export class DiagramService {
         )
 
         return {
-          nodes: [...reactionNodes, ...entityNodes, ...compartmentNodes, ...shadowNodes],
+          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes],
           edges: [...edges, ...linkEdges]
         };
       }))

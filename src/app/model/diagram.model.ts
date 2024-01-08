@@ -93,7 +93,8 @@ export interface Compartments {
   position: Position;
   prop: Prop,
   renderableClass: string;
-
+  insets: Prop;
+  textPosition: Position;
 }
 
 export interface Links {

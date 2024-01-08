@@ -34,6 +34,7 @@ export class Style {
         style: {
           "font-family": "Helvetica",
           "font-weight": 600,
+          "z-index": 5
           // "font-size": 10
         }
       },
@@ -41,16 +42,13 @@ export class Style {
         selector: 'node.Compartment',
         style: {
           "shape": "round-rectangle",
-          "width": '1',
-          "height": '1',
+          "width": 'data(width)',
+          "height": 'data(height)',
 
           "border-style": 'double',
-          "text-opacity": 0.8,
 
-          "text-halign": "center",
-          "text-valign": "top",
-
-          "text-margin-y": 25,
+          "z-index": 0,
+          "z-compound-depth": "bottom",
           "overlay-opacity": 0,
 
           "color": this.p('compartment', 'fill'),
@@ -58,6 +56,32 @@ export class Style {
           "background-color": this.p('compartment', 'fill'),
           "background-opacity": this.p('compartment', 'opacity'),
           "border-width": this.pm('global', 'thickness', t => 3 * t)
+        }
+      },
+      {
+        selector: 'node.Compartment.inner, node.Compartment.outer',
+        style: {
+          "border-style": 'solid',
+          "border-width": this.p('global', 'thickness')
+        }
+      },
+      {
+        selector: 'node.Compartment.outer',
+        style: {
+          "background-opacity": 0,
+        }
+      },
+      {
+        selector: 'node.Compartment.inner',
+        style: {
+          'label': 'data(displayName)',
+          "text-opacity": 1,
+          "text-valign": "bottom",
+          "text-halign": "right",
+          // @ts-ignore
+          "text-margin-x": "data(textX)",
+          // @ts-ignore
+          "text-margin-y": "data(textY)",
         }
       },
       {
@@ -213,7 +237,6 @@ export class Style {
       },
 
 
-
       {
         selector: 'node.reaction',
         style: {
@@ -331,7 +354,7 @@ export class Style {
           "target-label": "data(stoichiometry)",
           "target-text-offset": 35,
         }
-      },{
+      }, {
         selector: "edge[?weights]",
         style: {
           "curve-style": "unbundled-bezier",
