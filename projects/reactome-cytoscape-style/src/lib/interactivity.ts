@@ -26,4 +26,25 @@ export function initInteractivity(cy: cytoscape.Core) {
   cy.nodes('.reaction')
     .on('select', event => selectReaction(event.target))
 
+  //todo: zoomLevel?
+  cy.on('zoom', e => {
+    const zoomLevel = cy.zoom();
+    if (zoomLevel > 0.4) {
+      cy.edges('[?shadow]').stop().animate({
+        style: {'underlay-opacity': 0}
+      });
+      cy.nodes('node.Shadow').stop().animate({
+        style: {'text-opacity': 0}
+      });
+    } else {
+      cy.edges('[?shadow]').stop().animate({
+        style: {'underlay-opacity': 0.2}
+      });
+
+      cy.nodes('node.Shadow').stop().animate({
+        style: {'text-opacity': 1}
+      });
+    }
+  })
+
 }

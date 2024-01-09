@@ -266,7 +266,7 @@ export class DiagramService {
                     distances: relatives.distances.join(" "),
                     sourceEndpoint: this.endpoint(sourceP, from),
                     targetEndpoint: this.endpoint(targetP, to),
-                    shadows: eventIdToSubPathwayId.get(reaction.reactomeId),
+                    shadow: eventIdToSubPathwayId.get(reaction.reactomeId),
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,

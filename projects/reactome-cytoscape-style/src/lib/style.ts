@@ -76,9 +76,11 @@ export class Style {
         selector: 'node.Shadow',
         style: {
           'label': 'data(displayName)',
-          "font-size": 40,
+          "font-size": 100,
           "background-opacity": 0,
           "color": 'data(color)',
+          "text-outline-color": this.p('global', 'surface'),
+          "text-outline-width": 10
         }
       },
       {
@@ -363,10 +365,10 @@ export class Style {
           "target-text-offset": 35,
         }
       }, {
-        selector: "edge[?shadows]",
+        selector: "edge[?shadow]",
         style: {
           // @ts-ignore
-          "underlay-color": "data(shadows)",
+          "underlay-color": "data(shadow)",
           "underlay-padding": 20,
           "underlay-opacity": 0.2,
         }
