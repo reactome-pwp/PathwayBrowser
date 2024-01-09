@@ -217,7 +217,10 @@ export class DiagramService {
               color: item.colour
             },
             classes: ['Shadow'],
-            position: scale(item.position),
+            position: scale({
+              x: item.prop.x + item.prop.width / 2,
+              y: item.prop.y + item.prop.height / 2,
+            }),
             pannable: true,
             grabbable: false,
           }

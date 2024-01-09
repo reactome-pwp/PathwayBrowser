@@ -76,11 +76,13 @@ export class Style {
         selector: 'node.Shadow',
         style: {
           'label': 'data(displayName)',
-          "font-size": 100,
+          "font-size": 80,
           "background-opacity": 0,
           "color": 'data(color)',
           "text-outline-color": this.p('global', 'surface'),
-          "text-outline-width": 10
+          "text-outline-width": 10,
+          "text-wrap": 'wrap',
+          "text-max-width": "data(width)",
         }
       },
       {
