@@ -9,7 +9,11 @@ export const entitySet: DrawerProvider = (width, height, drug) => {
   const hover = extract(Style.properties.global.hover);
 
   const t = extract(Style.properties.global.thickness);
-  const r = extract(Style.properties.entitySet.radius);
+  let r = extract(Style.properties.entitySet.radius);
+  if (2 * r > height / 2 - t) {
+    r = height / 4 - (t / 2);
+  }
+
   const fill = !drug ?
     extract(Style.properties.entitySet.fill) :
     extract(Style.properties.entitySet.drug);
@@ -75,7 +79,7 @@ export const entitySet: DrawerProvider = (width, height, drug) => {
     select: {
       "background-image": `
        <path stroke="${select}" stroke-width="${t2}" fill="none" stroke-linejoin="round" d="
-         M ${t + r} ${- r}
+         M ${t + r} ${-r}
          a ${r} ${r} 0 0 1 -${r} ${r}
          a ${r} ${r} 0 0 1 ${r} ${r}
          v ${v}
