@@ -129,13 +129,17 @@ export class DiagramService {
         this.reverseExtraLine = new Map<string, Position>(backwardArray);
         console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
 
-        const reactomeIdToEdgeIds = new Map<number, number>(data.edges.map(edge => [edge.reactomeId, edge.id]));
-
         const compartments = new Map<number, number>(
           data.compartments.flatMap(compartment =>
             compartment.componentIds.map(childId => [childId, compartment.id])
           )
         );
+
+        const subpathwayIdToColor = new Map<number, string>(data.shadows.map(shadow => [shadow.reactomeId, shadow.colour]))
+
+        const eventIdToSubPathwayId = new Map<number, string>(graph.subpathways.flatMap(subpathway => subpathway.events
+          .map(event => [event, subpathwayIdToColor.get(subpathway.dbId)])
+          .filter(entry => entry[1] !== undefined)) as [number, string][] )
 
         //compartment nodes
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => (
@@ -203,7 +207,6 @@ export class DiagramService {
 
         //sub pathways
         const shadowNodes = data?.shadows.map(item => {
-          const entityNodeIds = graph.subpathways.find(subpathway => subpathway.dbId == item.reactomeId)?.events
           return{
             data: {
               id: item.id + '',
@@ -211,10 +214,10 @@ export class DiagramService {
               height: scale(item.prop.height),
               width: scale(item.prop.width),
               class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
-              events:  entityNodeIds?.map(reactomeId => reactomeIdToEdgeIds.get(reactomeId))
+              color:  item.colour
             },
             classes: ['Shadow'],
-            position: item.position,
+            position: scale(item.position),
             pannable: true,
             grabbable: false,
           }
@@ -263,7 +266,7 @@ export class DiagramService {
                     distances: relatives.distances.join(" "),
                     sourceEndpoint: this.endpoint(sourceP, from),
                     targetEndpoint: this.endpoint(targetP, to),
-                    shadows: reaction.reactomeId in [] ? "shadow" : "",
+                    shadows: eventIdToSubPathwayId.get(reaction.reactomeId),
                   },
                   classes: this.edgeTypeMap.get(connector.type),
                   pannable: true,

@@ -112,7 +112,8 @@ interface Shadows {
   renderableClass: string;
   schemaClass: string;
   prop: Prop,
-  reactomeId: number
+  reactomeId: number;
+  colour: string;
 }
 
 

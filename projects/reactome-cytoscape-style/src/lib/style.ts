@@ -68,7 +68,7 @@ export class Style {
       {
         selector: 'node.Compartment.outer',
         style: {
-          "background-opacity": 0,
+          // "background-opacity": 0,
         }
       },
       {
@@ -90,8 +90,7 @@ export class Style {
           'label': 'data(displayName)',
           "font-size": 40,
           "background-opacity": 0,
-          "color": this.p('shadow', 'fill'),
-
+          "color": 'data(color)',
         }
       },
       {
@@ -353,6 +352,14 @@ export class Style {
         style: {
           "target-label": "data(stoichiometry)",
           "target-text-offset": 35,
+        }
+      }, {
+        selector: "edge[?shadows]",
+        style: {
+          // @ts-ignore
+          "underlay-color": "data(shadows)",
+          "underlay-padding": 20,
+          "underlay-opacity": 0.2,
         }
       }, {
         selector: "edge[?weights]",
