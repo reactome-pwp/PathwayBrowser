@@ -81,7 +81,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('hover', () => css.getPropertyValue('--hover') || '#78E076')
 
   const compartment: Properties['compartment'] = defaultable(properties.compartment || {})
-    .setDefault('opacity', 0.12)
+    .setDefault('opacity', 0.06)
     .setDefault('fill', () => css.getPropertyValue('--compartment') || '#E5834A')
 
   const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
