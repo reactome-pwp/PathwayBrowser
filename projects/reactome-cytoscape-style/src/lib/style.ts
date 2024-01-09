@@ -3,6 +3,7 @@ import {imageBuilder, clearDrawersCache, OMMITED_ICON} from "./drawer/image-buil
 import {propertyExtractor, propertyMapper} from "./properties-utils";
 
 import {Properties, setDefaults, UserProperties} from "./properties";
+import {initInteractivity} from "./interactivity";
 
 
 export class Style {
@@ -17,14 +18,8 @@ export class Style {
   }
 
   bindToCytoscape(cy: cytoscape.Core) {
-    cy.on('mouseover', e => {
-      if (e.target.addClass) e.target.addClass('hover')
-    });
-    cy.on('mouseout', e => {
-      if (e.target.removeClass) e.target?.removeClass('hover')
-    });
+    initInteractivity(cy);
   }
-
 
 
   getStyleSheet(): cytoscape.Stylesheet[] {
@@ -34,8 +29,7 @@ export class Style {
         style: {
           "font-family": "Helvetica",
           "font-weight": 600,
-          "z-index": 5
-          // "font-size": 10
+          "z-index": 1
         }
       },
       {
@@ -63,12 +57,6 @@ export class Style {
         style: {
           "border-style": 'solid',
           "border-width": this.p('global', 'thickness')
-        }
-      },
-      {
-        selector: 'node.Compartment.outer',
-        style: {
-          // "background-opacity": 0,
         }
       },
       {
@@ -249,6 +237,13 @@ export class Style {
           "color": this.p('global', 'onSurface'),
           "background-color": this.p('global', 'surface'),
         }
+      },
+      {
+        selector: 'node.reaction:selected',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'select'),
+        }
       }, {
         selector: 'node.association',
         style: {
@@ -298,6 +293,20 @@ export class Style {
           'source-arrow-width': '100%',
           // @ts-ignore
           'target-arrow-width': '100%',
+        }
+      }, {
+        selector: "edge:selected",
+        style: {
+          "line-color": this.p('global', 'select'),
+          "width": this.pm('global', 'thickness', t => t * 2),
+          "arrow-scale": 1,
+          "source-arrow-color": this.p('global', 'select'),
+          "target-arrow-color": this.p('global', 'select'),
+          // @ts-ignore
+          'source-arrow-width': '50%',
+          // @ts-ignore
+          'target-arrow-width': '50%',
+          "z-index": 2
         }
       }, {
         selector: 'edge.consumption',
@@ -394,7 +403,6 @@ export class Style {
         }
       }
     ]
-
   }
 
   update(cy: cytoscape.Core) {
