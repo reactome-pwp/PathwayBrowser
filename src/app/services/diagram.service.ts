@@ -137,9 +137,9 @@ export class DiagramService {
 
         const subpathwayIdToColor = new Map<number, string>(data.shadows.map(shadow => [shadow.reactomeId, shadow.colour]))
 
-        const eventIdToSubPathwayId = new Map<number, string>(graph.subpathways.flatMap(subpathway => subpathway.events
+        const eventIdToSubPathwayId = new Map<number, string>(graph.subpathways?.flatMap(subpathway => subpathway.events
           .map(event => [event, subpathwayIdToColor.get(subpathway.dbId)])
-          .filter(entry => entry[1] !== undefined)) as [number, string][] )
+          .filter(entry => entry[1] !== undefined)) as [number, string][] || [])
 
         //compartment nodes
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => (
@@ -207,14 +207,14 @@ export class DiagramService {
 
         //sub pathways
         const shadowNodes = data?.shadows.map(item => {
-          return{
+          return {
             data: {
               id: item.id + '',
               displayName: item.displayName,
               height: scale(item.prop.height),
               width: scale(item.prop.width),
               class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
-              color:  item.colour
+              color: item.colour
             },
             classes: ['Shadow'],
             position: scale(item.position),
