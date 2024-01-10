@@ -84,11 +84,11 @@ export class DiagramService {
   )
 
   reactionTypeMap = new Map<string | undefined, ReactionDefinition>([
-      [undefined, ['transition', 'reaction']],
-      ['Association', ['association', 'reaction']],
-      ['Dissociation', ['dissociation', 'reaction']],
-      ['Omitted Process', ['omitted', 'reaction']],
-      ['Uncertain Process', ['uncertain', 'reaction']],
+      ['transition', ['transition', 'reaction']],
+      ['binding', ['association', 'reaction']],
+      ['dissociation', ['dissociation', 'reaction']],
+      ['omitted', ['omitted', 'reaction']],
+      ['uncertain', ['uncertain', 'reaction']],
     ]
   )
 
