@@ -24,6 +24,35 @@ const scale = <T extends Position | number>(pos: T, scale = 2): T => {
   } as T
 }
 
+const avg = (positions: Position[]): Position => {
+  const sum = {x: 0, y: 0};
+  positions.forEach(pos => {
+    sum.x += pos.x;
+    sum.y += pos.y;
+  });
+  sum.x /= positions.length;
+  sum.y /= positions.length;
+  return sum;
+}
+const squaredDist = (pos1: Position, pos2: Position) => {
+  return Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2)
+}
+
+const closestToAverage = (positions: Position[]): Position => {
+  const average = avg(positions);
+  let closest = positions[0];
+  let min = squaredDist(closest, average);
+  for (let i = 1; i < positions.length; i++) {
+    const pos = positions[i];
+    const dist = squaredDist(pos, average);
+    if (dist < min) {
+      min = dist;
+      closest = pos
+    }
+  }
+  return closest;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -118,10 +147,15 @@ export class DiagramService {
         console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
         console.log("shadow.renderableClass", new Set(data.shadows.flatMap(shadow => shadow.renderableClass)))
 
-        const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
-        const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const idToEdges = new Map<number, Edge>(data.edges.map(edge => [edge.id, edge]));
         const idToNodes = new Map<number, Node>(data.nodes.map(node => [node.id, node]));
+        const reactomeIdToEdge = new Map<number, Edge>(
+          [
+            // ...data.nodes.map(node => [node.reactomeId, node]),
+            ...data.edges.map(edge => [edge.reactomeId, edge])
+          ] as [number, Edge][]
+        );
+
         const edgeIds = new Map<string, number>();
         const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.from)), scale(segment.to)])) as [string, Position][];
         this.extraLine = new Map<string, Position>(forwardArray);
@@ -136,6 +170,8 @@ export class DiagramService {
         const eventIdToSubPathwayId = new Map<number, string>(graph.subpathways?.flatMap(subpathway => subpathway.events
           .map(event => [event, subpathwayIdToColor.get(subpathway.dbId)])
           .filter(entry => entry[1] !== undefined)) as [number, string][] || [])
+
+        const subpathwayIdToEventId = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]))
 
         //compartment nodes
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => (
@@ -213,10 +249,11 @@ export class DiagramService {
               color: item.colour
             },
             classes: ['Shadow'],
-            position: scale({
-              x: item.prop.x + item.prop.width / 2,
-              y: item.prop.y + item.prop.height / 2,
-            }),
+            // position: scale({
+            //   x: item.prop.x + item.prop.width / 2,
+            //   y: item.prop.y + item.prop.height / 2,
+            // }),
+            position: closestToAverage(subpathwayIdToEventId.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position))),
             pannable: true,
             grabbable: false,
           }
