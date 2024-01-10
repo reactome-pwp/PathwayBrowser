@@ -77,6 +77,7 @@ export interface Connectors {
 // entities
 export interface Nodes {
   id: number;
+  reactomeId: number;
   displayName: string;
   renderableClass: string;
   schemaClass: string;
