@@ -249,11 +249,11 @@ export class DiagramService {
               color: item.colour
             },
             classes: ['Shadow'],
-            // position: scale({
-            //   x: item.prop.x + item.prop.width / 2,
-            //   y: item.prop.y + item.prop.height / 2,
-            // }),
-            position: closestToAverage(subpathwayIdToEventId.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position))),
+            position: scale({
+              x: item.prop.x + item.prop.width / 2,
+              y: item.prop.y + item.prop.height / 2,
+            }),
+            // position: closestToAverage(subpathwayIdToEventId.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position))),
             pannable: true,
             grabbable: false,
           }
