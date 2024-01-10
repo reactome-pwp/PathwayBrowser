@@ -60,7 +60,7 @@ export class Style {
         }
       },
       {
-        selector: 'node.Compartment.inner',
+        selector: 'node.Compartment.outer',
         style: {
           'label': 'data(displayName)',
           "text-opacity": 1,

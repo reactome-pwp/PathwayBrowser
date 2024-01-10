@@ -174,11 +174,14 @@ export class DiagramService {
         const subpathwayIdToEventId = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]))
 
         //compartment nodes
-        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => (
-          [
+        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
+          const layers: cytoscape.NodeDefinition[] = [
             {
               data: {
                 id: item.id + '-outer',
+                displayName: item.displayName,
+                textX: scale(item.textPosition.x - (item.prop.x + item.prop.width)) + this.COMPARTMENT_SHIFT,
+                textY: scale(item.textPosition.y - (item.prop.y + item.prop.height)) + this.COMPARTMENT_SHIFT,
                 width: scale(item.prop.width),
                 height: scale(item.prop.height),
               },
@@ -187,13 +190,13 @@ export class DiagramService {
               pannable: true,
               grabbable: false,
               selectable: false,
-            },
-            {
+            }
+          ];
+
+          if (item.insets) {
+            layers.push({
               data: {
                 id: item.id + '-inner',
-                displayName: item.displayName,
-                textX: scale(item.textPosition.x - (item.insets.x + item.insets.width)) + this.COMPARTMENT_SHIFT,
-                textY: scale(item.textPosition.y - (item.insets.y + item.insets.height)) + this.COMPARTMENT_SHIFT,
                 width: scale(item.insets.width),
                 height: scale(item.insets.height),
               },
@@ -202,9 +205,10 @@ export class DiagramService {
               pannable: true,
               grabbable: false,
               selectable: false,
-            },
-
-          ]));
+            })
+          }
+          return layers;
+        });
 
         //reaction nodes
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => ({
