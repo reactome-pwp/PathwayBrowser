@@ -35,10 +35,6 @@ export class DiagramComponent implements AfterViewInit {
         elements: elements,
         style: reactomeStyle.getStyleSheet(),
         layout: {name: "preset"},
-        // @ts-ignore
-        ready(e: cytoscape.EventObjectCore) {
-          e.cy.minZoom(e.cy.zoom())
-        }
       });
       reactomeStyle.bindToCytoscape(this.cy);
       // this.cy.nodes().addClass('debug')

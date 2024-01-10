@@ -38,6 +38,9 @@ function initSelect(cy: cytoscape.Core) {
 function initZoom(cy: cytoscape.Core) {
   const shadows = cy.edges('[?shadow]');
   const shadowLabels = cy.nodes('.Shadow');
+  cy.minZoom(cy.zoom())
+  cy.maxZoom(15)
+
 
   cy.on('zoom', e => {
     const zoomLevel = cy.zoom();
