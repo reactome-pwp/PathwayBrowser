@@ -44,7 +44,7 @@ function initZoom(cy: cytoscape.Core) {
     shadows.stop().animate({
       style: {
         'underlay-opacity': interpolate(zoomLevel, [
-          p(0.2, 1),
+          p(0.2, 0.4),
           p(0.4, 0)
         ])
       }
@@ -52,7 +52,7 @@ function initZoom(cy: cytoscape.Core) {
     shadowLabels.stop().animate({
       style: {
         'text-opacity': interpolate(zoomLevel, [
-          p(0.2, 1),
+          p(0.3, 1),
           p(0.4, 0)
         ])
       }

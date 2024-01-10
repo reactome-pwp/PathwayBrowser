@@ -82,7 +82,7 @@ export class Style {
           "text-valign": "center",
           "text-halign": "center",
           "text-outline-color": this.p('global', 'surface'),
-          "text-outline-width": 10,
+          "text-outline-width": 15,
           "text-wrap": 'wrap',
           "text-max-width": "data(width)",
         }
@@ -374,7 +374,7 @@ export class Style {
           // @ts-ignore
           "underlay-color": "data(shadow)",
           "underlay-padding": 20,
-          "underlay-opacity": 0.2,
+          "underlay-opacity": 0.4,
         }
       }, {
         selector: "edge[?weights]",
