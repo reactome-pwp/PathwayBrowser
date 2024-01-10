@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {forkJoin, map, Observable, of, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Connectors, Diagram, Edges, Nodes, Position} from "../model/diagram.model";
+import {NodeConnector, Diagram, Edge, Node, Position} from "../model/diagram.model";
 import {Graph} from "../model/graph.model";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
@@ -14,7 +14,7 @@ import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 
 type RelativePosition = { distances: number[], weights: number[] };
 
-const posToStr = (edge: Edges, pos: Position) => `${edge.id}-${pos.x},${pos.y}`
+const posToStr = (edge: Edge, pos: Position) => `${edge.id}-${pos.x},${pos.y}`
 
 const scale = <T extends Position | number>(pos: T, scale = 2): T => {
   if (typeof pos === 'number') return pos * scale as T
@@ -120,6 +120,8 @@ export class DiagramService {
 
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
         const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
+        const idToEdges = new Map<number, Edge>(data.edges.map(edge => [edge.id, edge]));
+        const idToNodes = new Map<number, Node>(data.nodes.map(node => [node.id, node]));
         const edgeIds = new Map<string, number>();
         const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.from)), scale(segment.to)])) as [string, Position][];
         this.extraLine = new Map<string, Position>(forwardArray);
@@ -314,7 +316,7 @@ export class DiagramService {
       }))
   }
 
-  private getEdgeId(source: Edges | Nodes, connector: Connectors, target: Edges | Nodes, edgeIds: Map<string, number>) {
+  private getEdgeId(source: Edge | Node, connector: NodeConnector, target: Edge | Node, edgeIds: Map<string, number>) {
     let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
 
     if (edgeIds.has(edgeId)) {
@@ -328,7 +330,7 @@ export class DiagramService {
     return edgeId;
   }
 
-  private addEdgeInfo(edge: Edges, points: Position[], direction: 'forward' | 'backward', stop: Position) {
+  private addEdgeInfo(edge: Edge, points: Position[], direction: 'forward' | 'backward', stop: Position) {
     const stopPos = posToStr(edge, stop);
     if (direction === 'forward') {
       const map = this.extraLine;

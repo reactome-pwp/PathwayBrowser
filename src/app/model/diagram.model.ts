@@ -1,15 +1,25 @@
-import SegmentsEdges = cytoscape.Css.SegmentsEdges;
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Prop extends Position {
+  width: number;
+  height: number;
+}
+
+export type Segment = { from: Position, to: Position };
 
 export interface Diagram {
   displayName: string;
-  edges: Edges[];
-  nodes: Nodes[];
-  compartments: Compartments[];
-  links: Links[];
+  edges: Edge[];
+  nodes: Node[];
+  compartments: Compartment[];
+  links: Link[];
   /**
    * The list of contained shadows(subpathways)
    */
-  shadows: Shadows[];
+  shadows: SubPathway[];
 }
 
 
@@ -21,108 +31,79 @@ export interface ReactionShape {
 }
 
 export interface ConnectorHolder {
-  [k: string]: EdgeConnectors[]
+  [k: string]: EdgeConnector[]
 
-  catalysts: EdgeConnectors[];
-  inputs: EdgeConnectors[];
-  outputs: EdgeConnectors[];
-  inhibitors: EdgeConnectors[];
-  activators: EdgeConnectors[];
+  catalysts: EdgeConnector[];
+  inputs: EdgeConnector[];
+  outputs: EdgeConnector[];
+  inhibitors: EdgeConnector[];
+  activators: EdgeConnector[];
 }
 
-// reactions
-export type Edges = {
+export type Entity = {
   id: number;
   reactomeId: number;
   displayName: string;
   position: Position;
   renderableClass: string;
   schemaClass: string;
+}
+
+// reactions
+export type Edge = {
   reactionShape: ReactionShape;
   reactionType: string;
   segments: Segment[];
-} & ConnectorHolder;
+} & ConnectorHolder & Entity;
 
 
-export interface EdgeConnectors {
+export interface EdgeConnector {
   id: number,
   points?: Position[],
   stoichiometry?: number
 }
 
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export interface Prop {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export type Segment = { from: Position, to: Position };
-
-export interface Connectors {
+export interface NodeConnector {
   edgeId: number;
   type: 'INPUT' | 'OUTPUT' | 'CATALYST' | 'ACTIVATOR' | 'INHIBITOR';
   segments: Segment[]
   stoichiometry: { value: number }
-  endShape: {centre: Position}
+  endShape: { centre: Position }
 }
 
-
 // entities
-export interface Nodes {
-  id: number;
-  reactomeId: number;
-  displayName: string;
-  renderableClass: string;
-  schemaClass: string;
-  position: Position;
+export interface Node extends Entity {
   prop: Prop,
-  connectors: Connectors[]
+  connectors: NodeConnector[]
   interactorsSummary: InteractorsSummary;
 }
 
-export interface Compartments {
-  id: number;
+export interface Compartment extends Entity {
   componentIds: number[];
-  displayName: string;
-  position: Position;
   prop: Prop,
-  renderableClass: string;
   insets: Prop;
   textPosition: Position;
 }
 
-export interface Links {
+export interface Link {
   id: number
-  inputs: EdgeConnectors[];
-  outputs: EdgeConnectors[];
+  inputs: EdgeConnector[];
+  outputs: EdgeConnector[];
   renderableClass: string;
   segments: Segment[];
 }
 
-interface Shadows {
-  id: number
-  displayName: string;
-  position: Position;
-  renderableClass: string;
-  schemaClass: string;
+interface SubPathway extends Entity {
   prop: Prop,
-  reactomeId: number;
   colour: string;
 }
 
 
 interface InteractorsSummary {
- shape: Shape;
- type: string;
+  shape: Shape;
+  type: string;
 }
 
-interface Shape{
+interface Shape {
   type: string
 }
