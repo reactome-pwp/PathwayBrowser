@@ -14,7 +14,7 @@ import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 
 type RelativePosition = { distances: number[], weights: number[] };
 
-const posToStr = (pos: Position) => `${pos.x},${pos.y}`
+const posToStr = (edge: Edges, pos: Position) => `${edge.id}-${pos.x},${pos.y}`
 
 const scale = <T extends Position | number>(pos: T, scale = 2): T => {
   if (typeof pos === 'number') return pos * scale as T
@@ -121,19 +121,13 @@ export class DiagramService {
         const idToEdges = new Map<number, Edges>(data.edges.map(edge => [edge.id, edge]));
         const idToNodes = new Map<number, Nodes>(data.nodes.map(node => [node.id, node]));
         const edgeIds = new Map<string, number>();
-        const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.from)), scale(segment.to)])) as [string, Position][];
+        const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.from)), scale(segment.to)])) as [string, Position][];
         this.extraLine = new Map<string, Position>(forwardArray);
         console.assert(forwardArray.length === this.extraLine.size, "Some edge data have been lost because 2 segments are starting from the same point")
 
-        const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(scale(segment.to)), scale(segment.from)])) as [string, Position][];
+        const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.to)), scale(segment.from)])) as [string, Position][];
         this.reverseExtraLine = new Map<string, Position>(backwardArray);
         console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
-
-        const compartments = new Map<number, number>(
-          data.compartments.flatMap(compartment =>
-            compartment.componentIds.map(childId => [childId, compartment.id])
-          )
-        );
 
         const subpathwayIdToColor = new Map<number, string>(data.shadows.map(shadow => [shadow.reactomeId, shadow.colour]))
 
@@ -247,8 +241,8 @@ export class DiagramService {
                 if (connector.type === 'OUTPUT') points.reverse();
                 if (points.length === 0) points.push(scale(reaction.position))
 
-                this.addEdgeInfo(points, 'backward', sourceP);
-                this.addEdgeInfo(points, 'forward', targetP);
+                this.addEdgeInfo(reaction, points, 'backward', sourceP);
+                this.addEdgeInfo(reaction, points, 'forward', targetP);
 
                 let [from, to] = [points.shift()!, points.pop()!]
 
@@ -334,21 +328,21 @@ export class DiagramService {
     return edgeId;
   }
 
-  private addEdgeInfo(points: Position[], direction: 'forward' | 'backward', stop: Position) {
-    const stopPos = posToStr(stop);
+  private addEdgeInfo(edge: Edges, points: Position[], direction: 'forward' | 'backward', stop: Position) {
+    const stopPos = posToStr(edge, stop);
     if (direction === 'forward') {
       const map = this.extraLine;
-      let pos = posToStr(points.at(-1)!)
+      let pos = posToStr(edge, points.at(-1)!)
       while (map.has(pos) && pos !== stopPos) {
         points.push(map.get(pos)!)
-        pos = posToStr(points.at(-1)!)
+        pos = posToStr(edge, points.at(-1)!)
       }
     } else {
       const map = this.reverseExtraLine;
-      let pos = posToStr(points.at(0)!)
+      let pos = posToStr(edge, points.at(0)!)
       while (map.has(pos) && pos !== stopPos) {
         points.unshift(map.get(pos)!)
-        pos = posToStr(points.at(0)!)
+        pos = posToStr(edge, points.at(0)!)
       }
     }
   }
