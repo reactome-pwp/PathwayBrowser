@@ -282,15 +282,15 @@ export class DiagramService {
                   .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
                   .map(pos => scale(pos));
                 if (connector.type === 'OUTPUT') points.reverse();
-                if (points.length === 0) points.push(scale(reaction.position))
+                if (points.length === 0) points.push(scale(reaction.position));
 
                 this.addEdgeInfo(reaction, points, 'backward', sourceP);
                 this.addEdgeInfo(reaction, points, 'forward', targetP);
 
                 let [from, to] = [points.shift()!, points.pop()!]
-
+                to = to ?? scale(reaction.position); // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
                 if (connector.type === 'CATALYST') {
-                  to = scale(connector.endShape.centre)
+                  to = scale(connector.endShape.centre);
                 }
 
                 points = addRoundness(from, to, points);
