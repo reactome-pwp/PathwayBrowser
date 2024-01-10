@@ -243,11 +243,16 @@ export class Style {
           "color": this.p('global', 'onSurface'),
           "background-color": this.p('global', 'surface'),
         }
-      },
-      {
-        selector: 'node.reaction:selected',
+      }, {
+        selector: 'node.reaction.hover',
         style: {
           "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'hover'),
+        }
+      }, {
+        selector: 'node.reaction:selected',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1.5),
           "border-color": this.p('global', 'select'),
         }
       }, {
@@ -301,6 +306,20 @@ export class Style {
           'target-arrow-width': '100%',
         }
       }, {
+        selector: "edge.hover",
+        style: {
+          "line-color": this.p('global', 'hover'),
+          "width": this.pm('global', 'thickness', t => t * 1.5),
+          "arrow-scale": 1,
+          "source-arrow-color": this.p('global', 'hover'),
+          "target-arrow-color": this.p('global', 'hover'),
+          // @ts-ignore
+          'source-arrow-width': '50%',
+          // @ts-ignore
+          'target-arrow-width': '50%',
+          "z-index": 2
+        }
+      }, {
         selector: "edge:selected",
         style: {
           "line-color": this.p('global', 'select'),
@@ -312,7 +331,7 @@ export class Style {
           'source-arrow-width': '50%',
           // @ts-ignore
           'target-arrow-width': '50%',
-          "z-index": 2
+          "z-index": 3
         }
       }, {
         selector: 'edge.consumption',

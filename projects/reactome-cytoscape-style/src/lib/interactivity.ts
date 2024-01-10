@@ -6,24 +6,40 @@ export function initInteractivity(cy: cytoscape.Core) {
   initZoom(cy);
 }
 
+interface State {
+  [k: string]: boolean
+}
+
+const state: State = {
+  selecting: false,
+  hovering: false,
+  deHovering: false
+}
+
+const applyReaction = (action: (col: cytoscape.Collection) => void, stateKey: keyof State) => (reactionNode: cytoscape.NodeCollection) => {
+  if (state[stateKey]) return;
+  state[stateKey] = true;
+  action(reactionNode.connectedEdges().add(reactionNode));
+  state[stateKey] = false;
+};
+
 function initHover(cy: cytoscape.Core) {
+  const hoverReaction = applyReaction(col => col.addClass('hover'), 'hovering')
+  const deHoverReaction = applyReaction(col => col.removeClass('hover'), 'deHovering')
+
   cy.on('mouseover', e => {
-    if (e.target.addClass) e.target.addClass('hover')
+    if (e.target.addClass) e.target.addClass('hover');
+    if (e.target.is) hoverReaction(e.target.is('edge') ? e.target.connectedNodes('.reaction') : e.target.nodes('.reaction'));
   });
   cy.on('mouseout', e => {
     if (e.target.removeClass) e.target?.removeClass('hover')
+    if (e.target.is) deHoverReaction((e.target as cytoscape.Collection).is('edge') ? e.target.connectedNodes('.reaction') : e.target.nodes('.reaction'));
   });
 }
 
 function initSelect(cy: cytoscape.Core) {
-  let selecting = false
-  const selectReaction = (reactionNode: cytoscape.NodeCollection) => {
-    if (selecting) return;
-    selecting = true;
-    const toSelect = reactionNode.connectedEdges().add(reactionNode);
-    toSelect.select();
-    selecting = false;
-  };
+  const selectReaction = applyReaction(col => col.select(), 'selecting')
+
 
   cy.edges()
     .on('select', event => selectReaction(event.target.connectedNodes('.reaction')))
