@@ -79,6 +79,8 @@ export class Style {
           "font-size": 80,
           "background-opacity": 0,
           "color": 'data(color)',
+          "text-valign": "center",
+          "text-halign": "center",
           "text-outline-color": this.p('global', 'surface'),
           "text-outline-width": 10,
           "text-wrap": 'wrap',
