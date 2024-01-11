@@ -4,8 +4,8 @@ import {DrawerProvider} from "../types";
 
 
 export const complex: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.select);
-  const hover = extract(Style.properties.global.hover);
+  const select = extract(Style.properties.global.selectNode);
+  const hover = extract(Style.properties.global.hoverNode);
 
   const t = extract(Style.properties.global.thickness);
   const cut = extract(Style.properties.complex.cut);

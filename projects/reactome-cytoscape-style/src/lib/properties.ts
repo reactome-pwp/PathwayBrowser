@@ -9,15 +9,18 @@ export interface Properties extends PropertiesType {
     onPrimary: Property<string>
     positive: Property<string>
     negative: Property<string>
-    select: Property<string>
-    hover: Property<string>
+    selectNode: Property<string>
+    selectEdge: Property<string>
+    hoverNode: Property<string>
+    hoverEdge: Property<string>
   },
   compartment: {
     fill: Property<string>
     opacity: Property<number>
   }
   shadow: {
-    fill: Property<string>
+    opacity: Property<[number, number][]>
+    labelOpacity: Property<[number, number][]>
   }
   protein: {
     fill: Property<string>
@@ -77,16 +80,18 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('onPrimary', () => css.getPropertyValue('--on-primary') || '#FFFFFF')
     .setDefault('positive', () => css.getPropertyValue('--positive') || '#0C9509')
     .setDefault('negative', () => css.getPropertyValue('--negative') || '#BA1A1A')
-    .setDefault('select', () => css.getPropertyValue('--select') || '#6EB3E4')
-    .setDefault('hover', () => css.getPropertyValue('--hover') || '#78E076')
+    .setDefault('selectNode', () => css.getPropertyValue('--select-node') || '#6EB3E4')
+    .setDefault('selectEdge', () => css.getPropertyValue('--select-edge') || '#0561A6')
+    .setDefault('hoverNode', () => css.getPropertyValue('--hover-node') || '#78E076')
+    .setDefault('hoverEdge', () => css.getPropertyValue('--hover-edge') || '#04B601')
 
   const compartment: Properties['compartment'] = defaultable(properties.compartment || {})
     .setDefault('opacity', 0.06)
     .setDefault('fill', () => css.getPropertyValue('--compartment') || '#E5834A')
 
   const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
-   // .setDefault('opacity', 0.12)
-    .setDefault('fill', () => css.getPropertyValue('--shadow') || '#C826CB')
+    .setDefault('opacity', [[0.2, 0.2], [0.4, 0]])
+    .setDefault('labelOpacity', [[0.2, 1], [0.4, 0]])
 
   const protein: Properties['protein'] = defaultable(properties.protein || {})
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-1') || '#001F29')

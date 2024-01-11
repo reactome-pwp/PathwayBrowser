@@ -247,13 +247,13 @@ export class Style {
         selector: 'node.reaction.hover',
         style: {
           "border-width": this.pm('global', 'thickness', t => t * 1),
-          "border-color": this.p('global', 'hover'),
+          "border-color": this.p('global', 'hoverEdge'),
         }
       }, {
         selector: 'node.reaction:selected',
         style: {
           "border-width": this.pm('global', 'thickness', t => t * 1.5),
-          "border-color": this.p('global', 'select'),
+          "border-color": this.p('global', 'selectEdge'),
         }
       }, {
         selector: 'node.association',
@@ -308,11 +308,11 @@ export class Style {
       }, {
         selector: "edge.hover",
         style: {
-          "line-color": this.p('global', 'hover'),
+          "line-color": this.p('global', 'hoverEdge'),
           "width": this.pm('global', 'thickness', t => t * 1.5),
           "arrow-scale": 1,
-          "source-arrow-color": this.p('global', 'hover'),
-          "target-arrow-color": this.p('global', 'hover'),
+          "source-arrow-color": this.p('global', 'hoverEdge'),
+          "target-arrow-color": this.p('global', 'hoverEdge'),
           // @ts-ignore
           'source-arrow-width': '50%',
           // @ts-ignore
@@ -322,11 +322,11 @@ export class Style {
       }, {
         selector: "edge:selected",
         style: {
-          "line-color": this.p('global', 'select'),
+          "line-color": this.p('global', 'selectEdge'),
           "width": this.pm('global', 'thickness', t => t * 2),
           "arrow-scale": 1,
-          "source-arrow-color": this.p('global', 'select'),
-          "target-arrow-color": this.p('global', 'select'),
+          "source-arrow-color": this.p('global', 'selectEdge'),
+          "target-arrow-color": this.p('global', 'selectEdge'),
           // @ts-ignore
           'source-arrow-width': '50%',
           // @ts-ignore
@@ -393,7 +393,7 @@ export class Style {
           // @ts-ignore
           "underlay-color": "data(shadow)",
           "underlay-padding": 20,
-          "underlay-opacity": 0.4,
+          "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1]),
         }
       }, {
         selector: "edge[?weights]",

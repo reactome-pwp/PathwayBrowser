@@ -3,8 +3,8 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 export const protein: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.select);
-  const hover = extract(Style.properties.global.hover);
+  const select = extract(Style.properties.global.selectNode);
+  const hover = extract(Style.properties.global.hoverNode);
   const thick = extract(Style.properties.global.thickness);
   const radius = extract(Style.properties.protein.radius);
 

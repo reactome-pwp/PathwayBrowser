@@ -1,4 +1,6 @@
 import cytoscape from "cytoscape";
+import {extract} from "./properties-utils";
+import {Style} from "./style";
 
 export function initInteractivity(cy: cytoscape.Core) {
   initHover(cy);
@@ -54,26 +56,20 @@ function initSelect(cy: cytoscape.Core) {
 function initZoom(cy: cytoscape.Core) {
   const shadows = cy.edges('[?shadow]');
   const shadowLabels = cy.nodes('.Shadow');
-  cy.minZoom(cy.zoom())
-  cy.maxZoom(15)
+  cy.minZoom(Math.min(cy.zoom(), extract(Style.properties.shadow.labelOpacity)[0][0]));
+  cy.maxZoom(15);
 
 
   cy.on('zoom', e => {
     const zoomLevel = cy.zoom();
     shadows.stop().animate({
       style: {
-        'underlay-opacity': interpolate(zoomLevel, [
-          p(0.2, 0.4),
-          p(0.4, 0)
-        ])
+        'underlay-opacity': interpolate(zoomLevel, extract(Style.properties.shadow.opacity).map(v => p(...v)))
       }
     });
     shadowLabels.stop().animate({
       style: {
-        'text-opacity': interpolate(zoomLevel, [
-          p(0.3, 1),
-          p(0.4, 0)
-        ])
+        'text-opacity': interpolate(zoomLevel, extract(Style.properties.shadow.labelOpacity).map(v => p(...v)))
       }
     });
   });

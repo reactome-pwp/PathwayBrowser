@@ -10,8 +10,8 @@ export const gene: DrawerProvider = (width, height, drug) => {
   const headSize = extract(Style.properties.gene.arrowHeadSize);
   const radius = extract(Style.properties.gene.arrowRadius);
   const fill = extract(Style.properties.gene.fill);
-  const select = extract(Style.properties.global.select);
-  const hover = extract(Style.properties.global.hover);
+  const select = extract(Style.properties.global.selectNode);
+  const hover = extract(Style.properties.global.hoverNode);
   const hh = Math.sqrt(Math.pow(headSize, 2) * 3 / 4)
 
   const halfWidth = width / 2;

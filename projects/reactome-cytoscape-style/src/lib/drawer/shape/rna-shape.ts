@@ -5,8 +5,8 @@ import {DrawerProvider} from "../types";
 
 export const rna: DrawerProvider = (width, height, drug) => {
   const thick = extract(Style.properties.global.thickness);
-  const select = extract(Style.properties.global.select);
-  const hover = extract(Style.properties.global.hover);
+  const select = extract(Style.properties.global.selectNode);
+  const hover = extract(Style.properties.global.hoverNode);
 
   const halfWidth = width / 2;
 

@@ -4,8 +4,8 @@ import {Style} from "../../style";
 
 
 export const interactingPathway: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.select);
-  const hover = extract(Style.properties.global.hover);
+  const select = extract(Style.properties.global.selectNode);
+  const hover = extract(Style.properties.global.hoverNode);
   const thick = extract(Style.properties.global.thickness);
 
 
