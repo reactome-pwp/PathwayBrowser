@@ -250,7 +250,7 @@ export class DiagramService {
               height: scale(item.prop.height),
               width: scale(item.prop.width),
               class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
-              color: item.colour
+              color: subpathwayIdToColor.get(item.reactomeId)
             },
             classes: ['Shadow'],
             position: scale({
@@ -288,6 +288,7 @@ export class DiagramService {
                 this.addEdgeInfo(reaction, points, 'forward', targetP);
 
                 let [from, to] = [points.shift()!, points.pop()!]
+                from = from ?? scale(node.position); // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
                 to = to ?? scale(reaction.position); // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
                 if (connector.type === 'CATALYST') {
                   to = scale(connector.endShape.centre);
@@ -328,7 +329,9 @@ export class DiagramService {
               .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
               .map(pos => scale(pos));
 
-            const [from, to] = [points.shift()!, points.pop()!]
+            let [from, to] = [points.shift()!, points.pop()!]
+            from = from ?? sourceP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
+            to = to ?? targetP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
 
             points = addRoundness(from, to, points);
             const relatives = this.absoluteToRelative(from, to, points);
