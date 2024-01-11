@@ -1,33 +1,32 @@
 
 export interface Graph {
-  dbId:number;
+  dbId: number;
   stId: string;
   speciesName: string;
-  edges: Edges[];
-  nodes: Nodes[];
-  subpathways: SubPathways[];
+  edges: Edge[];
+  nodes: Node[];
+  subpathways: SubPathway[];
 }
 
-interface Edges {
+export type Entity = {
   dbId: number;
-  stId: string;
+  stId: string
   displayName: string;
-  schemaClass:string;
 }
 
-interface Nodes {
-  dbId: number;
-  stId: string;
-  displayName: string;
-  schemaClass:string;
-  diagramIds:string[];
-  parents:number[];
-  children:number[];
+export interface Edge extends Entity {
+  schemaClass: string;
 }
 
-interface SubPathways {
-  dbId: number;
-  stId: string;
-  displayName: string;
+export interface Node extends Entity {
+  diagramIds: string[];
+  identifier: string
+  parents: number[];
+  children: number[];
+  schemaClass: string;
+  referenceType: string
+}
+
+export interface SubPathway extends Entity {
   events: number[]
 }
