@@ -93,7 +93,7 @@ export class Style {
           "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
         }
       }, {
-        selector: 'node.PhysicalEntity, node.Pathway',
+        selector: 'node.PhysicalEntity, node.Pathway, node.Modification',
         style: {
           'label': 'data(displayName)',
           'width': 'data(width)',
@@ -228,6 +228,14 @@ export class Style {
           "shape": 'round-rectangle'
         }
       },
+      {
+        selector: 'node.Modification',
+        style: {
+          "background-color": this.p('modification', 'fill'),
+          "shape": 'round-rectangle'
+        }
+      },
+
 
 
       {

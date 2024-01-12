@@ -226,20 +226,41 @@ export class DiagramService {
 
 
         //entity nodes
-        const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.map(item => ({
-            data: {
-              id: item.id + '',
-              // parent: compartments.get(item.id)?.toString() || undefined,
-              displayName: item.displayName.replace(/([,:;-])/g, "$1\u200b"),
-              height: scale(item.prop.height),
-              width: scale(item.prop.width),
-            },
-            classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
-            pannable: true,
-            grabbable: false,
-            position: scale(item.position)
+        const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.flatMap(item => {
+          const nodes: cytoscape.NodeDefinition[] = [
+            {
+              data: {
+                id: item.id + '',
+                // parent: compartments.get(item.id)?.toString() || undefined,
+                displayName: item.displayName.replace(/([,:;-])/g, "$1\u200b"),
+                height: scale(item.prop.height),
+                width: scale(item.prop.width),
+              },
+              classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
+              pannable: true,
+              grabbable: false,
+              position: scale(item.position)
+            }
+          ];
+          if (item.nodeAttachments) {
+            nodes.push(...item.nodeAttachments.map(ptm => ({
+              data: {
+                id: item.id + '-' + ptm.reactomeId,
+                reactomeId: ptm.reactomeId,
+                nodeId: item.id,
+                nodeReactomeId: item.reactomeId,
+                displayName: ptm.label,
+                height: scale(ptm.shape.b.y - ptm.shape.a.y),
+                width: scale(ptm.shape.b.x - ptm.shape.a.x),
+              },
+              classes: "Modification",
+              pannable: true,
+              grabbable: false,
+              position: scale(ptm.shape.centre)
+            })))
           }
-        ));
+          return nodes
+        });
 
         //sub pathways
         const shadowNodes = data?.shadows.map(item => {
@@ -349,6 +370,7 @@ export class DiagramService {
               classes: this.linkClassMap.get(link.renderableClass),
               pannable: true,
               grabbable: false,
+              selectable: false
             }
           }
         )

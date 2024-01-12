@@ -76,6 +76,7 @@ export interface Node extends Entity {
   prop: Prop,
   connectors: NodeConnector[]
   interactorsSummary: InteractorsSummary;
+  nodeAttachments?: Attachment[];
 }
 
 export interface Compartment extends Entity {
@@ -105,5 +106,17 @@ interface InteractorsSummary {
 }
 
 interface Shape {
-  type: string
+  type: string;
+  a: Position;
+  b: Position;
+  centre: Position;
+  empty: boolean;
+  s: string;
+}
+
+interface Attachment {
+  description: string;
+  label: string;
+  reactomeId: number;
+  shape: Shape
 }

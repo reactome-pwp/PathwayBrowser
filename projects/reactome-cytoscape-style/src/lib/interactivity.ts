@@ -29,19 +29,24 @@ function initHover(cy: cytoscape.Core) {
   const hoverReaction = applyReaction(col => col.addClass('hover'), 'hovering')
   const deHoverReaction = applyReaction(col => col.removeClass('hover'), 'deHovering')
 
-  cy.on('mouseover', e => {
-    if (e.target.addClass) e.target.addClass('hover');
-    if (e.target.is) hoverReaction(e.target.is('edge') ? e.target.connectedNodes('.reaction') : e.target.nodes('.reaction'));
-  });
-  cy.on('mouseout', e => {
-    if (e.target.removeClass) e.target?.removeClass('hover')
-    if (e.target.is) deHoverReaction((e.target as cytoscape.Collection).is('edge') ? e.target.connectedNodes('.reaction') : e.target.nodes('.reaction'));
-  });
+  cy.nodes()
+    .on('mouseover', e => e.target.addClass('hover'))
+    .on('mouseout', e => e.target.removeClass('hover'))
+    .nodes('.reaction')
+    .on('mouseover', e => hoverReaction(e.target))
+    .on('mouseout', e => deHoverReaction(e.target))
+
+  cy.nodes('.Modification')
+    .on('mouseover', e => cy.nodes(`#${e.target.data('nodeId')}`).addClass('hover'))
+    .on('mouseout', e => cy.nodes(`#${e.target.data('nodeId')}`).removeClass('hover'))
+
+  cy.edges()
+    .on('mouseover', e => hoverReaction(e.target.connectedNodes('.reaction')))
+    .on('mouseout', e => deHoverReaction(e.target.connectedNodes('.reaction')))
 }
 
 function initSelect(cy: cytoscape.Core) {
   const selectReaction = applyReaction(col => col.select(), 'selecting')
-
 
   cy.edges()
     .on('select', event => selectReaction(event.target.connectedNodes('.reaction')))
@@ -51,6 +56,8 @@ function initSelect(cy: cytoscape.Core) {
     )
   cy.nodes('.reaction')
     .on('select', event => selectReaction(event.target))
+  cy.nodes('.Modification')
+    .on('select', e => cy.nodes(`#${e.target.data('nodeId')}`).select())
 }
 
 function initZoom(cy: cytoscape.Core) {

@@ -69,6 +69,9 @@ export interface Properties extends PropertiesType {
     stroke: Property<string>
     disease: Property<string>
   }
+  modification: {
+    fill: Property<string>
+  }
 }
 
 export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration) {
@@ -140,6 +143,9 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("stroke", () => extract(global.onPrimary))
     .setDefault('disease', () => extract(global.negative))
 
+  const modification: Properties['modification'] = defaultable(properties.modification || {})
+    .setDefault("fill", css.getPropertyValue('--primary-contrast-2') || '#003545')
+
   return {
     global,
     compartment,
@@ -151,7 +157,8 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     molecule,
     complex,
     entitySet,
-    pathway
+    pathway,
+    modification
   }
 }
 
