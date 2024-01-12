@@ -1,5 +1,62 @@
 #cytoscape {
   position: absolute;
   inset: 0 0 0 0;
-  background: #F6FEFF;
+  background: var(--surface);
+
+  --surface: #F6FEFF;
+  --on-surface: #001F24;
+  --primary: #006782;
+  --on-primary: #FFFFFF;
+  --on-tertiary: #FFFFFF;
+  --positive: #0C9509;
+  --negative: #BA1A1A;
+  --select-node: #6EB3E4;
+  --select-edge: #0561A6;
+  --hover-node: #78E076;
+  --hover-edge: #04B601;
+
+  --compartment: #E5834A;
+
+  --primary-contrast-1: #001F29;
+  --primary-contrast-2: #003545;
+  --primary-contrast-3: #004D62;
+
+  --tertiary-contrast-1: #00315C;
+  --tertiary-contrast-2: #1660A5;
+
+  --drug-contrast-1: #3E001D;
+  --drug-contrast-2: #610B33;
+  --drug-contrast-3: #7E2549;
+  --drug-contrast-4: #BB557A;
+
+}
+
+@media (prefers-color-scheme: dark) {
+  #cytoscape {
+    --surface: #0D1617;
+    --on-surface: #97F0FF;
+    --primary: #5CD4FF;
+    --on-primary: #0D1617;
+    --on-tertiary: #0D1317;
+    --positive: #10d70b;
+    --negative: #ea2323;
+    --select-node: #0561A6;
+    --select-edge: #6EB3E4;
+    --hover-node: #04B601;
+    --hover-edge: #78E076;
+
+    --compartment: #983C4C;
+
+    --primary-contrast-1: #5CD4FF;
+    --primary-contrast-2: #20B9E5;
+    --primary-contrast-3: #009DC4;
+
+    --tertiary-contrast-1: #A3C9FF;
+    --tertiary-contrast-2: #5793DB;
+
+    --drug-contrast-1: #FFB1C8;
+    --drug-contrast-2: #F988AE;
+    --drug-contrast-3: #DA6E94;
+    --drug-contrast-4: #DA6E94;
+  }
 }

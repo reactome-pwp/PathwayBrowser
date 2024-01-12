@@ -123,20 +123,20 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const molecule: Properties['molecule'] = defaultable(properties.molecule || {})
     .setDefault("fill", () => extract(global.surface))
     .setDefault("stroke", () => extract(global.onSurface))
-    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-4') || '#9C3D61')
+    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-3') || '#9C3D61')
   ;
 
   const complex: Properties['complex'] = defaultable(properties.complex || {})
     .setDefault("cut", 8)
     .setDefault("fill", () => css.getPropertyValue('--tertiary-contrast-1') || '#00315C')
     .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
-    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-4') || '#7E2549')
+    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-3') || '#7E2549')
 
   const entitySet: Properties['entitySet'] = defaultable(properties.entitySet || {})
     .setDefault("radius", 8)
     .setDefault("fill", () => css.getPropertyValue('--tertiary-contrast-2') || '#1660A5')
     .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
-    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-5') || '#BB557A')
+    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-4') || '#BB557A')
 
   const pathway: Properties['pathway'] = defaultable(properties.pathway || {})
     .setDefault("fill", () => extract(global.primary))

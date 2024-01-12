@@ -11,6 +11,7 @@ import {addRoundness} from "./roundness";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
+import {HSL} from "../../../projects/reactome-cytoscape-style/src/lib/color";
 
 type RelativePosition = { distances: number[], weights: number[] };
 
@@ -51,6 +52,30 @@ const closestToAverage = (positions: Position[]): Position => {
     }
   }
   return closest;
+}
+
+function invertColor(hex:string) {
+  if (hex.indexOf('#') === 0) {
+    hex = hex.slice(1);
+  }
+  // convert 3-digit hex to 6-digits.
+  if (hex.length === 3) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
+  if (hex.length !== 6) {
+    throw new Error('Invalid HEX color.');
+  }
+  // invert color components
+  var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
+    g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+    b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+  // pad each with zeros and return
+  return '#' + padZero(r) + padZero(g) + padZero(b);
+}
+
+function padZero(str:string, len = 2) {
+  let zeros = new Array(len).join('0');
+  return (zeros + str).slice(-len);
 }
 
 @Injectable({
@@ -165,7 +190,14 @@ export class DiagramService {
         this.reverseExtraLine = new Map<string, Position>(backwardArray);
         console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
 
-        const subpathwayIdToColor = new Map<number, string>(data.shadows.map(shadow => [shadow.reactomeId, shadow.colour]))
+        const dH = 360 / data.shadows.length;
+
+        const subpathwayIdToColor = new Map<number, string>(data.shadows.map((shadow, i) => {
+          // const hsl = HSL.fromHex(shadow.colour);
+          // hsl.l = 60;
+          const hsl = new HSL(dH * i, 100, 60)
+          return [shadow.reactomeId, hsl.toHex()]
+        }))
 
         const eventIdToSubPathwayId = new Map<number, string>(graph.subpathways?.flatMap(subpathway => subpathway.events
           .map(event => [event, subpathwayIdToColor.get(subpathway.dbId)])
