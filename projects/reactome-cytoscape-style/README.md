@@ -70,11 +70,19 @@ In principle, you should always have a `reaction` between every 2 `PhysicalEnity
 
 ##### 1.c Compartment
 
-Compartments are a special case of nodes since they are [compound nodes](https://js.cytoscape.org/#notation/compound-nodes). We don't need to specify their placement, it is calculated from its child nodes positions
+Compartments are a special case of nodes since they are not interacting.
 
 | Type        | Classes           | Note |
 |-------------|-------------------|------|
 | Compartment | `['Compartment']` |      |
+
+##### 1.c Modifications
+
+Modifications are a special case of nodes since they are associated to an Entity.
+
+| Type         | Classes            | Note                                                                          |
+|--------------|--------------------|-------------------------------------------------------------------------------|
+| Modification | `['Modification']` | Requires explicit position, width, height and parent `nodeId` within its data |
 
 #### 2. Edges
 
