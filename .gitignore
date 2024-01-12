@@ -42,5 +42,5 @@ testem.log
 Thumbs.db
 /.yalc/
 
-*.css
-*.css.map
+**/*.css
+**/*.css.map
