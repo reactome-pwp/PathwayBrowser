@@ -21,6 +21,7 @@ export class DiagramComponent implements AfterViewInit {
 
 
   cy?: cytoscape.Core;
+  reactomeStyle?: Style;
 
 
   ngAfterViewInit(): void {
@@ -29,31 +30,21 @@ export class DiagramComponent implements AfterViewInit {
     ).subscribe(elements => {
       const container = this.cytoscapeContainer!.nativeElement;
       const properties: UserProperties = {global: {thickness: 8}};
-      const reactomeStyle = new Style(container, {});
+      this.reactomeStyle = new Style(container, {});
       this.cy = cytoscape({
         container: container,
         elements: elements,
-        style: reactomeStyle.getStyleSheet(),
+        style: this.reactomeStyle.getStyleSheet(),
         layout: {name: "preset"},
       });
-      reactomeStyle.bindToCytoscape(this.cy);
-      // this.cy.nodes().addClass('debug')
-
-
-      // this.cy.on("ready", () => ))
-
+      this.reactomeStyle.bindToCytoscape(this.cy);
     })
+      }
 
-    // setTimeout(() => {
-    //   properties.global!.thickness = 4;
-    //   reactomeStyle.update(this.cy!)
-    //   this.redraw()
-    // }, 5000)
-
-
-    // this.cy.on('zoom', (e, extraParams) => {
-    //   console.log(this.cy!.zoom())
-    // })
+  updateStyle() {
+    setTimeout(() => this.reactomeStyle?.update(this.cy!), 5)
 
   }
+
+  protected readonly console = console;
 }

@@ -1,8 +1,6 @@
-#cytoscape {
-  position: absolute;
-  inset: 0 0 0 0;
-  background: var(--surface);
-
+.variables {
+  --opacity: 0.08;
+  --shadow-luminosity: 40;
   --surface: #F6FEFF;
   --on-surface: #001F24;
   --primary: #006782;
@@ -29,10 +27,12 @@
   --drug-contrast-3: #7E2549;
   --drug-contrast-4: #BB557A;
 
-}
+  &.dark {
+    --opacity: 0.08;
+    --shadow-luminosity: 70;
+    --shadow-opacity: [[0.2, 0.4], [0.4, 0]];
 
-@media (prefers-color-scheme: dark) {
-  #cytoscape {
+
     --surface: #0D1617;
     --on-surface: #97F0FF;
     --primary: #5CD4FF;
@@ -41,22 +41,39 @@
     --positive: #10d70b;
     --negative: #ea2323;
     --select-node: #0561A6;
-    --select-edge: #6EB3E4;
+    --select-edge: #1d85cc;
     --hover-node: #04B601;
     --hover-edge: #78E076;
 
-    --compartment: #983C4C;
+    --compartment: #5e232d;
 
     --primary-contrast-1: #5CD4FF;
-    --primary-contrast-2: #20B9E5;
-    --primary-contrast-3: #009DC4;
+    --primary-contrast-2: #1d9dc2;
+    --primary-contrast-3: #057e9b;
 
-    --tertiary-contrast-1: #A3C9FF;
-    --tertiary-contrast-2: #5793DB;
+    --tertiary-contrast-1: #a48ee0;
+    --tertiary-contrast-2: #8c63c5;
 
     --drug-contrast-1: #FFB1C8;
     --drug-contrast-2: #F988AE;
     --drug-contrast-3: #DA6E94;
     --drug-contrast-4: #DA6E94;
   }
+}
+
+#controls {
+  position: absolute;
+  inset: calc(100vh - 40px) 0 0 0;
+  * {
+    background: var(--surface);
+    color: var(--on-surface);
+  }
+  background: var(--surface);
+
+}
+
+#cytoscape {
+  position: absolute;
+  inset: 0 0 40px 0;
+  background: var(--surface);
 }

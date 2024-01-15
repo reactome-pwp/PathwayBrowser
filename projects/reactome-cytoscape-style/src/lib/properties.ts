@@ -19,6 +19,7 @@ export interface Properties extends PropertiesType {
     opacity: Property<number>
   }
   shadow: {
+    luminosity: Property<number>
     opacity: Property<[number, number][]>
     labelOpacity: Property<[number, number][]>
   }
@@ -74,7 +75,7 @@ export interface Properties extends PropertiesType {
   }
 }
 
-export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration) {
+export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration): Properties {
   const global: Properties['global'] = defaultable(properties.global || {})
     .setDefault('thickness', 4)
     .setDefault('surface', () => css.getPropertyValue('--surface') || '#F6FEFF')
@@ -89,12 +90,19 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('hoverEdge', () => css.getPropertyValue('--hover-edge') || '#04B601')
 
   const compartment: Properties['compartment'] = defaultable(properties.compartment || {})
-    .setDefault('opacity', 0.06)
+    .setDefault('opacity', () => Number.parseFloat(css.getPropertyValue('--opacity')) || 0.06)
     .setDefault('fill', () => css.getPropertyValue('--compartment') || '#E5834A')
 
   const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
-    .setDefault('opacity', [[0.2, 0.2], [0.4, 0]])
-    .setDefault('labelOpacity', [[0.2, 1], [0.4, 0]])
+    .setDefault('luminosity', () => Number.parseFloat(css.getPropertyValue('--shadow-luminosity')) || 40)
+    .setDefault('opacity', () => {
+      const p = css.getPropertyValue('--shadow-opacity');
+      return p ? JSON.parse(p) : [[0.2, 0.2], [0.4, 0]];
+    })
+    .setDefault('labelOpacity', () => {
+      const p = css.getPropertyValue('--shadow-label-opacity');
+      return p ? JSON.parse(p) : [[0.2, 1], [0.4, 0]];
+    })
 
   const protein: Properties['protein'] = defaultable(properties.protein || {})
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-1') || '#001F29')
@@ -124,7 +132,6 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("fill", () => extract(global.surface))
     .setDefault("stroke", () => extract(global.onSurface))
     .setDefault('drug', () => css.getPropertyValue('--drug-contrast-3') || '#9C3D61')
-  ;
 
   const complex: Properties['complex'] = defaultable(properties.complex || {})
     .setDefault("cut", 8)
@@ -144,7 +151,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('disease', () => extract(global.negative))
 
   const modification: Properties['modification'] = defaultable(properties.modification || {})
-    .setDefault("fill", css.getPropertyValue('--primary-contrast-2') || '#003545')
+    .setDefault("fill", () => css.getPropertyValue('--primary-contrast-2') || '#003545')
 
   return {
     global,

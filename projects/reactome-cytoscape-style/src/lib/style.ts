@@ -1,24 +1,45 @@
 import cytoscape from "cytoscape";
-import {imageBuilder, clearDrawersCache, OMMITED_ICON} from "./drawer/image-builder";
-import {propertyExtractor, propertyMapper} from "./properties-utils";
+import {clearDrawersCache, imageBuilder, OMMITED_ICON} from "./drawer/image-builder";
+import {extract, propertyExtractor, propertyMapper} from "./properties-utils";
 
 import {Properties, setDefaults, UserProperties} from "./properties";
-import {initInteractivity} from "./interactivity";
+import {initInteractivity, onZoom} from "./interactivity";
+import {HSL} from "./color";
 
 
 export class Style {
   public static css: CSSStyleDeclaration;
   public static properties: Properties;
+  private cy?: cytoscape.Core;
   private p = propertyExtractor;
   private pm = propertyMapper;
 
   constructor(container: HTMLElement, properties: UserProperties = {}) {
     Style.css = getComputedStyle(container);
-    Style.properties = setDefaults(properties, Style.css)
+    Style.properties = setDefaults(properties, Style.css);
   }
 
   bindToCytoscape(cy: cytoscape.Core) {
+    this.cy = cy;
     initInteractivity(cy);
+    this.initSubPathwayColors()
+  }
+
+  initSubPathwayColors() {
+    const subPathways = this.cy?.nodes('.Shadow');
+    if (!subPathways) return;
+    const dH = 360 / subPathways.length;
+
+    const subpathwayIdToColor = new Map<number, string>(subPathways.map((subPathway, i) => {
+      const hex = new HSL(dH * i, 100, extract(Style.properties.shadow.luminosity)).toHex();
+      subPathway.data('color', hex);
+      return [subPathway.data('reactomeId'), hex]
+    }))
+
+    this.cy?.edges('[?pathway]').forEach(edge => {
+      edge.data('color', subpathwayIdToColor.get(edge.data('pathway'))
+      )
+    })
   }
 
 
@@ -73,7 +94,7 @@ export class Style {
         }
       },
       {
-        selector: 'node.Shadow',
+        selector: 'node.Shadow[?color]',
         style: {
           'label': 'data(displayName)',
           "font-size": 80,
@@ -251,7 +272,6 @@ export class Style {
       },
 
 
-
       {
         selector: 'node.reaction',
         style: {
@@ -299,7 +319,7 @@ export class Style {
       }, {
         selector: 'node.omitted',
         style: {
-          "background-image": OMMITED_ICON,
+          "background-image": OMMITED_ICON(),
           "background-fit": "cover",
           "background-height": "100%",
           "background-width": "100%",
@@ -410,10 +430,10 @@ export class Style {
           "target-text-offset": 35,
         }
       }, {
-        selector: "edge[?shadow]",
+        selector: "edge[?color]",
         style: {
           // @ts-ignore
-          "underlay-color": "data(shadow)",
+          "underlay-color": "data(color)",
           "underlay-padding": 20,
           "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1]),
         }
@@ -455,10 +475,7 @@ export class Style {
   update(cy: cytoscape.Core) {
     clearDrawersCache();
     cy.style(this.getStyleSheet());
+    this.initSubPathwayColors();
+    onZoom()
   }
 }
-
-
-
-
-

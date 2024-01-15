@@ -106,6 +106,7 @@ export function clearDrawersCache() {
     value.cache.clear!()
   }
   imageBuilder.cache.clear!();
+  OMMITED_ICON.cache.clear!();
 }
 
 function aggregate<T extends Object, K extends keyof T>(toAggregate: T[], defaultValue: T): Aggregated<T> {
@@ -165,5 +166,8 @@ const Pathway = (width: number, height: number, clazz: Node): Image => {
 
 }
 
-export const OMMITED_ICON = svgStr('<line x1="2.5" y1="3" x2="4.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="#001F24"/><line x1="5.5" y1="3" x2="7.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="#001F24"/>', 10, 10)
+export const OMMITED_ICON = memoize(() => {
+  const s = extract(Style.properties.global.onSurface);
+  return svgStr(`<line x1="2.5" y1="3" x2="4.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="${s}"/><line x1="5.5" y1="3" x2="7.5" y2="7" stroke-width="1.5" stroke-linecap="round" stroke="${s}"/>`, 10, 10)
+})
 

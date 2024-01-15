@@ -5,9 +5,12 @@ import {AppComponent} from './app.component';
 import {FormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
 import {HttpClientModule} from "@angular/common/http";
-import { DiagramComponent } from './diagram/diagram.component';
+import {DiagramComponent} from './diagram/diagram.component';
 import {RouterOutlet} from "@angular/router";
 import {AppRoutingModule} from "./app-routing.module";
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {MatButtonModule} from "@angular/material/button";
+import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 
 @NgModule({
   declarations: [
@@ -20,7 +23,10 @@ import {AppRoutingModule} from "./app-routing.module";
     CommonModule,
     HttpClientModule,
     RouterOutlet,
-    AppRoutingModule
+    AppRoutingModule,
+    NoopAnimationsModule,
+    MatButtonModule,
+    MatSlideToggleModule
   ],
   providers: [],
   bootstrap: [AppComponent]

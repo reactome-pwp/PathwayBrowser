@@ -60,14 +60,15 @@ function initSelect(cy: cytoscape.Core) {
     .on('select', e => cy.nodes(`#${e.target.data('nodeId')}`).select())
 }
 
+export let onZoom: (e?: cytoscape.EventObjectCore) => void;
+
 function initZoom(cy: cytoscape.Core) {
-  const shadows = cy.edges('[?shadow]');
+  const shadows = cy.edges('[?pathway]');
   const shadowLabels = cy.nodes('.Shadow');
   cy.minZoom(Math.min(cy.zoom(), extract(Style.properties.shadow.labelOpacity)[0][0]));
   cy.maxZoom(15);
 
-
-  cy.on('zoom', e => {
+  onZoom = e => {
     const zoomLevel = cy.zoom();
     shadows.stop().animate({
       style: {
@@ -79,7 +80,9 @@ function initZoom(cy: cytoscape.Core) {
         'text-opacity': interpolate(zoomLevel, extract(Style.properties.shadow.labelOpacity).map(v => p(...v)))
       }
     });
-  });
+  }
+
+  cy.on('zoom', onZoom);
 }
 
 function p(x: number, y: number): P {
