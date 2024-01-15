@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
-import {forkJoin, map, Observable, of, tap} from "rxjs";
-import {HttpClient} from "@angular/common/http";
-import {NodeConnector, Diagram, Edge, Node, Position} from "../model/diagram.model";
+import {forkJoin, map, mergeMap, Observable, of, tap} from "rxjs";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {Diagram, Edge, Node, NodeConnector, Position} from "../model/diagram.model";
 import {Graph} from "../model/graph.model";
+import {Interaction} from "../model/interaction.moel";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import {array} from "vectorious";
@@ -12,6 +13,7 @@ import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 import {HSL} from "../../../projects/reactome-cytoscape-style/src/lib/color";
+
 
 type RelativePosition = { distances: number[], weights: number[] };
 
@@ -160,11 +162,43 @@ export class DiagramService {
       diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
       graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
     }).pipe(
-      tap((response) => console.log(response)),
+      mergeMap((response) => {
+
+        const reactomeIdToSchemaClass = new Map<number, string>(response.diagram.nodes.map(node => [node.reactomeId, node.schemaClass]))
+
+        //todo : update
+        const Pe = ["EntityWithAccessionedSequence", "SimpleEntity"]
+
+        const postIdentifiers = new Set(response.graph.nodes
+          .filter(node => Pe.includes(reactomeIdToSchemaClass.get(node.dbId) || ''))
+          .map(node => node.identifier));
+
+        //concatenate elements from the set values into a single string
+        const postContent = [...postIdentifiers].join(',');
+
+        //todo: resource is needed to consider
+        const InteractorOccurrences = this.http.post<Interaction>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', postContent, {
+          headers: new HttpHeaders({'Content-Type': 'text/plain'})
+        });
+
+        return InteractorOccurrences.pipe(
+          map((interactionResponse) => {
+            const interaction = interactionResponse as Interaction;
+            // merge interaction data into the existing response object
+            return {
+              ...response,
+              interaction
+            };
+          })
+        );
+
+      }),
+      tap((mergedResponse) => console.log('All responses:', mergedResponse)),
       map((response) => {
 
-        const data = response.diagram;
+        const data = response.diagram
         const graph = response.graph
+        const interaction = response.interaction;
 
         console.log("edge.reactionType", new Set(data.edges.flatMap(edge => edge.reactionType)))
         console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
@@ -203,10 +237,14 @@ export class DiagramService {
           .map(event => [event, subpathwayIdToColor.get(subpathway.dbId)])
           .filter(entry => entry[1] !== undefined)) as [number, string][] || [])
 
-        const subpathwayIdToEventId = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]))
+        //todo: simplify
+        const identifierToDiagramId = new Map<number, string>(graph.nodes.flatMap(node => (node.diagramIds || [])
+            .filter(id => id !== null)
+            .map(id => [id, node.identifier])
+            .filter(entry => entry[1] !== undefined) ) as [number, string][] || [])
 
         //compartment nodes
-        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
+        const compartmentNodes: cytoscape.NodeDefinition[]= data?.compartments.flatMap(item => {
           const layers: cytoscape.NodeDefinition[] = [
             {
               data: {
@@ -295,7 +333,7 @@ export class DiagramService {
         });
 
         //sub pathways
-        const shadowNodes = data?.shadows.map(item => {
+        const shadowNodes: cytoscape.NodeDefinition[] = data?.shadows.map(item => {
           return {
             data: {
               id: item.id + '',
@@ -315,6 +353,35 @@ export class DiagramService {
             grabbable: false,
           }
         });
+
+        //interactor bubble node
+        const InteractorOccurrenceNode: cytoscape.NodeDefinition[] = interaction.entities
+          .filter(entity => entity.count > 0)
+          .flatMap(item => {
+
+            const diagramIds = [...identifierToDiagramId.entries()]
+              .filter(([key, value]) => value === item.acc)
+              .map(([key]) => key)
+
+            const nodes: cytoscape.NodeDefinition[] = [];
+            for (let id of diagramIds) {
+
+              const nodeInfo = idToNodes.get(id);
+              if (nodeInfo) {
+                nodes.push({
+                  data: {
+                    id: nodeInfo.id + '-occ',
+                    displayName: item.count,
+                  },
+                  classes: ['Interactor'],
+                  pannable: true,
+                  grabbable: false,
+                  position: scale(nodeInfo.interactorsSummary.shape.centre),
+                });
+              }
+            }
+            return nodes;
+          });
 
         /**
          * iterate nodes connectors to get all edges information based on the connector type.
@@ -408,7 +475,7 @@ export class DiagramService {
         )
 
         return {
-          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes],
+          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes, ...InteractorOccurrenceNode],
           edges: [...edges, ...linkEdges]
         };
       }))

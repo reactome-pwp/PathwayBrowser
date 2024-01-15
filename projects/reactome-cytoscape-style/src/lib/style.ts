@@ -88,6 +88,19 @@ export class Style {
         }
       },
       {
+        selector: 'node.Interactor',
+        style: {
+          'label': 'data(displayName)',
+          'color': this.p('global', 'surface'),
+          "shape": "ellipse",
+          "text-valign": "center",
+          "text-halign": "center",
+          "text-wrap": 'wrap',
+          "text-max-width": "data(width)",
+          "background-color": this.p('global', 'negative')
+        }
+      },
+      {
         selector: 'node.drug',
         style: {
           "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
