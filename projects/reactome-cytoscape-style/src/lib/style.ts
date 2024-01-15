@@ -103,7 +103,8 @@ export class Style {
       {
         selector: 'node.drug',
         style: {
-          "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px'
+          "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px',
+          "text-margin-x": 12
         }
       }, {
         selector: 'node.PhysicalEntity, node.Pathway, node.Modification',
