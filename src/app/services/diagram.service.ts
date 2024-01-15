@@ -6,6 +6,7 @@ import {Graph} from "../model/graph.model";
 import {Interaction} from "../model/interaction.moel";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
+import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
 import {addRoundness} from "./roundness";
@@ -132,6 +133,10 @@ export class DiagramService {
 
   private readonly COMPARTMENT_SHIFT = 35;
 
+  public getLegend() : Observable<cytoscape.ElementsDefinition> {
+    return of(legend)
+  }
+
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
       diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
@@ -226,8 +231,6 @@ export class DiagramService {
               },
               classes: ['Compartment', 'outer'],
               position: scale(item.position),
-              pannable: true,
-              grabbable: false,
               selectable: false,
             }
           ];
@@ -241,8 +244,6 @@ export class DiagramService {
               },
               classes: ['Compartment', 'inner'],
               position: scale({x: item.insets.x + item.insets.width / 2, y: item.insets.y + item.insets.height / 2}),
-              pannable: true,
-              grabbable: false,
               selectable: false,
             })
           }
@@ -258,8 +259,6 @@ export class DiagramService {
             output: item.outputs,
           },
           classes: this.reactionTypeMap.get(item.reactionType),
-          pannable: true,
-          grabbable: false,
           position: scale(item.position)
         }));
 
@@ -276,8 +275,6 @@ export class DiagramService {
                 width: scale(item.prop.width),
               },
               classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
-              pannable: true,
-              grabbable: false,
               position: scale(item.position)
             }
           ];
@@ -293,8 +290,6 @@ export class DiagramService {
                 width: scale(ptm.shape.b.x - ptm.shape.a.x),
               },
               classes: "Modification",
-              pannable: true,
-              grabbable: false,
               position: scale(ptm.shape.centre)
             })))
           }
@@ -343,8 +338,6 @@ export class DiagramService {
                     displayName: item.count,
                   },
                   classes: ['Interactor'],
-                  pannable: true,
-                  grabbable: false,
                   position: scale(nodeInfo.interactorsSummary.shape.centre),
                 });
               }
@@ -399,8 +392,6 @@ export class DiagramService {
                     pathway: eventIdToSubPathwayId.get(reaction.reactomeId),
                   },
                   classes: this.edgeTypeMap.get(connector.type),
-                  pannable: true,
-                  grabbable: false,
                 };
                 return edge
               });
@@ -436,8 +427,6 @@ export class DiagramService {
                 targetEndpoint: this.endpoint(targetP, to)
               },
               classes: this.linkClassMap.get(link.renderableClass),
-              pannable: true,
-              grabbable: false,
               selectable: false
             }
           }

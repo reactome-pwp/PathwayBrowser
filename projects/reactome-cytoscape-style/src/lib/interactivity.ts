@@ -3,6 +3,8 @@ import {extract} from "./properties-utils";
 import {Style} from "./style";
 
 export function initInteractivity(cy: cytoscape.Core) {
+  // @ts-ignore
+  cy.elements().ungrabify().panify();
   initHover(cy);
   initSelect(cy);
   initZoom(cy);
