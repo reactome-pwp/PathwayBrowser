@@ -87,7 +87,7 @@ export interface Compartment extends Entity {
 }
 
 export interface Link {
-  id: number
+  id: number;
   inputs: EdgeConnector[];
   outputs: EdgeConnector[];
   renderableClass: string;
@@ -95,7 +95,7 @@ export interface Link {
 }
 
 interface SubPathway extends Entity {
-  prop: Prop,
+  prop: Prop;
   colour: string;
 }
 
