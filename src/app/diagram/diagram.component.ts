@@ -13,6 +13,7 @@ import {switchMap} from "rxjs";
 export class DiagramComponent implements AfterViewInit {
   title = 'pathway-browser';
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
 
 
   constructor(private diagram: DiagramService, private route: ActivatedRoute) {
@@ -21,28 +22,46 @@ export class DiagramComponent implements AfterViewInit {
 
 
   cy?: cytoscape.Core;
+  legend?: cytoscape.Core;
   reactomeStyle?: Style;
 
 
   ngAfterViewInit(): void {
+    const container = this.cytoscapeContainer!.nativeElement;
+    this.reactomeStyle = new Style(container);
+
     this.route.params.pipe(
       switchMap(params => this.diagram.getDiagram(params['id']))
+      // switchMap(params => this.diagram.getLegend())
     ).subscribe(elements => {
-      const container = this.cytoscapeContainer!.nativeElement;
-      const properties: UserProperties = {global: {thickness: 8}};
-      this.reactomeStyle = new Style(container, {});
+
       this.cy = cytoscape({
         container: container,
         elements: elements,
-        style: this.reactomeStyle.getStyleSheet(),
+        style: this.reactomeStyle?.getStyleSheet(),
         layout: {name: "preset"},
       });
-      this.reactomeStyle.bindToCytoscape(this.cy);
+      this.reactomeStyle?.bindToCytoscape(this.cy);
     })
-      }
+
+    this.diagram.getLegend()
+      .subscribe( legend => {
+        const container = this.legendContainer!.nativeElement;
+        this.legend = cytoscape({
+          container: container,
+          elements: legend,
+          style: this.reactomeStyle?.getStyleSheet(),
+          layout: {name: "preset"},
+        });
+        this.reactomeStyle?.bindToCytoscape(this.legend);
+        this.legend.zoomingEnabled(false)
+        this.legend.panningEnabled(false)
+      })
+  }
 
   updateStyle() {
     setTimeout(() => this.reactomeStyle?.update(this.cy!), 5)
+    setTimeout(() => this.reactomeStyle?.update(this.legend!), 5)
 
   }
 

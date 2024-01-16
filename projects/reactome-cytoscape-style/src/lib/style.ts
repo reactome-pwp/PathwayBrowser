@@ -125,7 +125,8 @@ export class Style {
         selector: 'node.drug',
         style: {
           "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px',
-          "text-margin-x": 12
+          "text-margin-x": 4,
+          "font-style": "italic"
         }
       }, {
         selector: 'node.PhysicalEntity, node.Pathway, node.Modification',
@@ -286,6 +287,14 @@ export class Style {
           "background-color": this.p('global', 'surface'),
         }
       }, {
+        selector: 'node.reaction[?displayName]',
+        style: {
+          "label": "data(displayName)",
+          "font-weight": 400,
+          "text-valign": "top",
+          "text-margin-y": -5,
+        }
+      }, {
         selector: 'node.reaction.hover',
         style: {
           "border-width": this.pm('global', 'thickness', t => t * 1),
@@ -304,16 +313,18 @@ export class Style {
           "background-color": this.p('global', 'onSurface'),
         }
       }, {
-        selector: ' node.dissociation',
+        selector: 'node.dissociation',
         style: {
           "shape": "ellipse",
           "border-style": "double",
           "border-width": this.pm('global', 'thickness', t => 3 * t)
         }
       }, {
-        selector: ' node.uncertain',
+        selector: 'node.uncertain',
         style: {
           "label": "?",
+          "text-valign": "center",
+          "text-margin-y": 0,
           "font-weight": 600
         }
       }, {
@@ -375,10 +386,12 @@ export class Style {
           'target-arrow-width': '50%',
           "z-index": 3
         }
-      }, {
+      },
+      {
         selector: 'edge.consumption',
         style: {"target-endpoint": "inside-to-node", "source-endpoint": "outside-to-node"}
-      }, {
+      }
+      , {
         selector: 'edge.production',
         style: {'target-arrow-shape': 'triangle'}
       }, {
@@ -440,6 +453,9 @@ export class Style {
       }, {
         selector: "edge[?weights]",
         style: {
+          // "curve-style": "segments",
+          // "segment-distances": "data(distances)",
+          // "segment-weights": "data(weights)",
           "curve-style": "unbundled-bezier",
           "control-point-distances": "data(distances)",
           "control-point-weights": "data(weights)",
@@ -460,6 +476,41 @@ export class Style {
           "target-endpoint": "data(targetEndpoint)",
         }
       }, {
+        selector: "edge[?sourceLabel]",
+        style: {
+          "source-label": "data(sourceLabel)",
+          "source-text-margin-y": -12,
+          "font-weight": 400
+        }
+      }, {
+        selector: "edge[?label]",
+        style: {
+          "label": "data(label)",
+          "text-margin-y": 12,
+          "font-weight": 400
+        }
+      },
+      {
+        selector: '.disease',
+        style: {
+          "color": this.p('global', 'negative'),
+          "line-color": this.p('global', 'negative'),
+          "border-color": this.p('global', 'negative'),
+        }
+      },
+      {
+        selector: "edge[?sourceOffset]",
+        style: {
+          // @ts-ignore
+          "source-text-offset": "data(sourceOffset)",
+        }
+      },
+      {
+        selector: "[?labelColor]",
+        style: {
+          "color": (e: cytoscape.EdgeSingular) => extract(this.p('global', e.data("labelColor")))
+        }
+      }, {
         selector: "node.debug",
         style: {
           label: "data(id)",
@@ -468,7 +519,39 @@ export class Style {
           "text-outline-opacity": 1,
           color: 'white'
         }
-      }
+      },
+
+      {
+        selector: "node.Legend.Label",
+        style: {
+          "label": "data(displayName)",
+          "text-halign": "center",
+          "text-valign": "center",
+          "font-size": 24,
+          "font-weight": 400,
+          "background-opacity": 0,
+          "color": this.p('global', 'onSurface')
+        }
+      },
+      {
+        selector: "node.Legend.Placeholder",
+        style: {
+          "background-opacity": 0,
+          "border-opacity": 0,
+          width: 20,
+          height: 20,
+          shape: "rectangle"
+        }
+      },
+      {
+        selector: "node.Legend.Placeholder[?displayName]",
+        style: {
+          "label": "data(displayName)",
+          "font-weight": 400,
+          // "text-halign": "center",
+          // "text-valign": "center",
+        }
+      },
     ]
   }
 
