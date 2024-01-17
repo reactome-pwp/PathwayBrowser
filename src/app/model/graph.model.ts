@@ -19,7 +19,7 @@ export interface Edge extends Entity {
 }
 
 export interface Node extends Entity {
-  diagramIds: number[];
+  diagramIds?: number[];
   identifier: string
   parents: number[];
   children: number[];
