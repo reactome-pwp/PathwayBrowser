@@ -237,7 +237,13 @@ export class Style {
         style: {
           "background-opacity": 0,
           "shape": "cut-rectangle",
-          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 4) + 'px')
+          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 6) + 'px')
+        }
+      }, {
+        selector: 'node.Complex.drug',
+        style: {
+          "text-margin-x": 4,
+          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 6 - 44) + 'px')
         }
       }, {
         selector: 'node.Cell',
@@ -252,9 +258,8 @@ export class Style {
         selector: 'node.Pathway',
         style: {
           "background-color": this.p('pathway', 'fill'),
-          "text-max-width": (node: cytoscape.NodeSingular) =>
-            this.pm('global', 'thickness', t => `${node.width() - 8 * t - 96}px`
-            )
+          "text-margin-x": 18,
+
         }
       },
       {
@@ -262,14 +267,22 @@ export class Style {
         style: {
           "shape": "rectangle",
           "border-color": this.p('pathway', 'stroke'),
-          "border-width": this.pm('global', 'thickness', t => 3 * t)
+          "border-width": this.pm('global', 'thickness', t => 3 * t),
+          "text-max-width": (node: cytoscape.NodeSingular) =>
+            this.pm('global', 'thickness', t => `${node.width() - (4 * t + 36) * 2}px`
+            ),
+
         }
       },
       {
         selector: 'node.SUB.Pathway',
         style: {
           "background-opacity": 0,
-          "shape": 'round-rectangle'
+          "shape": 'round-rectangle',
+          "text-max-width": (node: cytoscape.NodeSingular) =>
+            this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
+            ),
+
         }
       },
       {
