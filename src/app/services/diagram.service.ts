@@ -256,7 +256,7 @@ export class DiagramService {
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => ({
           data: {
             id: item.id + '',
-            displayName: item.displayName,
+            // displayName: item.displayName,
             inputs: item.inputs,
             output: item.outputs,
           },
