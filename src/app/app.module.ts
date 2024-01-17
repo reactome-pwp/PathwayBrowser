@@ -11,6 +11,7 @@ import {AppRoutingModule} from "./app-routing.module";
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {MatButtonModule} from "@angular/material/button";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
+import {CdkDrag, CdkDragHandle} from "@angular/cdk/drag-drop";
 
 @NgModule({
   declarations: [
@@ -26,7 +27,9 @@ import {MatSlideToggleModule} from "@angular/material/slide-toggle";
     AppRoutingModule,
     NoopAnimationsModule,
     MatButtonModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    CdkDragHandle,
+    CdkDrag
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,7 +1,14 @@
-<div class="variables" [class.dark]="dark.checked">
+<div class="variables" [class.dark]="dark.checked" #container>
   <div id="cytoscape" #cytoscape></div>
 
-  <div id="legend" #legend></div>
+  <div id="legend-boundary">
+    <div cdkDrag cdkDragLockAxis="x" cdkDragBoundary="#legend-boundary" id="legend-container"
+         [style.height]="container.clientHeight + 'px'">
+      <button id="legend-handle" cdkDragHandle>LEGEND</button>
+      <div id="legend" #legend></div>
+    </div>
+  </div>
+
 
   <form id="controls">
     <button mat-raised-button (click)="updateStyle()">Update Style</button>

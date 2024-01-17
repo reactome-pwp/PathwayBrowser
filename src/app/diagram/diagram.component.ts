@@ -45,13 +45,14 @@ export class DiagramComponent implements AfterViewInit {
     })
 
     this.diagram.getLegend()
-      .subscribe( legend => {
+      .subscribe(legend => {
         const container = this.legendContainer!.nativeElement;
         this.legend = cytoscape({
           container: container,
           elements: legend,
           style: this.reactomeStyle?.getStyleSheet(),
           layout: {name: "preset"},
+          boxSelectionEnabled: false
         });
         this.reactomeStyle?.bindToCytoscape(this.legend);
         this.legend.zoomingEnabled(false)
@@ -62,8 +63,5 @@ export class DiagramComponent implements AfterViewInit {
   updateStyle() {
     setTimeout(() => this.reactomeStyle?.update(this.cy!), 5)
     setTimeout(() => this.reactomeStyle?.update(this.legend!), 5)
-
   }
-
-  protected readonly console = console;
 }
