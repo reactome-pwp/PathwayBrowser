@@ -237,7 +237,15 @@ export class Style {
         style: {
           "background-opacity": 0,
           "shape": "cut-rectangle",
-          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 3) + 'px')
+          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 4) + 'px')
+        }
+      }, {
+        selector: 'node.Cell',
+        style: {
+          "background-opacity": 0,
+          "shape": "round-rectangle",
+          "text-max-width": (node: cytoscape.NodeSingular) =>
+            this.pm('global', 'thickness', t => this.pm('cell', 'thickness', ct => (node.width() - t * 2 - ct * 2) + 'px'))
         }
       },
       {

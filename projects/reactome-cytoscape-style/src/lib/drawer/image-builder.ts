@@ -7,9 +7,10 @@ import {rna} from "./shape/rna-shape";
 import {genomeEncodedEntity} from "./shape/gee-shape";
 import {complex} from "./shape/complex-shape";
 import {entitySet} from "./shape/entity-sets-shape";
+import {cell} from "./shape/cell-shape";
 import {interactingPathway} from "./shape/interacting-pathway-shape";
-import {sub} from "./shape/sub-shape";
 
+import {sub} from "./shape/sub-shape";
 import {extract} from "../properties-utils";
 import {Style} from "../style";
 import {Node} from "../types";
@@ -97,6 +98,7 @@ const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Molecule", memoize(molecule, dim)],
   ["Complex", memoize(complex, dim)],
   ["EntitySet", memoize(entitySet, dim)],
+  ["Cell", memoize(cell, dim)],
   ["Interacting", memoize(interactingPathway, dim)],
   ["SUB", memoize(sub, dim)],
 ]);
@@ -138,7 +140,7 @@ const RX = (width: number, height: number, clazz: Node): Image => {
 
 const Pathway = (width: number, height: number, clazz: Node): Image => {
   const t = extract(Style.properties.global.thickness);
-  const color = clazz == 'Interacting' || 'SUB'?
+  const color = clazz == 'Interacting' || 'SUB' ?
     extract(Style.properties.global.onPrimary) :
     extract(Style.properties.pathway.disease);
 

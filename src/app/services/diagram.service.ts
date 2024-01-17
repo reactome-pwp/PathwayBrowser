@@ -75,6 +75,7 @@ export class DiagramService {
       ['Entity', ['GenomeEncodedEntity', 'PhysicalEntity']],
       ['Gene', ['Gene', 'PhysicalEntity']],
       ['Chemical', ['Molecule', 'PhysicalEntity']],
+      ['Cell', ['Cell', 'PhysicalEntity']],
 
       ['ProteinDrug', ['Protein', 'PhysicalEntity', 'drug']],
       ['ComplexDrug', ['Complex', 'PhysicalEntity', 'drug']],
@@ -87,6 +88,7 @@ export class DiagramService {
   )
 
   reactionTypeMap = new Map<string | undefined, ReactionDefinition>([
+      [undefined, ['transition', 'reaction']],
       ['transition', ['transition', 'reaction']],
       ['binding', ['association', 'reaction']],
       ['dissociation', ['dissociation', 'reaction']],
@@ -433,7 +435,9 @@ export class DiagramService {
         )
 
         return {
-          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes, ...InteractorOccurrenceNode],
+          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes,
+            // ...InteractorOccurrenceNode
+          ],
           edges: [...edges, ...linkEdges]
         };
       }))

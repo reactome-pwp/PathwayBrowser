@@ -64,6 +64,11 @@ export interface Properties extends PropertiesType {
     drug: Property<string>
     cut: Property<number>
   }
+  cell: {
+    thickness: Property<number>
+    fill: Property<string>
+    stroke: Property<string>
+  }
   //interacting pathway and sub pathway
   pathway: {
     fill: Property<string>
@@ -111,7 +116,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
 
   const genomeEncodedEntity: Properties['genomeEncodedEntity'] = defaultable(properties.genomeEncodedEntity || {})
     .setDefault('fill', () => extract(protein.fill))
-    .setDefault('stroke', () => extract(global.primary))
+    .setDefault('stroke', () => extract(gene.fill))
     .setDefault('drug', () => extract(protein.drug))
     .setDefault('radius', 8)
 
@@ -141,9 +146,14 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
 
   const entitySet: Properties['entitySet'] = defaultable(properties.entitySet || {})
     .setDefault("radius", 8)
-    .setDefault("fill", () => css.getPropertyValue('--tertiary-contrast-2') || '#1660A5')
+    .setDefault("fill", () => css.getPropertyValue('--tertiary-contrast-3') || '#1660A5')
     .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
     .setDefault('drug', () => css.getPropertyValue('--drug-contrast-4') || '#BB557A')
+
+  const cell: Properties['cell'] = defaultable(properties.cell || {})
+    .setDefault('thickness', () => Number.parseFloat(css.getPropertyValue('--cell-thickness')) || 16)
+    .setDefault("fill", () => css.getPropertyValue('--tertiary-contrast-2') || '#004882')
+    .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
 
   const pathway: Properties['pathway'] = defaultable(properties.pathway || {})
     .setDefault("fill", () => extract(global.primary))
@@ -164,6 +174,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     molecule,
     complex,
     entitySet,
+    cell,
     pathway,
     modification
   }
