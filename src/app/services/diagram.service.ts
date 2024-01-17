@@ -69,11 +69,12 @@ export class DiagramService {
 
 
   nodeTypeMap = new Map<string, NodeDefinition>([
-      ['Protein', ['Protein', 'PhysicalEntity']],
-      ['EntitySet', ['EntitySet', 'PhysicalEntity']],
-      ['Complex', ['Complex', 'PhysicalEntity']],
-      ['Entity', ['GenomeEncodedEntity', 'PhysicalEntity']],
       ['Gene', ['Gene', 'PhysicalEntity']],
+      ['RNA', ['RNA', 'PhysicalEntity']],
+      ['Protein', ['Protein', 'PhysicalEntity']],
+      ['Entity', ['GenomeEncodedEntity', 'PhysicalEntity']],
+      ['Complex', ['Complex', 'PhysicalEntity']],
+      ['EntitySet', ['EntitySet', 'PhysicalEntity']],
       ['Chemical', ['Molecule', 'PhysicalEntity']],
       ['Cell', ['Cell', 'PhysicalEntity']],
 
