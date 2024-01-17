@@ -117,7 +117,6 @@ export class Style {
           "text-valign": "center",
           "text-halign": "center",
           "text-wrap": 'wrap',
-          "text-max-width": "data(width)",
           "background-color": this.p('global', 'negative')
         }
       },
