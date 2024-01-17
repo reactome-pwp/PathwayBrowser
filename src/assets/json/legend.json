@@ -232,7 +232,7 @@
       "data": {
         "id": "SubPathway",
         "displayName": "SubPathway",
-        "height": 60,
+        "height": 80,
         "width": 220
       },
       "classes": [
@@ -248,7 +248,7 @@
       "data": {
         "id": "interacting pathway",
         "displayName": "Interacting Pathway",
-        "height": 60,
+        "height": 80,
         "width": 220
       },
       "classes": [
