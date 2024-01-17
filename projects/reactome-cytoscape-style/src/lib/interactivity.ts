@@ -74,12 +74,12 @@ function initZoom(cy: cytoscape.Core) {
     const zoomLevel = cy.zoom();
     shadows.stop().animate({
       style: {
-        'underlay-opacity': interpolate(zoomLevel, extract(Style.properties.shadow.opacity).map(v => p(...v)))
+        'underlay-opacity': interpolate(zoomLevel * 100, extract(Style.properties.shadow.opacity).map(v => p(...v))) / 100
       }
     });
     shadowLabels.stop().animate({
       style: {
-        'text-opacity': interpolate(zoomLevel, extract(Style.properties.shadow.labelOpacity).map(v => p(...v)))
+        'text-opacity': interpolate(zoomLevel * 100, extract(Style.properties.shadow.labelOpacity).map(v => p(...v))) / 100
       }
     });
   }

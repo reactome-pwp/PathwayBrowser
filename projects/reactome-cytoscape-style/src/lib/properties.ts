@@ -102,11 +102,11 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('luminosity', () => Number.parseFloat(css.getPropertyValue('--shadow-luminosity')) || 40)
     .setDefault('opacity', () => {
       const p = css.getPropertyValue('--shadow-opacity');
-      return p ? JSON.parse(p) : [[0.2, 0.2], [0.4, 0]];
+      return p ? JSON.parse(p) : [[20, 20], [40, 0]];
     })
     .setDefault('labelOpacity', () => {
       const p = css.getPropertyValue('--shadow-label-opacity');
-      return p ? JSON.parse(p) : [[0.2, 1], [0.4, 0]];
+      return p ? JSON.parse(p) : [[20, 100], [40, 0]];
     })
 
   const protein: Properties['protein'] = defaultable(properties.protein || {})

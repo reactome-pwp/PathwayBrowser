@@ -468,17 +468,17 @@ export class Style {
           // @ts-ignore
           "underlay-color": "data(color)",
           "underlay-padding": 20,
-          "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1]),
+          "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1] / 100),
         }
       }, {
         selector: "edge[?weights]",
         style: {
-          // "curve-style": "segments",
-          // "segment-distances": "data(distances)",
-          // "segment-weights": "data(weights)",
-          "curve-style": "unbundled-bezier",
-          "control-point-distances": "data(distances)",
-          "control-point-weights": "data(weights)",
+          "curve-style": "segments",
+          "segment-distances": "data(distances)",
+          "segment-weights": "data(weights)",
+          // "curve-style": "unbundled-bezier",
+          // "control-point-distances": "data(distances)",
+          // "control-point-weights": "data(weights)",
           // @ts-ignore
           "edge-distances": "endpoints",
           // "edge-distances": "node-position"
