@@ -47,6 +47,7 @@ export type Entity = {
   position: Position;
   renderableClass: string;
   schemaClass: string;
+  isDisease: boolean;
 }
 
 // reactions

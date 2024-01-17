@@ -136,7 +136,7 @@ export class DiagramService {
 
   private readonly COMPARTMENT_SHIFT = 35;
 
-  public getLegend() : Observable<cytoscape.ElementsDefinition> {
+  public getLegend(): Observable<cytoscape.ElementsDefinition> {
     return of(legend)
   }
 
@@ -216,12 +216,12 @@ export class DiagramService {
 
         //todo: simplify
         const identifierToDiagramId = new Map<number, string>(graph.nodes.flatMap(node => (node.diagramIds || [])
-            .filter(id => id !== null)
-            .map(id => [id, node.identifier])
-            .filter(entry => entry[1] !== undefined) ) as [number, string][] || [])
+          .filter(id => id !== null)
+          .map(id => [id, node.identifier])
+          .filter(entry => entry[1] !== undefined)) as [number, string][] || [])
 
         //compartment nodes
-        const compartmentNodes: cytoscape.NodeDefinition[]= data?.compartments.flatMap(item => {
+        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
           const layers: cytoscape.NodeDefinition[] = [
             {
               data: {
@@ -268,16 +268,17 @@ export class DiagramService {
 
         //entity nodes
         const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.flatMap(item => {
+          const classes = [...this.nodeTypeMap.get(item.renderableClass)!] || [item.renderableClass.toLowerCase()];
+          if (item.isDisease) classes.push('disease')
           const nodes: cytoscape.NodeDefinition[] = [
             {
               data: {
                 id: item.id + '',
-                // parent: compartments.get(item.id)?.toString() || undefined,
-                displayName: item.displayName.replace(/([,:;-])/g, "$1\u200b"),
+                displayName: item.displayName.replace(/([/,:;-])/g, "$1\u200b"),
                 height: scale(item.prop.height),
                 width: scale(item.prop.width),
               },
-              classes: this.nodeTypeMap.get(item.renderableClass) || [item.renderableClass.toLowerCase()],
+              classes: classes,
               position: scale(item.position)
             }
           ];
@@ -382,6 +383,8 @@ export class DiagramService {
                 points = addRoundness(from, to, points);
                 const relatives = this.absoluteToRelative(from, to, points);
 
+                const classes = [...this.edgeTypeMap.get(connector.type)!];
+                if (reaction.isDisease) classes.push('disease');
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
                     id: this.getEdgeId(source, connector, target, edgeIds),
@@ -394,7 +397,7 @@ export class DiagramService {
                     targetEndpoint: this.endpoint(targetP, to),
                     pathway: eventIdToSubPathwayId.get(reaction.reactomeId),
                   },
-                  classes: this.edgeTypeMap.get(connector.type),
+                  classes: classes,
                 };
                 return edge
               });
