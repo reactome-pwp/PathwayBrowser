@@ -60,6 +60,15 @@ export class DiagramComponent implements AfterViewInit {
       })
   }
 
+  getInteractors() {
+    this.diagram.getInteractorsOccurrences(this.cy)
+      .subscribe(interactors => {
+        const nodes = this.diagram.addInteractorsOccurrences(interactors, this.cy)
+        this.cy?.add(nodes)
+        return nodes;
+      })
+  }
+
   updateStyle() {
     setTimeout(() => this.reactomeStyle?.update(this.cy!), 5)
     setTimeout(() => this.reactomeStyle?.update(this.legend!), 5)

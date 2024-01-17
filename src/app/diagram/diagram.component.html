@@ -11,6 +11,7 @@
 
 
   <form id="controls">
+    <button mat-raised-button (click)="getInteractors()">Interactors</button>
     <button mat-raised-button (click)="updateStyle()">Update Style</button>
     <mat-slide-toggle #dark (change)="updateStyle()">Dark mode</mat-slide-toggle>
   </form>
