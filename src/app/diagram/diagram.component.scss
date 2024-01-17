@@ -33,7 +33,7 @@
   &.dark {
     --opacity: 0.08;
     --shadow-luminosity: 70;
-    --shadow-opacity: [[0.2, 0.4], [0.4, 0]];
+    --shadow-opacity: [[20, 40], [40, 0]];
 
 
     --surface: #0D1617;
@@ -84,7 +84,7 @@
 
 
 #legend-boundary {
-  --legend-width: 450px;
+  --legend-width: 400px;
   --border-width: 2px;
   --handle-width: 20px;
 
@@ -98,7 +98,7 @@
     width: var(--legend-width);
     height: 100%;
     border-left: var(--border-width) solid var(--primary);
-    background: color-mix(in srgb, var(--surface) 50%, transparent);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(5px);
   }
 
