@@ -8,6 +8,7 @@ export function initInteractivity(cy: cytoscape.Core) {
   initHover(cy);
   initSelect(cy);
   initZoom(cy);
+  displayInteractors(cy)
 }
 
 interface State {
@@ -85,6 +86,33 @@ function initZoom(cy: cytoscape.Core) {
   }
 
   cy.on('zoom', onZoom);
+}
+
+function displayInteractors(cy: cytoscape.Core) {
+
+  cy.on('select', '.InteractorOccurrences', e => {
+    const targetNode = e.target;
+
+    const interactorIds = (targetNode.data('interactors'));
+
+    const interactorNodes = cy.nodes((`#${interactorIds.join(', #')}`));
+
+    // todo better way
+    interactorNodes.style("visibility", 'visible')
+    targetNode.data('entity').connectedEdges('.Interactor').style("visibility", 'visible')
+
+
+    const boxW = 300;
+    const boxH = 300;
+    const boxX = targetNode.position().x - boxW / 2;
+    const boxY = targetNode.position().y - boxH / 2
+
+    interactorNodes.layout({
+      name: 'circle',
+      boundingBox:{ x1: boxX, y1: boxY, w: boxW, h: boxH }, //todo fix X1 and Y1
+    //  fit: false //disable automatic zooming to fit the graph in the viewport
+    }).run();
+  });
 }
 
 function p(x: number, y: number): P {
