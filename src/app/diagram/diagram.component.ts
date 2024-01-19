@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-import {Style, UserProperties} from "reactome-cytoscape-style";
+import {Style} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {switchMap} from "rxjs";
 
@@ -32,7 +32,6 @@ export class DiagramComponent implements AfterViewInit {
 
     this.route.params.pipe(
       switchMap(params => this.diagram.getDiagram(params['id']))
-      // switchMap(params => this.diagram.getLegend())
     ).subscribe(elements => {
 
       this.cy = cytoscape({
@@ -55,8 +54,8 @@ export class DiagramComponent implements AfterViewInit {
           boxSelectionEnabled: false
         });
         this.reactomeStyle?.bindToCytoscape(this.legend);
-        this.legend.zoomingEnabled(false)
-        this.legend.panningEnabled(false)
+        this.legend.zoomingEnabled(false);
+        this.legend.panningEnabled(false);
       })
   }
 

@@ -144,17 +144,7 @@ const Pathway = (width: number, height: number, clazz: Node): Image => {
     extract(Style.properties.global.onPrimary) :
     extract(Style.properties.pathway.disease);
 
-  //const x = (clazz !== 'Interacting' || 'SUB' ? 0 : extract(Style.properties.global.thickness) * 2) + 3 * t;
-
-  //todo simplify?
-  let x: number;
-  if (clazz === 'Interacting') {
-    x = 3 * t;
-  } else if (clazz === 'SUB') {
-    x = 5 * t;
-  } else {
-    x = 0;
-  }
+  let x = 5 * t;
 
   return {
     "background-image": `

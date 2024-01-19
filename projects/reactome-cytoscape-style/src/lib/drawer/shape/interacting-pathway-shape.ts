@@ -15,7 +15,7 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
   const fill = extract(Style.properties.pathway.fill);
 
 
-  let realWidth = width + 3 * thick;
+  let realWidth = width ;
   const t = 3 * thick;
   return {
 
@@ -31,7 +31,7 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
            "/>
 `,
       "background-position-y": -t / 2,
-      "background-position-x": -t / 2,
+      "background-position-x": 0,
       "background-width": realWidth,
       "bounds-expansion": t,
       "background-clip": "none",
@@ -48,7 +48,7 @@ export const interactingPathway: DrawerProvider = (width, height, drug) => {
            Z"/>
 `,
       "background-position-y": height - t / 2,
-      "background-position-x": -t / 2,
+      "background-position-x": 0,
       "background-width": realWidth,
       "bounds-expansion": t,
       "background-clip": "none",

@@ -25,12 +25,6 @@ export const genomeEncodedEntity: DrawerProvider = (width, height, drug) => {
   </defs>
   `
   return {
-    background: {
-      "background-image": `
-        ${defs}
-        <use href="#rect" clip-path="url(#clip)" stroke-width="${st}" stroke="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${pattern} ${pattern}"/>
-      `
-    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="

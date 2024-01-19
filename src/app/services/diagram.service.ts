@@ -327,7 +327,7 @@ export class DiagramService {
                   to = scale(connector.endShape.centre);
                 }
 
-                points = addRoundness(from, to, points);
+                // points = addRoundness(from, to, points);
                 const relatives = this.absoluteToRelative(from, to, points);
 
                 const classes = [...this.edgeTypeMap.get(connector.type)!];
@@ -366,7 +366,7 @@ export class DiagramService {
             from = from ?? sourceP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
             to = to ?? targetP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
 
-            points = addRoundness(from, to, points);
+            // points = addRoundness(from, to, points);
             const relatives = this.absoluteToRelative(from, to, points);
 
             return {

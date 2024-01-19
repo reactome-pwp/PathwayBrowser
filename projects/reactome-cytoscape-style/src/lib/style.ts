@@ -151,7 +151,7 @@ export class Style {
           // @ts-ignore
           "background-width": node => imageBuilder(node)["background-width"] || '100%',
           // @ts-ignore
-          "background-clip": node => imageBuilder(node)["background-clip"] || 'clipped',
+          "background-clip": node => imageBuilder(node)["background-clip"] || 'node',
           // @ts-ignore
           "background-image-containment": node => imageBuilder(node)["background-image-containment"] || 'inside',
           "bounds-expansion": this.p('global', 'thickness'),
@@ -173,6 +173,13 @@ export class Style {
         style: {
           "shape": "round-rectangle",
           "background-color": this.p('genomeEncodedEntity', 'fill'),
+          "border-width": this.pm('global', 'thickness', t => t * 2),
+          "border-color": this.p('genomeEncodedEntity', 'stroke'),
+          // @ts-ignore
+          "border-position": "inside",
+          "border-dash-pattern": this.pm('global', 'thickness', t => t * 6),
+          "border-style": "dashed",
+          "border-cap": "round",
         }
       }, {
         selector: 'node.GenomeEncodedEntity.drug',
@@ -202,14 +209,21 @@ export class Style {
       }, {
         selector: 'node.Molecule',
         style: {
-          "background-opacity": 0,
+          // "background-opacity": 0,
           "shape": 'round-rectangle',
           "color": this.p("molecule", 'stroke'),
+          "background-color": this.p("molecule", 'fill'),
+          "border-color": this.p("molecule", 'stroke'),
+          "border-width": this.p("global", 'thickness'),
+          // @ts-ignore
+          "corner-radius": (node: cytoscape.NodeSingular) => Math.min(node.data('width'), node.data('height')) / 2,
+          "border-position": "inside",
         }
       }, {
         selector: 'node.Molecule.drug',
         style: {
           "color": this.p("molecule", 'drug'),
+          "border-color": this.p("molecule", 'drug'),
         }
       }, {
         selector: 'node.EntitySet',
@@ -258,7 +272,6 @@ export class Style {
         style: {
           "background-color": this.p('pathway', 'fill'),
           "text-margin-x": 18,
-
         }
       },
       {
@@ -267,8 +280,10 @@ export class Style {
           "shape": "rectangle",
           "border-color": this.p('pathway', 'stroke'),
           "border-width": this.pm('global', 'thickness', t => 3 * t),
+          // @ts-ignore
+          "border-position": "inside",
           "text-max-width": (node: cytoscape.NodeSingular) =>
-            this.pm('global', 'thickness', t => `${node.width() - (4 * t + 36) * 2}px`
+            this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
             ),
 
         }
@@ -473,15 +488,13 @@ export class Style {
       }, {
         selector: "edge[?weights]",
         style: {
-          "curve-style": "segments",
+          // @ts-ignore
+          "curve-style": "round-segments",
           "segment-distances": "data(distances)",
           "segment-weights": "data(weights)",
-          // "curve-style": "unbundled-bezier",
-          // "control-point-distances": "data(distances)",
-          // "control-point-weights": "data(weights)",
+          "segment-radius": 50,
           // @ts-ignore
           "edge-distances": "endpoints",
-          // "edge-distances": "node-position"
         }
       }, {
         selector: "edge[?sourceEndpoint]",
@@ -568,8 +581,6 @@ export class Style {
         style: {
           "label": "data(displayName)",
           "font-weight": 400,
-          // "text-halign": "center",
-          // "text-valign": "center",
         }
       },
     ]

@@ -17,9 +17,6 @@ export const molecule: DrawerProvider = (width, height, drug) => {
   const iR = halfHeight - thick;
   const oRx = Math.min(oR, width/2)
   return {
-    background: {
-      "background-image": `<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${stroke}" fill="${fill}" stroke-width="${thick}"/>`
-    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="

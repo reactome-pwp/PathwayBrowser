@@ -67,7 +67,7 @@ export let onZoom: (e?: cytoscape.EventObjectCore) => void;
 function initZoom(cy: cytoscape.Core) {
   const shadows = cy.edges('[?pathway]');
   const shadowLabels = cy.nodes('.Shadow');
-  cy.minZoom(Math.min(cy.zoom(), extract(Style.properties.shadow.labelOpacity)[0][0]));
+  cy.minZoom(Math.min(cy.zoom(), extract(Style.properties.shadow.labelOpacity)[0][0] / 100));
   cy.maxZoom(15);
 
   onZoom = e => {
