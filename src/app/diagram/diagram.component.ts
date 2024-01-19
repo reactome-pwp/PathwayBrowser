@@ -61,11 +61,9 @@ export class DiagramComponent implements AfterViewInit {
   }
 
   getInteractors() {
-    this.diagram.getInteractorsOccurrences(this.cy)
+    this.diagram.getInteractorData(this.cy)
       .subscribe(interactors => {
-        const nodes = this.diagram.addInteractorsOccurrences(interactors, this.cy)
-        this.cy?.add(nodes)
-        return nodes;
+        this.diagram.addOccurrenceAndInteractors(interactors, this.cy)
       })
   }
 
