@@ -3,9 +3,9 @@ import {forkJoin, map, Observable, of, tap} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position} from "../model/diagram.model";
 import {Graph, Node as GraphNode} from "../model/graph.model";
-import {Interaction} from "../model/interaction.moel";
+import {Entity, Interaction} from "../model/interaction.moel";
 import Reactome from "reactome-cytoscape-style";
-import cytoscape from "cytoscape";
+import cytoscape, {NodeSingular} from "cytoscape";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
@@ -250,7 +250,8 @@ export class DiagramService {
                 height: scale(item.prop.height),
                 width: scale(item.prop.width),
                 graph: idToGraphNodes.get(item.id),
-                acc: idToGraphNodes.get(item.id)?.identifier
+                acc: idToGraphNodes.get(item.id)?.identifier,
+                interactorsSummary: item.interactorsSummary
               },
               classes: classes,
               position: scale(item.position)
@@ -386,9 +387,7 @@ export class DiagramService {
         )
 
         return {
-          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes,
-            // ...InteractorOccurrenceNode
-          ],
+          nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes],
           edges: [...edges, ...linkEdges]
         };
       }))
@@ -432,7 +431,7 @@ export class DiagramService {
   }
 
 
-  public getInteractorsOccurrences(cy: cytoscape.Core | undefined): Observable<Interaction> {
+  public getInteractorData(cy: cytoscape.Core | undefined): Observable<Interaction> {
 
     const graphNodes = cy?.nodes(`[graph]`);
     const idToIdentifier = new Map<number, string>(graphNodes?.map(node => [node.data('dbId'), node.data('acc')]));
@@ -450,42 +449,99 @@ export class DiagramService {
       }
     });
 
-    const uniqueResults = [...new Set(result)];
-
     // Concatenate elements from the set values into a single string
-    const postContent = uniqueResults.join(',');
+    const postContent = [...new Set(result)].join(',');
 
     return this.http.post<Interaction>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', postContent, {
       headers: new HttpHeaders({ 'Content-Type': 'text/plain' })
     });
   }
 
-  public addInteractorsOccurrences(interactors: Interaction, cy: cytoscape.Core | undefined): cytoscape.NodeDefinition[] {
-    const nodes: cytoscape.NodeDefinition[] = [];
-    interactors.entities
-      .filter(entity => entity.count > 0)
-      .flatMap(item => {
-        let entities = cy?.nodes(`[acc = '${item.acc}']`);
+  public addOccurrenceAndInteractors(interactorResult: Interaction, cy: cytoscape.Core | undefined) {
+    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
+    const allInteractorNodes: cytoscape.NodeDefinition[] = []
 
-        entities?.forEach(entity => {
-          const pos = {...entity.position()};
-          pos.x += entity.width() / 2;
-          pos.y -= entity.height() / 2;
-          nodes.push({
+    interactorResult.entities
+      .filter(interactor => interactor.count > 0)
+      .forEach(interactor => {
+
+        const entities = cy?.nodes(`[acc = '${interactor.acc}']`);
+        entities?.forEach(entityNode => {
+
+          const pos = {...entityNode.position()};
+          pos.x += entityNode.width() / 2;
+          pos.y -= entityNode.height() / 2;
+
+          const interactorNodes = this.getInteractorNodes(interactor, entityNode);
+          allInteractorNodes.push(...interactorNodes);
+
+          occurrenceNodes.push({
             data: {
-              id: entity.id() + '-occ',
-              displayName: item.count,
+              id: entityNode.id() + '-occ',
+              displayName: interactor.count,
+              entity: entityNode,
+              interactors: interactorNodes.map(interactor => interactor.data.id)
             },
-            classes: ['Interactor'],
+            classes: ['InteractorOccurrences'],
             pannable: true,
             grabbable: false,
             position: pos,
           });
         });
       });
-    return nodes
+
+    cy?.add(occurrenceNodes);
+    cy?.add(allInteractorNodes);
+    this.addInteractorEdges(interactorResult, cy);
   }
 
+  public getInteractorNodes(entity: Entity, entityNode: NodeSingular) {
+
+    const interactorNodes: cytoscape.NodeDefinition[] = [];
+    entity.interactors?.map(interactor => {
+      interactorNodes.push({
+        data: {
+          id: interactor.acc + '-' + entityNode.id(),
+         //id: interactor.acc,
+          displayName: interactor.alias,
+          width: entityNode.width(),
+          height: entityNode.height()
+        },
+        classes: ['Interactor'],
+        pannable: true,
+        grabbable: false,
+      })
+    });
+    return interactorNodes
+  }
+
+  private addInteractorEdges(interactors: Interaction, cy: cytoscape.Core | undefined) {
+
+    const interactorEdges: cytoscape.EdgeDefinition[] = [];
+    interactors.entities
+      .filter(entity => entity.count > 0)
+      .forEach(interactorEntity => {
+        interactorEntity.interactors?.map(interactor => {
+
+          const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
+          entities?.forEach(entityNode => {
+
+            interactorEdges.push({
+              data: {
+                id: interactor.acc  + '---' + entityNode.id(),
+                source: entityNode.id(),
+                target: interactor.acc + '-' + entityNode.id(),
+              },
+              classes: ['Interactor'],
+              pannable: true,
+              grabbable: true,
+            })
+          });
+        })
+
+      });
+    cy?.add(interactorEdges)
+  }
 
   /**
    * Use Matrix power to convert points from an absolute coordinate system to an edge relative system
