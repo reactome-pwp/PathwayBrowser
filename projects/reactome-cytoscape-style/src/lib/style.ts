@@ -109,7 +109,7 @@ export class Style {
         }
       },
       {
-        selector: 'node.Interactor',
+        selector: 'node.InteractorOccurrences',
         style: {
           'label': 'data(displayName)',
           'color': this.p('global', 'surface'),
@@ -118,6 +118,21 @@ export class Style {
           "text-halign": "center",
           "text-wrap": 'wrap',
           "background-color": this.p('global', 'negative')
+        }
+      },
+      {
+        selector: 'node.Interactor',
+        style: {
+          'label': 'data(displayName)',
+          'shape': 'rectangle',
+          'width': 'data(width)',
+          'height': 'data(height)',
+          'color': this.p('global', 'onPrimary'),
+          "text-valign": "center",
+          "text-halign": "center",
+          "text-wrap": 'wrap',
+          "background-color": this.p('global', 'primary'),
+          "visibility": "hidden"
         }
       },
       {
@@ -518,6 +533,16 @@ export class Style {
           "border-color": this.p('global', 'negative'),
         }
       },
+
+      {
+        selector: 'edge.Interactor',
+        style: {
+          'color': this.p('global', 'onSurface'),
+          'line-color': this.p('global', 'onSurface'),
+          'visibility': 'hidden'
+        }
+      },
+
       {
         selector: "edge[?sourceOffset]",
         style: {
