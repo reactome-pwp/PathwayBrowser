@@ -1,9 +1,10 @@
-interface Entity {
+export interface Entity {
   acc: string;
   count: number;
+  interactors: Interactor[] | null;
 }
 
-interface Interactors {
+export interface Interactor {
   acc: string;
   accURL: string;
   alias: string;
@@ -14,10 +15,10 @@ interface Interactors {
 
 }
 
-export interface Interaction {
+export interface Interactors {
   entities: Entity[];
+  // PSICQUIC resource (e.g. IntAct, MINT, etc)
   resource: string;
-  interactors: Interactors[] | null;
 }
 
 

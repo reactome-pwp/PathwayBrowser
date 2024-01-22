@@ -1,6 +1,7 @@
-import cytoscape from "cytoscape";
+import cytoscape, {NodeSingular} from "cytoscape";
 import {extract} from "./properties-utils";
 import {Style} from "./style";
+import {Interactor} from "./model/interactors.model";
 
 export function initInteractivity(cy: cytoscape.Core) {
   // @ts-ignore
@@ -8,6 +9,7 @@ export function initInteractivity(cy: cytoscape.Core) {
   initHover(cy);
   initSelect(cy);
   initZoom(cy);
+  showInteractors(cy)
 }
 
 interface State {
@@ -85,6 +87,85 @@ function initZoom(cy: cytoscape.Core) {
   }
 
   cy.on('zoom', onZoom);
+}
+
+function showInteractors(cy: cytoscape.Core) {
+
+  cy.on('select', '.InteractorOccurrences', e => {
+    const targetNode = e.target;
+    const interactorsData = (targetNode.data('interactors'));
+
+    if (interactorsData) {
+      addInteractorNodes(interactorsData, targetNode, cy);
+      addInteractorEdges(interactorsData, targetNode, cy)
+    }
+
+    const nodesToDisplay = cy.nodes(`[source = '${targetNode.id()}']`)
+    const boxW = 300;
+    const boxH = 300;
+    const boxX = targetNode.data('entity').position().x - boxW / 2;
+    const boxY = targetNode.data('entity').position().y - boxH / 2;
+
+    // @ts-ignore
+    nodesToDisplay.layout({
+      name: 'concentric',
+      boundingBox: {x1: boxX, y1: boxY, w: boxW, h: boxH},
+      concentric(node: cytoscape.NodeSingular): number {
+        return node.data('score') as number
+      }
+      //  fit: false //disable automatic zooming to fit the graph in the viewport
+    }).run();
+  });
+}
+
+function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined) {
+
+  const interactorNodes: cytoscape.NodeDefinition[] = [];
+  interactorsData.forEach((interactor: Interactor) => {
+    //todo: easy way
+    const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
+    const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
+
+    if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
+      interactorNodes.push({
+        data: {
+          id: interactor.acc + '-' + targetNode.data('entity').id(),
+          displayName: interactor.alias,
+          width: targetNode.data('entity').width(),
+          height: targetNode.data('entity').height(),
+          source: targetNode.id(),
+          score: interactor.score,
+          evidences: interactor.evidences,
+          evidenceURLs: interactor.evidencesURL,
+        },
+        classes: ['Interactor'],
+      })
+    }
+  })
+  cy?.add(interactorNodes)
+}
+
+function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined) {
+
+  const interactorEdges: cytoscape.EdgeDefinition[] = [];
+  interactorsData.forEach((interactor: Interactor) => {
+
+    const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
+    const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
+    const targetNodeId = accToEntityNode.get(interactor.acc) ? accToEntityNode.get(interactor.acc)?.data('id') : interactor.acc + '-' + targetNode.data('entity').id();
+
+    interactorEdges.push({
+      data: {
+        id: interactor.acc + '---' + targetNode.data('entity').id(),
+        source: targetNode.data('entity').id(),
+        target: targetNodeId
+      },
+      classes: ['Interactor'],
+      pannable: true,
+      grabbable: true,
+    })
+  })
+  cy?.add(interactorEdges)
 }
 
 function p(x: number, y: number): P {
