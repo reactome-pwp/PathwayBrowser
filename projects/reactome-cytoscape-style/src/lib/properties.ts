@@ -78,6 +78,10 @@ export interface Properties extends PropertiesType {
   modification: {
     fill: Property<string>
   }
+  interactor: {
+    fill: Property<string>
+    stroke: Property<string>
+  }
 }
 
 export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration): Properties {
@@ -163,6 +167,10 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const modification: Properties['modification'] = defaultable(properties.modification || {})
     .setDefault("fill", () => css.getPropertyValue('--primary-contrast-2') || '#003545')
 
+  const interactor: Properties['interactor'] = defaultable(properties.interactor || {})
+    .setDefault("fill", () => css.getPropertyValue('--primary') || '#006782')
+    .setDefault("stroke", () => css.getPropertyValue('--interactor-stroke') || '#96aeb6')
+
   return {
     global,
     compartment,
@@ -176,7 +184,8 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     entitySet,
     cell,
     pathway,
-    modification
+    modification,
+    interactor
   }
 }
 
