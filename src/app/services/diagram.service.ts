@@ -3,9 +3,8 @@ import {forkJoin, map, Observable, of, tap} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position} from "../model/diagram.model";
 import {Graph, Node as GraphNode} from "../model/graph.model";
-import {Entity, Interaction} from "../model/interaction.moel";
 import Reactome from "reactome-cytoscape-style";
-import cytoscape, {NodeSingular} from "cytoscape";
+import cytoscape from "cytoscape";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
@@ -13,6 +12,7 @@ import {addRoundness} from "./roundness";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
+import {Interactors} from "../model/interactors.model";
 
 
 type RelativePosition = { distances: number[], weights: number[] };
@@ -431,7 +431,7 @@ export class DiagramService {
   }
 
 
-  public getInteractorData(cy: cytoscape.Core | undefined): Observable<Interaction> {
+  public getInteractorData(cy: cytoscape.Core | undefined): Observable<Interactors> {
 
     const graphNodes = cy?.nodes(`[graph]`);
     const idToIdentifier = new Map<number, string>(graphNodes?.map(node => [node.data('dbId'), node.data('acc')]));
@@ -452,12 +452,12 @@ export class DiagramService {
     // Concatenate elements from the set values into a single string
     const postContent = [...new Set(result)].join(',');
 
-    return this.http.post<Interaction>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', postContent, {
-      headers: new HttpHeaders({ 'Content-Type': 'text/plain' })
+    return this.http.post<Interactors>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', postContent, {
+      headers: new HttpHeaders({'Content-Type': 'text/plain'})
     });
   }
 
-  public addOccurrenceAndInteractors(interactorResult: Interaction, cy: cytoscape.Core | undefined) {
+  public addOccurrenceAndInteractors(interactorResult: Interactors, cy: cytoscape.Core | undefined) {
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
     const allInteractorNodes: cytoscape.NodeDefinition[] = []
 
@@ -472,15 +472,13 @@ export class DiagramService {
           pos.x += entityNode.width() / 2;
           pos.y -= entityNode.height() / 2;
 
-          const interactorNodes = this.getInteractorNodes(interactor, entityNode);
-          allInteractorNodes.push(...interactorNodes);
-
           occurrenceNodes.push({
             data: {
               id: entityNode.id() + '-occ',
               displayName: interactor.count,
               entity: entityNode,
-              interactors: interactorNodes.map(interactor => interactor.data.id)
+              interactorsIds: interactor.interactors?.map(interactor => interactor.id),
+              interactors: interactor.interactors
             },
             classes: ['InteractorOccurrences'],
             pannable: true,
@@ -489,59 +487,9 @@ export class DiagramService {
           });
         });
       });
-
     cy?.add(occurrenceNodes);
-    cy?.add(allInteractorNodes);
-    this.addInteractorEdges(interactorResult, cy);
   }
 
-  public getInteractorNodes(entity: Entity, entityNode: NodeSingular) {
-
-    const interactorNodes: cytoscape.NodeDefinition[] = [];
-    entity.interactors?.map(interactor => {
-      interactorNodes.push({
-        data: {
-          id: interactor.acc + '-' + entityNode.id(),
-         //id: interactor.acc,
-          displayName: interactor.alias,
-          width: entityNode.width(),
-          height: entityNode.height()
-        },
-        classes: ['Interactor'],
-        pannable: true,
-        grabbable: false,
-      })
-    });
-    return interactorNodes
-  }
-
-  private addInteractorEdges(interactors: Interaction, cy: cytoscape.Core | undefined) {
-
-    const interactorEdges: cytoscape.EdgeDefinition[] = [];
-    interactors.entities
-      .filter(entity => entity.count > 0)
-      .forEach(interactorEntity => {
-        interactorEntity.interactors?.map(interactor => {
-
-          const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
-          entities?.forEach(entityNode => {
-
-            interactorEdges.push({
-              data: {
-                id: interactor.acc  + '---' + entityNode.id(),
-                source: entityNode.id(),
-                target: interactor.acc + '-' + entityNode.id(),
-              },
-              classes: ['Interactor'],
-              pannable: true,
-              grabbable: true,
-            })
-          });
-        })
-
-      });
-    cy?.add(interactorEdges)
-  }
 
   /**
    * Use Matrix power to convert points from an absolute coordinate system to an edge relative system
