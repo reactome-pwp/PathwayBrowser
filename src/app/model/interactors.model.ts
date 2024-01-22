@@ -15,8 +15,9 @@ export interface Interactor {
 
 }
 
-export interface Interaction {
+export interface Interactors {
   entities: Entity[];
+  // PSICQUIC resource (e.g. IntAct, MINT, etc)
   resource: string;
 }
 
