@@ -124,15 +124,16 @@ export class Style {
         selector: 'node.Interactor',
         style: {
           'label': 'data(displayName)',
-          'shape': 'rectangle',
-          'width': 'data(width)',
-          'height': 'data(height)',
+         'shape': 'hexagon',
+         'width': 180,
+         'height': 60,
           'color': this.p('global', 'onPrimary'),
           "text-valign": "center",
           "text-halign": "center",
           "text-wrap": 'wrap',
-          "background-color": this.p('global', 'primary'),
-          "visibility": "hidden"
+          "background-color": this.p('interactor', 'fill'),
+          "border-color": this.p('interactor', 'stroke'),
+          "border-width": this.p('global', 'thickness'),
         }
       },
       {
@@ -537,9 +538,7 @@ export class Style {
       {
         selector: 'edge.Interactor',
         style: {
-          'color': this.p('global', 'onSurface'),
-          'line-color': this.p('global', 'onSurface'),
-          'visibility': 'hidden'
+          'line-color': this.p('interactor', 'stroke')
         }
       },
 
