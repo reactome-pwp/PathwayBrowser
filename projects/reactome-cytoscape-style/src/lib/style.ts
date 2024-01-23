@@ -170,7 +170,10 @@ export class Style {
           "background-clip": node => imageBuilder(node)["background-clip"] || 'node',
           // @ts-ignore
           "background-image-containment": node => imageBuilder(node)["background-image-containment"] || 'inside',
-          "bounds-expansion": this.p('global', 'thickness'),
+          // @ts-ignore
+          "background-image-opacity": node => imageBuilder(node)["background-image-opacity"] || 1,
+          // @ts-ignore
+          "bounds-expansion": node => imageBuilder(node)["bounds-expansion"][0] || 0,
           'color': this.p('global', 'onPrimary'),
         }
       }, {

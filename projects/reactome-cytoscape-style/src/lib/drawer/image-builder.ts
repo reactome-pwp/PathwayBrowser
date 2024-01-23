@@ -54,7 +54,9 @@ export const imageBuilder = memoize((node: cytoscape.NodeSingular): Aggregated<I
     })
   );
 
-  return aggregate(layers, defaultBg);
+  const aggregated = aggregate(layers, defaultBg);
+  aggregated['bounds-expansion'] = [Math.max(...aggregated['bounds-expansion'] as number[], 0)]
+  return aggregated;
 }, node => node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
 
 const defaultBg: Image = {
@@ -67,6 +69,7 @@ const defaultBg: Image = {
   "background-height": "100%",
   "background-fit": "none",
   "background-clip": "none",
+  "background-image-opacity": 1,
   "background-image-containment": "over",
   "background-image-smoothing": "yes",
   "background-height-relative-to": "inner",
