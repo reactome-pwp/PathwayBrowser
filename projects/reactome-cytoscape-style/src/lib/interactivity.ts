@@ -91,30 +91,35 @@ function initZoom(cy: cytoscape.Core) {
 
 function showInteractors(cy: cytoscape.Core) {
 
-  cy.on('select', '.InteractorOccurrences', e => {
-    const targetNode = e.target;
-    const interactorsData = (targetNode.data('interactors'));
+  const clickedNodes: { [key: string]: number } = {};
 
-    if (interactorsData) {
-      addInteractorNodes(interactorsData, targetNode, cy);
-      addInteractorEdges(interactorsData, targetNode, cy)
-    }
+  cy.on('click', '.InteractorOccurrences', event => {
+    const targetNode = event.target;
+    const interactorsData = targetNode.data('interactors');
 
-    const nodesToDisplay = cy.nodes(`[source = '${targetNode.id()}']`)
+    addInteractorNodes(interactorsData, targetNode, cy);
+    addInteractorEdges(interactorsData, targetNode, cy);
+
+    const nodesToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
+
     const boxW = 300;
     const boxH = 300;
     const boxX = targetNode.data('entity').position().x - boxW / 2;
     const boxY = targetNode.data('entity').position().y - boxH / 2;
 
-    // @ts-ignore
-    nodesToDisplay.layout({
-      name: 'concentric',
-      boundingBox: {x1: boxX, y1: boxY, w: boxW, h: boxH},
-      concentric(node: cytoscape.NodeSingular): number {
-        return node.data('score') as number
-      }
-      //  fit: false //disable automatic zooming to fit the graph in the viewport
-    }).run();
+    if (clickedNodes[targetNode.id()]) {
+      // this node has been clicked before
+      nodesToDisplay.remove();
+      removeInteractorEdges(targetNode, cy)
+      clickedNodes[targetNode.id()] = 0;
+    } else {
+      // first click on this node
+      nodesToDisplay.layout({
+        name: 'concentric',
+        boundingBox: {x1: boxX, y1: boxY, w: boxW, h: boxH},
+      }).run();
+      clickedNodes[targetNode.id()] = 1;
+    }
   });
 }
 
@@ -158,7 +163,8 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
       data: {
         id: interactor.acc + '---' + targetNode.data('entity').id(),
         source: targetNode.data('entity').id(),
-        target: targetNodeId
+        target: targetNodeId,
+        edgeToTarget: targetNode.id()
       },
       classes: ['Interactor'],
       pannable: true,
@@ -166,6 +172,11 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
     })
   })
   cy?.add(interactorEdges)
+}
+
+function removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
+  const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
+  edgesToRemove.remove();
 }
 
 function p(x: number, y: number): P {
