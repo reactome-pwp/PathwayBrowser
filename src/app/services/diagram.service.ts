@@ -251,7 +251,8 @@ export class DiagramService {
                 width: scale(item.prop.width),
                 graph: idToGraphNodes.get(item.id),
                 acc: idToGraphNodes.get(item.id)?.identifier,
-                interactorsSummary: item.interactorsSummary
+               // interactorsSummary: item.interactorsSummary
+                isFadeOut: item.isFadeOut
               },
               classes: classes,
               position: scale(item.position)
@@ -459,7 +460,6 @@ export class DiagramService {
 
   public addOccurrenceAndInteractors(interactorResult: Interactors, cy: cytoscape.Core | undefined) {
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
-    const allInteractorNodes: cytoscape.NodeDefinition[] = []
 
     interactorResult.entities
       .filter(interactor => interactor.count > 0)
@@ -472,19 +472,21 @@ export class DiagramService {
           pos.x += entityNode.width() / 2;
           pos.y -= entityNode.height() / 2;
 
-          occurrenceNodes.push({
-            data: {
-              id: entityNode.id() + '-occ',
-              displayName: interactor.count,
-              entity: entityNode,
-              interactorsIds: interactor.interactors?.map(interactor => interactor.id),
-              interactors: interactor.interactors
-            },
-            classes: ['InteractorOccurrences'],
-            pannable: true,
-            grabbable: false,
-            position: pos,
-          });
+          if (!entityNode.data("isFadeOut")) {
+            occurrenceNodes.push({
+              data: {
+                id: entityNode.id() + '-occ',
+                displayName: interactor.count,
+                entity: entityNode,
+                //  interactorsIds: interactor.interactors?.map(interactor => interactor.id),
+                interactors: interactor.interactors
+              },
+              classes: ['InteractorOccurrences'],
+              pannable: true,
+              grabbable: false,
+              position: pos,
+            });
+          }
         });
       });
     cy?.add(occurrenceNodes);
