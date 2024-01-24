@@ -78,6 +78,7 @@ export interface Node extends Entity {
   connectors: NodeConnector[]
   interactorsSummary: InteractorsSummary;
   nodeAttachments?: Attachment[];
+  isFadeOut: boolean
 }
 
 export interface Compartment extends Entity {
