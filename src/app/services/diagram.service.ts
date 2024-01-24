@@ -440,7 +440,7 @@ export class DiagramService {
 
     graphNodes?.forEach(entity => {
       const schemaClass = entity.data("graph").schemaClass;
-      if (schemaClass === "EntityWithAccessionedSequence") {
+      if (schemaClass === "EntityWithAccessionedSequence" || schemaClass === "SimpleEntity") {
         result.push(entity.data("acc"));
       }
 
