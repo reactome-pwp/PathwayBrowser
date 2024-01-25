@@ -1,4 +1,4 @@
-<div class="variables" [class.dark]="dark.checked" #container>
+<div class="variables" [class.dark]="dark.isDark" #container>
   <div id="cytoscape" #cytoscape></div>
 
   <div id="legend-boundary">
@@ -13,6 +13,6 @@
   <form id="controls">
     <button mat-raised-button (click)="getInteractors()">Interactors</button>
     <button mat-raised-button (click)="updateStyle()">Update Style</button>
-    <mat-slide-toggle #dark (change)="updateStyle()">Dark mode</mat-slide-toggle>
+    <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>
   </form>
 </div>

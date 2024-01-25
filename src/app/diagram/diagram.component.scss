@@ -1,9 +1,8 @@
 .variables {
   position: absolute;
-  inset: 0 0 0 0;
+  inset: 0 0 40px 0;
   --opacity: 0.08;
   --shadow-luminosity: 40;
-  --surface: #F6FEFF;
   --on-surface: #001F24;
   --primary: #006782;
   --on-primary: #FFFFFF;
@@ -36,7 +35,6 @@
     --shadow-opacity: [[20, 40], [40, 0]];
 
 
-    --surface: #0D1617;
     --on-surface: #97F0FF;
     --primary: #5CD4FF;
     --on-primary: #0D1617;
@@ -78,7 +76,7 @@
 
 #cytoscape {
   position: absolute;
-  inset: 0 0 40px 0;
+  inset: 0 0 0 0;
   background: var(--surface);
 }
 

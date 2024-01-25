@@ -60,7 +60,7 @@
 
   .dark {
     $primary: mat.get-color-from-palette($primary-palette, 200);
-    $surface: mat.get-color-from-palette($neutral-palette, 900);
+    $surface: mat.get-color-from-palette($neutral-palette, 950);
 
 
     --primary: #{$primary};
