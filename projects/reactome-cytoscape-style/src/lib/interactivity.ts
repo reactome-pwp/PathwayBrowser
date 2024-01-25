@@ -133,8 +133,7 @@ function showInteractors(cy: cytoscape.Core) {
   });
 }
 
-function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined) {
-
+function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core) {
   const interactorNodes: cytoscape.NodeDefinition[] = [];
   interactorsData.forEach((interactor: Interactor) => {
     //todo: easy way
@@ -153,7 +152,7 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
           evidences: interactor.evidences,
           evidenceURLs: interactor.evidencesURL,
         },
-        classes: ['Interactor'],
+        classes: ['Interactor']
       })
     }
   })
@@ -169,17 +168,18 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
     const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
     const targetNodeId = accToEntityNode.get(interactor.acc) ? accToEntityNode.get(interactor.acc)?.data('id') : interactor.acc + '-' + targetNode.data('entity').id();
 
-    interactorEdges.push({
-      data: {
-        id: interactor.acc + '---' + targetNode.data('entity').id(),
-        source: targetNode.data('entity').id(),
-        target: targetNodeId,
-        edgeToTarget: targetNode.id()
-      },
-      classes: ['Interactor'],
-      pannable: true,
-      grabbable: true,
-    })
+    //some interactors don't have a display name
+    if(interactor.alias){
+      interactorEdges.push({
+        data: {
+          id: interactor.acc + '---' + targetNode.data('entity').id(),
+          source: targetNode.data('entity').id(),
+          target: targetNodeId,
+          edgeToTarget: targetNode.id()
+        },
+        classes: ['Interactor']
+      })
+    }
   })
   cy?.add(interactorEdges)
 }
