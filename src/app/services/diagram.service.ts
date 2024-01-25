@@ -194,6 +194,21 @@ export class DiagramService {
 
         //compartment nodes
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
+          const propToRects = (prop: Prop): { [p: string]: number } => ({
+            left: scale(prop.x),
+            top: scale(prop.y),
+            right: scale(prop.x + prop.width),
+            bottom: scale(prop.x + prop.height),
+          })
+
+          let innerCR = 10;
+          let outerCR
+          if (item.insets) {
+            const rects = [propToRects(item.prop), propToRects(item.insets)]
+            outerCR = Object.keys(rects[0]).reduce((smallest, key) => Math.min(smallest, Math.abs(rects[0][key] - rects[1][key])), Number.MAX_SAFE_INTEGER);
+            outerCR = innerCR + Math.min(outerCR, 100)
+          }
+          
           const layers: cytoscape.NodeDefinition[] = [
             {
               data: {
@@ -203,6 +218,7 @@ export class DiagramService {
                 textY: scale(item.textPosition.y - (item.prop.y + item.prop.height)) + this.COMPARTMENT_SHIFT,
                 width: scale(item.prop.width),
                 height: scale(item.prop.height),
+                radius: outerCR
               },
               classes: ['Compartment', 'outer'],
               position: scale(item.position),
@@ -216,6 +232,7 @@ export class DiagramService {
                 id: item.id + '-inner',
                 width: scale(item.insets.width),
                 height: scale(item.insets.height),
+                radius: innerCR
               },
               classes: ['Compartment', 'inner'],
               position: scale({x: item.insets.x + item.insets.width / 2, y: item.insets.y + item.insets.height / 2}),

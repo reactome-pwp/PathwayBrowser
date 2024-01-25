@@ -94,6 +94,13 @@ export class Style {
         }
       },
       {
+        selector: 'node[?radius]',
+        style: {
+          // @ts-ignore
+          'corner-radius': 'data(radius)'
+        }
+      },
+      {
         selector: 'node.Shadow[?color]',
         style: {
           'label': 'data(displayName)',
