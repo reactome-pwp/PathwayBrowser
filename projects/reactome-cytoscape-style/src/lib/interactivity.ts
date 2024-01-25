@@ -89,35 +89,45 @@ function initZoom(cy: cytoscape.Core) {
   cy.on('zoom', onZoom);
 }
 
+const MAX_INTERACTORS = 18
+
 function showInteractors(cy: cytoscape.Core) {
-
   const clickedNodes: { [key: string]: number } = {};
-
   cy.on('click', '.InteractorOccurrences', event => {
     const targetNode = event.target;
     const interactorsData = targetNode.data('interactors');
 
-    addInteractorNodes(interactorsData, targetNode, cy);
-    addInteractorEdges(interactorsData, targetNode, cy);
+    // maximum interactors
+    const interactorsToAdd =  Object.keys(interactorsData).length > MAX_INTERACTORS ?  interactorsData.slice(0, MAX_INTERACTORS) : interactorsData;
 
-    const nodesToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
+    addInteractorNodes(interactorsToAdd, targetNode, cy);
+    addInteractorEdges(interactorsToAdd, targetNode, cy);
 
+    const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
     const boxW = 300;
     const boxH = 300;
     const boxX = targetNode.data('entity').position().x - boxW / 2;
     const boxY = targetNode.data('entity').position().y - boxH / 2;
+    const topScore = interactorsToDisplay[0]?.data('score')
+    const layoutOptions = {
+      name: 'concentric',
+      boundingBox: {x1: boxX, y1: boxY, w: boxW, h: boxH},
+      concentric(node: cytoscape.NodeSingular): number {
+       // return  node.data('score') / roundUpToNextDecimal(topScore) as number
+        return  node.data('score') as number
+      },
+      spacingFactor: 0.7,
+      fit: false, // whether to fit the viewport to the graph
+    }
 
     if (clickedNodes[targetNode.id()]) {
       // this node has been clicked before
-      nodesToDisplay.remove();
+      interactorsToDisplay.remove();
       removeInteractorEdges(targetNode, cy)
       clickedNodes[targetNode.id()] = 0;
     } else {
       // first click on this node
-      nodesToDisplay.layout({
-        name: 'concentric',
-        boundingBox: {x1: boxX, y1: boxY, w: boxW, h: boxH},
-      }).run();
+      interactorsToDisplay.layout(layoutOptions).run();
       clickedNodes[targetNode.id()] = 1;
     }
   });
