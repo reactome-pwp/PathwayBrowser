@@ -2,64 +2,77 @@ import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-// TODO Switch to dashed line
 export const genomeEncodedEntity: DrawerProvider = (width, height, drug) => {
+  const fill = !drug ?
+    extract(Style.properties.genomeEncodedEntity.fill) :
+    extract(Style.properties.genomeEncodedEntity.drug) ;
   const select = extract(Style.properties.global.selectNode);
   const hover = extract(Style.properties.global.hoverNode);
   const t = extract(Style.properties.global.thickness);
-  const radius = extract(Style.properties.genomeEncodedEntity.radius);
-  const stroke = extract(Style.properties.genomeEncodedEntity.stroke);
+  const bottomR = extract(Style.properties.genomeEncodedEntity.bottomRadius);
 
-  const oR = radius + t;
-  const iR = radius - t;
+  const topR = Math.min(extract(Style.properties.genomeEncodedEntity.topRadius), height - bottomR);
+  const v = height - bottomR - topR;
 
-  const st = 2 * t;
-  const pattern = 3 * st;
+  const topOR = topR + t;
+  const topIR = topR - t;
 
-  const defs = `
-  <defs>
-    <rect id="rect" rx="${radius}" ry="${radius}" x="0" y="0" width="${width}" height="${height}"/>
-    <clipPath id="clip">
-      <use href="#rect"/>
-    </clipPath>
-  </defs>
-  `
+  const bottomOR = bottomR + t;
+  const bottomIR = bottomR - t;
+
+
   return {
+    background: {
+      "background-image": `
+      <path fill="${fill}" d="
+      M ${topR} 0
+      H ${width - topR}
+      a ${topR} ${topR} 0 0 1 ${topR} ${topR}
+      v ${v}
+      a ${bottomR} ${bottomR} 0 0 1 -${bottomR} ${bottomR}
+      H ${bottomR}
+      a ${bottomR} ${bottomR} 0 0 1 -${bottomR} -${bottomR}
+      v -${v}
+      a ${topR} ${topR} 0 0 1 ${topR} -${topR}
+      Z
+      "/>
+      `
+    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
-            M 0 ${oR}
-            a ${oR} ${oR} 0 0 1 ${oR} -${oR}
-            h ${width - 2 * oR}
-            a ${oR} ${oR} 0 0 1 ${oR} ${oR}
-            a ${oR} ${iR} 0 0 0 -${oR} -${iR}
-            h -${width - 2 * oR}
-            a ${oR} ${iR} 0 0 0 -${oR} ${iR}
+            M 0 ${topOR}
+            a ${topOR} ${topOR} 0 0 1 ${topOR} -${topOR}
+            h ${width - 2 * topOR}
+            a ${topOR} ${topOR} 0 0 1 ${topOR} ${topOR}
+            a ${topOR} ${topIR} 0 0 0 -${topOR} -${topIR}
+            h -${width - 2 * topOR}
+            a ${topOR} ${topIR} 0 0 0 -${topOR} ${topIR}
             Z"/>
 `,
       "background-position-y": -t,
       "bounds-expansion": t,
       "background-clip": "none",
       "background-image-containment": "over",
-      "background-height": oR,
+      "background-height": topOR,
     },
     select: {
       "background-image": `
           <path fill="${select}" stroke-linejoin="round" stroke-linecap="round"  d="
             M 0 0
-            a ${oR} ${oR} 0 0 0 ${oR} ${oR}
-            h ${width - 2 * oR}
-            a ${oR} ${oR} 0 0 0 ${oR} -${oR}
-            a ${oR} ${iR} 0 0 1 -${oR} ${iR}
-            h -${width - 2 * oR}
-            a ${oR} ${iR} 0 0 1 -${oR} -${iR}
+            a ${bottomOR} ${bottomOR} 0 0 0 ${bottomOR} ${bottomOR}
+            h ${width - 2 * bottomOR}
+            a ${bottomOR} ${bottomOR} 0 0 0 ${bottomOR} -${bottomOR}
+            a ${bottomOR} ${bottomIR} 0 0 1 -${bottomOR} ${bottomIR}
+            h -${width - 2 * bottomOR}
+            a ${bottomOR} ${bottomIR} 0 0 1 -${bottomOR} -${bottomIR}
             Z"/>
 `,
-      "background-position-y": height - radius,
+      "background-position-y": height - bottomR,
       "bounds-expansion": t,
       "background-clip": "none",
       "background-image-containment": "over",
-      "background-height": oR,
+      "background-height": bottomOR,
     }
   }
 }

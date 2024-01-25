@@ -198,19 +198,10 @@ export class Style {
         selector: 'node.GenomeEncodedEntity',
         style: {
           "shape": "round-rectangle",
+          "background-opacity": 0,
           "background-color": this.p('genomeEncodedEntity', 'fill'),
-          "border-width": this.pm('global', 'thickness', t => t * 2),
           "border-color": this.p('genomeEncodedEntity', 'stroke'),
-          // @ts-ignore
-          "border-position": "inside",
-          "border-dash-pattern": this.pm('global', 'thickness', t => t * 6),
-          "border-style": "dashed",
-          "border-cap": "round",
-        }
-      }, {
-        selector: 'node.GenomeEncodedEntity.drug',
-        style: {
-          "background-color": this.p('genomeEncodedEntity', 'drug'),
+          "text-margin-y": this.pm('genomeEncodedEntity', 'topRadius', r => r / 10),
         }
       }, {
         selector: 'node.RNA',

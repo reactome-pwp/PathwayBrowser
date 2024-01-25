@@ -30,9 +30,9 @@ export interface Properties extends PropertiesType {
   }
   genomeEncodedEntity: {
     fill: Property<string>
-    stroke: Property<string>
     drug: Property<string>
-    radius: Property<number>
+    bottomRadius: Property<number>
+    topRadius: Property<number>
   }
   rna: {
     fill: Property<string>
@@ -119,10 +119,10 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('radius', 8)
 
   const genomeEncodedEntity: Properties['genomeEncodedEntity'] = defaultable(properties.genomeEncodedEntity || {})
-    .setDefault('fill', () => extract(protein.fill))
-    .setDefault('stroke', () => extract(gene.fill))
-    .setDefault('drug', () => extract(protein.drug))
-    .setDefault('radius', 8)
+    .setDefault('fill', () => css.getPropertyValue('--primary-contrast-4') || '#006782')
+    .setDefault('drug', () => css.getPropertyValue('--drug-contrast-4') || '#BB557A')
+    .setDefault('bottomRadius', 6)
+    .setDefault('topRadius', 40)
 
   const rna: Properties['rna'] = defaultable(properties.rna || {})
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-2') || '#003545')
@@ -160,7 +160,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("stroke", () => css.getPropertyValue('--on-tertiary') || '#FFFFFF')
 
   const pathway: Properties['pathway'] = defaultable(properties.pathway || {})
-    .setDefault("fill", () => extract(global.primary))
+    .setDefault("fill", () => css.getPropertyValue('--primary-contrast-4') || '#006782')
     .setDefault("stroke", () => extract(global.onPrimary))
     .setDefault('disease', () => extract(global.negative))
 
