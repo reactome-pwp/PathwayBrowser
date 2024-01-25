@@ -140,7 +140,7 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
     const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
     const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
 
-    if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
+    if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier && interactor.alias) {
       interactorNodes.push({
         data: {
           id: interactor.acc + '-' + targetNode.data('entity').id(),
