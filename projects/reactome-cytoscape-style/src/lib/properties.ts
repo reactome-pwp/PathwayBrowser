@@ -9,6 +9,7 @@ export interface Properties extends PropertiesType {
     onPrimary: Property<string>
     positive: Property<string>
     negative: Property<string>
+    negativeContrast: Property<string>
     selectNode: Property<string>
     selectEdge: Property<string>
     hoverNode: Property<string>
@@ -93,6 +94,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('onPrimary', () => css.getPropertyValue('--on-primary') || '#FFFFFF')
     .setDefault('positive', () => css.getPropertyValue('--positive') || '#0C9509')
     .setDefault('negative', () => css.getPropertyValue('--negative') || '#BA1A1A')
+    .setDefault('negativeContrast', () => css.getPropertyValue('--negativeContrast') || '#ea7d7d')
     .setDefault('selectNode', () => css.getPropertyValue('--select-node') || '#6EB3E4')
     .setDefault('selectEdge', () => css.getPropertyValue('--select-edge') || '#0561A6')
     .setDefault('hoverNode', () => css.getPropertyValue('--hover-node') || '#78E076')

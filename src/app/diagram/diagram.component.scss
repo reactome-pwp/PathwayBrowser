@@ -9,6 +9,7 @@
   --on-tertiary: #FFFFFF;
   --positive: #0C9509;
   --negative: #BA1A1A;
+  --negativeContrast: #ea7d7d;
   --select-node: #6EB3E4;
   --select-edge: #0561A6;
   --hover-node: #78E076;
@@ -42,6 +43,7 @@
     --on-tertiary: #0D1317;
     --positive: #10d70b;
     --negative: #ea2323;
+    --negativeContrast: #8f0000;
     --select-node: #00ffff;
     --select-edge: #1d85cc;
     --hover-node: #ffff00;
@@ -92,16 +94,19 @@
 
   position: absolute;
   pointer-events: none;
-  right: calc(-1 *  var(--legend-width) - var(--border-width));
+  right: calc(-1 * var(--legend-width) - var(--border-width));
   height: 100%;
   width: calc(2 * var(--legend-width) + var(--handle-width));
 
-  #legend {
-    width: var(--legend-width);
+  #legend-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    left: calc(var(--legend-width) - var(--border-width));
+    pointer-events: all;
     height: 100%;
-    border-left: var(--border-width) solid var(--primary);
-    background: color-mix(in srgb, var(--surface) 80%, transparent);
-    backdrop-filter: blur(5px);
   }
 
   #legend-handle {
@@ -110,7 +115,7 @@
     writing-mode: vertical-lr;
 
     border-radius: 8.5px 0 0 8.5px;
-    background: color-mix(in srgb, var(--surface) 50%, transparent);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(5px);
     border-left: var(--border-width) solid var(--primary);
     border-top: var(--border-width) solid var(--primary);
@@ -120,13 +125,50 @@
     color: var(--on-surface);
   }
 
-  #legend-container {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    left: calc(var(--legend-width) - var(--border-width));
+  #legend {
+    width: var(--legend-width);
+    height: 100%;
+    //border-left: var(--border-width) solid var(--primary);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    backdrop-filter: blur(5px);
+
+    &:before {
+      content: "";
+      height: 100%;
+      width: 2px;
+      background-color: var(--primary);
+      position: absolute;
+      left: -1px;
+      z-index: 4;
+    }
+  }
+}
+
+.drag-container {
+  position: absolute;
+  left: 50%;
+  width: 100%;
+  pointer-events: all;
+  //position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+#handle-limits {
+  --width: 500px;
+  --height: 500px;
+  position: absolute;
+  left: calc(-1 / 2 * var(--width));
+  top: calc(50% - 1 / 2 * var(--height));
+  width: var(--width);
+  height: var(--height);
+  //background:#000000aa;
+  z-index: 5;
+  pointer-events: none;
+
+  &.active {
     pointer-events: all;
     height: 100%;
   }

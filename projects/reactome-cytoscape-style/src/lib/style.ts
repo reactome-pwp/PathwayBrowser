@@ -161,7 +161,8 @@ export class Style {
           "text-valign": 'center',
           "text-wrap": 'wrap',
           "text-max-width": "data(width)",
-          "background-image-smoothing": "no",
+          // @ts-ignore
+          "background-image-smoothing": "no no no no no no no no",
 
           // @ts-ignore
           "background-image": node => imageBuilder(node)["background-image"],
@@ -182,6 +183,13 @@ export class Style {
           // @ts-ignore
           "bounds-expansion": node => imageBuilder(node)["bounds-expansion"][0] || 0,
           'color': this.p('global', 'onPrimary'),
+        }
+      }, {
+        selector: 'node.PhysicalEntity.disease',
+        style: {
+          "border-color": this.p('global', 'negativeContrast'),
+          "color": this.p('global', 'negativeContrast'),
+          "border-width": this.p('global', 'thickness'),
         }
       }, {
         selector: 'node.Protein',
@@ -220,12 +228,12 @@ export class Style {
           "background-opacity": 0,
           "background-color": this.p('gene', 'fill'),
           "bounds-expansion": this.p('gene', 'decorationExtraWidth'),
-          "text-margin-y": this.pm('gene', 'decorationHeight', h => h / 2)
+          "text-margin-y": this.pm('gene', 'decorationHeight', h => h / 2),
+          "border-width": 0 // Avoid disease border
         }
       }, {
         selector: 'node.Molecule',
         style: {
-          // "background-opacity": 0,
           "shape": 'round-rectangle',
           "color": this.p("molecule", 'stroke'),
           "background-color": this.p("molecule", 'fill'),
@@ -246,6 +254,7 @@ export class Style {
         style: {
           "background-opacity": 0,
           "shape": "round-rectangle",
+          "border-width": 0, // Avoid disease border
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t =>
               this.pm('entitySet', 'radius', r => `${node.width() - 2 * r - 6 * t}px`
@@ -264,9 +273,25 @@ export class Style {
       }, {
         selector: 'node.Complex',
         style: {
-          "background-opacity": 0,
           "shape": "cut-rectangle",
-          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 6) + 'px')
+          "text-max-width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => (node.width() - t * 6) + 'px'),
+          "background-opacity": 0,
+          "border-width": 0, // Avoid disease border
+
+          // "background-color": this.p("complex", 'fill'),
+          // "width": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => node.data('width') -  2 * t) ,
+          // "height": (node: cytoscape.NodeSingular) => this.pm('global', 'thickness', t => node.data('height') -  2 * t) ,
+          // // @ts-ignore
+          // "corner-radius": this.pm('complex', 'cut', c => c),
+          // "outline-width":  this.p('global', 'thickness'),
+          // "outline-color":  this.p('complex', 'fill'),
+          // "outline-offset":  this.pm('global', 'thickness', t => - t),
+          // "outline-opacity":  1,
+          //
+          // // "border-position": 'inside',
+          // "border-join": 'round',
+          // "border-color": this.p('complex', 'stroke'),
+          // "border-width": this.p('global', 'thickness'),
         }
       }, {
         selector: 'node.Complex.drug',
@@ -279,6 +304,10 @@ export class Style {
         style: {
           "background-opacity": 0,
           "shape": "round-rectangle",
+          // @ts-ignore
+          "corner-radius": 999999,
+          "border-width": 0, // Avoid disease border
+
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t => this.pm('cell', 'thickness', ct => (node.width() - t * 2 - ct * 2) + 'px'))
         }
@@ -314,8 +343,7 @@ export class Style {
             ),
 
         }
-      },
-      {
+      }, {
         selector: 'node.Modification',
         style: {
           "background-color": this.p('modification', 'fill'),
@@ -408,6 +436,15 @@ export class Style {
           'source-arrow-width': '100%',
           // @ts-ignore
           'target-arrow-width': '100%',
+        }
+      }, {
+        selector: 'edge.disease',
+        style: {
+          "color": this.p('global', 'negative'),
+          "line-color": this.p('global', 'negative'),
+          "border-color": this.p('global', 'negative'),
+          'target-arrow-color': this.p('global', 'negative'),
+          'source-arrow-color': this.p('global', 'negative'),
         }
       }, {
         selector: "edge.hover",
@@ -539,15 +576,6 @@ export class Style {
           "font-weight": 400
         }
       },
-      {
-        selector: '.disease',
-        style: {
-          "color": this.p('global', 'negative'),
-          "line-color": this.p('global', 'negative'),
-          "border-color": this.p('global', 'negative'),
-        }
-      },
-
       {
         selector: 'edge.Interactor',
         style: {

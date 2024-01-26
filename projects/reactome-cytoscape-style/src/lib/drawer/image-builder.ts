@@ -23,8 +23,8 @@ export const imageBuilder = memoize((node: cytoscape.NodeSingular): Aggregated<I
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
-  const [width, height, drug] = [node.data("width"), node.data("height"), node.hasClass('drug')];
-  const drawer = provider(width, height, drug);
+  const [width, height, drug, disease, isFadeOut, isCrossed] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed')];
+  const drawer = provider(width, height, drug, disease, isCrossed);
 
   if (drawer.background) layers.push(drawer.background);
 
@@ -43,6 +43,8 @@ export const imageBuilder = memoize((node: cytoscape.NodeSingular): Aggregated<I
   if (node.classes().includes('Pathway')) {
     layers.push(Pathway(width, height, clazz))
   }
+
+  if (isCrossed) layers.push(CROSS(width, height))
 
   // Convert raw HTML to string encoded images
   layers = layers.map(l => ({
@@ -92,7 +94,7 @@ function svgStr(svgText: string, viewPortWidth: number, viewPortHeight: number) 
 }
 
 
-const dim = (width: number, height: number, drug: boolean) => `${width}x${height}-${drug}`;
+const dim = (width: number, height: number, drug = false, disease = false, crossed: boolean) => `${width}x${height}-${drug}${disease}${crossed}`;
 const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
@@ -160,6 +162,15 @@ const Pathway = (width: number, height: number, clazz: Node): Image => {
   };
 
 }
+
+export const CROSS = memoize((width: number, height: number): Image => {
+  const s = extract(Style.properties.global.negative);
+  const t = extract(Style.properties.global.thickness);
+  return {
+    "background-image": `<line x1="${t}" y1="${t}" x2="${width - t}" y2="${height - t}" stroke-width="${2*t}" stroke-linecap="round" stroke="${s}"/><line x1="${t}" y1="${height - t}" x2="${width - t}" y2="${t}" stroke-width="${2*t}" stroke-linecap="round" stroke="${s}"/>`,
+    "background-image-opacity": 1
+  };
+})
 
 export const OMMITED_ICON = memoize(() => {
   const s = extract(Style.properties.global.onSurface);

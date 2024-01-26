@@ -15,10 +15,10 @@ export interface Drawer {
 }
 
 export interface DrawerProvider {
-  (width: number, height: number, drug: boolean): Drawer
+  (width: number, height: number, drug: boolean, disease: boolean, crossed: boolean): Drawer
 }
 
 export type Memo<T> = T & _.MemoizedFunction;
 export type Aggregated<T> = {
-  [k in keyof T]: T[k][]
+  [k in keyof T]-?: T[k][]
 }

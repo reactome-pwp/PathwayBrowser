@@ -8,6 +8,8 @@ export interface Prop extends Position {
   height: number;
 }
 
+export type Rectangle = { left: number, right: number, top: number, bottom: number }
+
 export type Segment = { from: Position, to: Position };
 
 export interface Diagram {
@@ -20,6 +22,7 @@ export interface Diagram {
    * The list of contained shadows(subpathways)
    */
   shadows: SubPathway[];
+  forNormalDraw: boolean;
 }
 
 
@@ -48,6 +51,11 @@ export type Entity = {
   renderableClass: string;
   schemaClass: string;
   isDisease: boolean;
+  isFadeOut?: boolean;
+  isCrossed?: boolean;
+  // Added by service
+  rect?: Rectangle;
+  isBackground?: boolean;
 }
 
 // reactions
@@ -62,6 +70,7 @@ export interface EdgeConnector {
   id: number,
   points?: Position[],
   stoichiometry?: number
+  isFadeOut?: boolean
 }
 
 export interface NodeConnector {
@@ -70,6 +79,7 @@ export interface NodeConnector {
   segments: Segment[]
   stoichiometry: { value: number }
   endShape: { centre: Position }
+  isFadeOut?: boolean
 }
 
 // entities
@@ -78,7 +88,7 @@ export interface Node extends Entity {
   connectors: NodeConnector[]
   interactorsSummary: InteractorsSummary;
   nodeAttachments?: Attachment[];
-  isFadeOut: boolean
+  needDashedBorder?: boolean;
 }
 
 export interface Compartment extends Entity {
@@ -94,6 +104,8 @@ export interface Link {
   outputs: EdgeConnector[];
   renderableClass: string;
   segments: Segment[];
+  isFadeOut?: boolean;
+  isDisease?: boolean;
 }
 
 interface SubPathway extends Entity {

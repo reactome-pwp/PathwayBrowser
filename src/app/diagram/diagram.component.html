@@ -1,8 +1,19 @@
 <div class="variables" [class.dark]="dark.isDark" #container>
   <div id="cytoscape" #cytoscape></div>
 
-  <div id="legend-boundary">
-    <div cdkDrag cdkDragLockAxis="x" cdkDragBoundary="#legend-boundary" id="legend-container"
+  <ng-container *ngIf="comparing">
+    <div id="disease-container" class="drag-container" #compareContainer>
+      <div id="handle-limits" (mouseup)="dragEnd()" (mouseleave)="dragEnd()"
+           (mousemove)="dragMove($event, compareContainer)" [class.active]="compareDragging">
+        <span id="disease-handle" class="drag-handle" (mousedown)="dragStart()"></span>
+      </div>
+
+      <div id="cytoscape-compare" #cytoscapeCompare class="drag-content"></div>
+    </div>
+  </ng-container>
+
+  <div id="legend-boundary" [ngStyle]="{'--legend-width': ratio  * container.clientHeight + 'px'}">
+    <div cdkDrag cdkDragLockAxis="x" cdkDragBoundary="#legend-boundary" id="legend-container" (cdkDragMoved)="updateLegend()"
          [style.height]="container.clientHeight + 'px'">
       <button id="legend-handle" cdkDragHandle>LEGEND</button>
       <div id="legend" #legend></div>

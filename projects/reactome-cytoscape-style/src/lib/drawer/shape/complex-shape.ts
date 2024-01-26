@@ -3,7 +3,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const complex: DrawerProvider = (width, height, drug) => {
+export const complex: DrawerProvider = (width, height, drug, disease) => {
   const select = extract(Style.properties.global.selectNode);
   const hover = extract(Style.properties.global.hoverNode);
 
@@ -12,7 +12,7 @@ export const complex: DrawerProvider = (width, height, drug) => {
   const fill = !drug ?
     extract(Style.properties.complex.fill) :
     extract(Style.properties.complex.drug);
-  const stroke = extract(Style.properties.complex.stroke);
+  const stroke = !disease ? extract(Style.properties.complex.stroke) : extract(Style.properties.global.negativeContrast);
 
   const cut2 = cut * 2;
   const t2 = t * 2;
@@ -38,8 +38,8 @@ export const complex: DrawerProvider = (width, height, drug) => {
   return {
     background: {
       "background-image": `
-${defs}
-<use href="#octogon" fill="${fill}" stroke="${fill}" stroke-width="${2 * t2}" stroke-linejoin="round"/>
+      ${defs}
+      <use href="#octogon" fill="${fill}" stroke="${fill}" stroke-width="${2 * t2}" stroke-linejoin="round"/>
 `
     },
     hover: {
@@ -54,7 +54,9 @@ ${defs}
       " />
       `,
       "background-position-y": -t,
-      "background-height": stateHeight
+      "background-height": stateHeight,
+      "background-clip": "none",
+      "bounds-expansion": t
     },
     select: {
       "background-image": `
@@ -68,7 +70,9 @@ ${defs}
       " />
       `,
       "background-position-y": height / 2,
-      "background-height": stateHeight
+      "background-height": stateHeight,
+      "background-clip": "none",
+      "bounds-expansion": t
     },
     decorators: [
       {
