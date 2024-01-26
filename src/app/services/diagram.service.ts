@@ -8,7 +8,6 @@ import cytoscape from "cytoscape";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
-import {addRoundness} from "./roundness";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
@@ -543,13 +542,12 @@ export class DiagramService {
           pos.x += entityNode.width() / 2;
           pos.y -= entityNode.height() / 2;
 
-          if (!entityNode.data("isFadeOut")) {
+          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
             occurrenceNodes.push({
               data: {
                 id: entityNode.id() + '-occ',
                 displayName: interactor.count,
                 entity: entityNode,
-                //  interactorsIds: interactor.interactors?.map(interactor => interactor.id),
                 interactors: interactor.interactors
               },
               classes: ['InteractorOccurrences'],
