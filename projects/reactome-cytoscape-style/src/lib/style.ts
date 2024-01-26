@@ -200,7 +200,6 @@ export class Style {
           "shape": "round-rectangle",
           "background-opacity": 0,
           "background-color": this.p('genomeEncodedEntity', 'fill'),
-          "border-color": this.p('genomeEncodedEntity', 'stroke'),
           "text-margin-y": this.pm('genomeEncodedEntity', 'topRadius', r => r / 10),
         }
       }, {
