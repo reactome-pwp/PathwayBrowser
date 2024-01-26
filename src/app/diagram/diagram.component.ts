@@ -4,6 +4,7 @@ import cytoscape from "cytoscape";
 import {Style} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {switchMap} from "rxjs";
+import {DarkService} from "../services/dark.service";
 
 @Component({
   selector: 'cr-diagram',
@@ -18,8 +19,8 @@ export class DiagramComponent implements AfterViewInit {
 
   comparing: boolean = false;
 
-  constructor(private diagram: DiagramService, private route: ActivatedRoute) {
 
+  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService) {
   }
 
   cy!: cytoscape.Core;
@@ -29,6 +30,8 @@ export class DiagramComponent implements AfterViewInit {
 
 
   ngAfterViewInit(): void {
+    this.dark.$dark.subscribe(this.updateStyle.bind(this))
+
     const container = this.cytoscapeContainer!.nativeElement;
     this.reactomeStyle = new Style(container);
 
