@@ -170,8 +170,9 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("fill", () => css.getPropertyValue('--primary-contrast-2') || '#003545')
 
   const interactor: Properties['interactor'] = defaultable(properties.interactor || {})
-    .setDefault("fill", () => css.getPropertyValue('--primary') || '#006782')
-    .setDefault("stroke", () => css.getPropertyValue('--interactor-stroke') || '#96aeb6')
+    .setDefault("fill", () => css.getPropertyValue('--interactor-fill') || '#68297C')
+    .setDefault("stroke", () => css.getPropertyValue('--interactor-stroke') || '#9f5cb5')
+
 
   return {
     global,
