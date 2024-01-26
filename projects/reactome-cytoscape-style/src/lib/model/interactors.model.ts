@@ -7,3 +7,13 @@ export interface Interactor {
   id: number;
   score: number;
 }
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Segment {
+  from: Position;
+  to: Position;
+}
