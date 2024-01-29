@@ -124,23 +124,7 @@ export class Style {
           "text-valign": "center",
           "text-halign": "center",
           "text-wrap": 'wrap',
-          "background-color": this.p('global', 'negative')
-        }
-      },
-      {
-        selector: 'node.Interactor',
-        style: {
-          'label': 'data(displayName)',
-         'shape': 'hexagon',
-         'width': 180,
-         'height': 60,
-          'color': this.p('global', 'onPrimary'),
-          "text-valign": "center",
-          "text-halign": "center",
-          "text-wrap": 'wrap',
-          "background-color": this.p('interactor', 'fill'),
-          "border-color": this.p('interactor', 'stroke'),
-          "border-width": this.p('global', 'thickness'),
+          "background-color": this.p('interactor', 'fill')
         }
       },
       {
@@ -415,6 +399,26 @@ export class Style {
           "background-width": "100%",
         }
       },
+      {
+        selector: 'node.Interactor',
+        style: {
+          "label": "data(displayName)",
+          "font-family": "Roboto Mono, monospace",
+          "border-color": this.p('interactor', 'stroke'),
+          "text-wrap": "ellipsis",
+        }
+      },
+      {
+        selector: 'node.Interactor.Disease',
+        style: {
+          shape: 'round-hexagon',
+          "background-color": this.p('global', 'negative'),
+          "color": this.p('global', 'onPrimary'),
+          "border-width": 0,
+          "width": "data(width)",
+          "height": "data(height)"
+        }
+      },
 
 
       {
@@ -579,7 +583,9 @@ export class Style {
       {
         selector: 'edge.Interactor',
         style: {
-          'line-color': this.p('interactor', 'stroke')
+          'line-color': this.p('interactor', 'stroke'),
+          'line-style': 'dashed',
+          'line-dash-pattern': [1, 8]
         }
       },
 
