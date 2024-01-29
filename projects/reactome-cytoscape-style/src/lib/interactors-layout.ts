@@ -1,4 +1,4 @@
-import {Interactor, Position, Segment} from "./model/interactors.model";
+import {Interactor, Position, Segment} from "./model/interactor.model";
 import {NodeSingular} from "cytoscape";
 
 class InteractorsLayout {

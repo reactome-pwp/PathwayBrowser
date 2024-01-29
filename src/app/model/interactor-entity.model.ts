@@ -1,4 +1,4 @@
-export interface Entity {
+export interface InteractorEntity {
   acc: string;
   count: number;
   interactors: Interactor[] | null;
@@ -12,11 +12,10 @@ export interface Interactor {
   evidencesURL: string;
   id: number;
   score: number;
-
 }
 
 export interface Interactors {
-  entities: Entity[];
+  entities: InteractorEntity[];
   // PSICQUIC resource (e.g. IntAct, MINT, etc)
   resource: string;
 }
