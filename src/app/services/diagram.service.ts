@@ -3,6 +3,7 @@ import {forkJoin, map, Observable, of, tap} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Graph, Node as GraphNode} from "../model/graph.model";
+import {Interactors} from "../model/interactor-entity.model";
 import Reactome from "reactome-cytoscape-style";
 import cytoscape from "cytoscape";
 import legend from "../../assets/json/legend.json"
@@ -11,7 +12,7 @@ import {array} from "vectorious";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
-import {Interactors} from "../model/interactors.model";
+
 
 
 type RelativePosition = { distances: number[], weights: number[] };
@@ -528,14 +529,14 @@ export class DiagramService {
     });
   }
 
-  public addOccurrenceAndInteractors(interactorResult: Interactors, cy: cytoscape.Core | undefined) {
+  public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core | undefined) {
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
-    interactorResult.entities
-      .filter(interactor => interactor.count > 0)
-      .forEach(interactor => {
+    interactors.entities
+      .filter(interactorEntity => interactorEntity.count > 0)
+      .forEach(interactorEntity => {
 
-        const entities = cy?.nodes(`[acc = '${interactor.acc}']`);
+        const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
         entities?.forEach(entityNode => {
 
           const pos = {...entityNode.position()};
@@ -546,9 +547,9 @@ export class DiagramService {
             occurrenceNodes.push({
               data: {
                 id: entityNode.id() + '-occ',
-                displayName: interactor.count,
+                displayName: interactorEntity.count,
                 entity: entityNode,
-                interactors: interactor.interactors
+                interactors: interactorEntity.interactors
               },
               classes: ['InteractorOccurrences'],
               pannable: true,
