@@ -23,9 +23,8 @@ export const imageBuilder = memoize((node: cytoscape.NodeSingular): Aggregated<I
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
-  const [width, height, drug, disease, isFadeOut, isCrossed] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed')];
-  const drawer = provider(width, height, drug, disease, isCrossed);
-
+  const [width, height, drug, disease, isFadeOut, isCrossed, interactor] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed'), node.hasClass('Interactor')];
+  const drawer = provider(width, height, drug, disease, interactor);
   if (drawer.background) layers.push(drawer.background);
 
   if (node.selected() && drawer.select) layers.push(drawer.select);
@@ -94,7 +93,7 @@ function svgStr(svgText: string, viewPortWidth: number, viewPortHeight: number) 
 }
 
 
-const dim = (width: number, height: number, drug = false, disease = false, crossed: boolean) => `${width}x${height}-${drug}${disease}${crossed}`;
+const dim = (width: number, height: number, drug = false, disease = false, crossed=  false, interactor= false) => `${width}x${height}-${drug}${disease}${crossed}${interactor}`;
 const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],

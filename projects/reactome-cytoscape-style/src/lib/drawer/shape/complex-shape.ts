@@ -3,15 +3,16 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const complex: DrawerProvider = (width, height, drug, disease) => {
+export const complex: DrawerProvider = (width, height, drug, disease, interactor) => {
   const select = extract(Style.properties.global.selectNode);
   const hover = extract(Style.properties.global.hoverNode);
 
   const t = extract(Style.properties.global.thickness);
   const cut = extract(Style.properties.complex.cut);
   const fill = !drug ?
-    extract(Style.properties.complex.fill) :
+    interactor ? extract(Style.properties.interactor.fill) : extract(Style.properties.complex.fill) :
     extract(Style.properties.complex.drug);
+
   const stroke = !disease ? extract(Style.properties.complex.stroke) : extract(Style.properties.global.negativeContrast);
 
   const cut2 = cut * 2;
