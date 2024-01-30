@@ -225,7 +225,6 @@ export class Style {
           "border-width": this.p("global", 'thickness'),
           // @ts-ignore
           "corner-radius": (node: cytoscape.NodeSingular) => Math.min(node.data('width'), node.data('height')) / 2,
-          "border-position": "inside",
         }
       }, {
         selector: 'node.Molecule.drug',
