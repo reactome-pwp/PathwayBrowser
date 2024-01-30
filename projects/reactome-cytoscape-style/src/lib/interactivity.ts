@@ -140,7 +140,7 @@ function showInteractors(cy: cytoscape.Core) {
   });
 }
 
-const DEFAULT_INTERACTOR_WIDTH = 10;
+const DEFAULT_INTERACTOR_WIDTH = 100;
 const INTERACTOR_PADDING = 20;
 const CHAR_WIDTH = 10;
 const CHAR_HEIGHT = 12;
@@ -156,8 +156,8 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
       data: {
         id: interactor.acc + '-' + targetNode.data('entity').id(),
         displayName: displayName,
-        //  width: DEFAULT_INTERACTOR_WIDTH,
-        width: Math.max(displayName.length * CHAR_WIDTH + 2 * INTERACTOR_PADDING, DEFAULT_INTERACTOR_WIDTH),
+         width: DEFAULT_INTERACTOR_WIDTH,
+        // width: Math.max(displayName.length * CHAR_WIDTH + 2 * INTERACTOR_PADDING, DEFAULT_INTERACTOR_WIDTH),
         height: CHAR_HEIGHT + 2 * INTERACTOR_PADDING,
         source: targetNode.id(),
         score: interactor.score,
