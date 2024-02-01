@@ -98,24 +98,7 @@ function showInteractors(cy: cytoscape.Core) {
     const interactorsData = targetNode.data('interactors');
 
     const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
-    const dynamicInteractors: Interactor[] = [];
-    const existingInteractors: Interactor[] = [];
-    let currentSize = 0;
-    // get interactors to draw with a provided a number, collect existing interactors for creating edge
-    for (const interactor of interactorsData) {
-      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
-      const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map((node) => [node.data('acc'), node]));
-      if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
-        dynamicInteractors.push(interactor);
-        currentSize++;
-        if (currentSize === numberToAdd) {
-          break;
-        }
-      } else {
-        existingInteractors.push(interactor)
-      }
-    }
-
+    const [dynamicInteractors, existingInteractors] = getInteractors(interactorsData, cy, numberToAdd);
     const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
 
     addInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd);
@@ -156,7 +139,7 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
       data: {
         id: interactor.acc + '-' + targetNode.data('entity').id(),
         displayName: displayName,
-         width: DEFAULT_INTERACTOR_WIDTH,
+        width: DEFAULT_INTERACTOR_WIDTH,
         // width: Math.max(displayName.length * CHAR_WIDTH + 2 * INTERACTOR_PADDING, DEFAULT_INTERACTOR_WIDTH),
         height: CHAR_HEIGHT + 2 * INTERACTOR_PADDING,
         source: targetNode.id(),
@@ -189,6 +172,28 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
   })
   cy?.add(interactorEdges)
 }
+
+
+function getInteractors(interactorsData: Interactor[], cy: cytoscape.Core, numberToAdd: number) {
+  const dynamicInteractors = [];
+  const existingInteractors = [];
+  let currentSize = 0;
+  // get interactors to draw with a provided a number, collect existing interactors for creating edge
+  for (const interactor of interactorsData) {
+    const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
+    const accToEntityNode = new Map(diagramNodes?.map(node => [node.data('acc'), node]));
+
+    if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
+      dynamicInteractors.push(interactor);
+      currentSize++;
+      if (currentSize === numberToAdd) break;
+    } else {
+      existingInteractors.push(interactor);
+    }
+  }
+  return [dynamicInteractors, existingInteractors];
+}
+
 
 function removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
   const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
