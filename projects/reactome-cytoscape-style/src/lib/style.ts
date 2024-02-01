@@ -454,7 +454,7 @@ export class Style {
       {
         selector: 'edge',
         style: {
-          "curve-style": "bezier",
+          "curve-style": "straight",
           "line-cap": "round",
           "source-endpoint": "outside-to-node",
           "arrow-scale": 1.5,
