@@ -3,13 +3,13 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const gene: DrawerProvider = (width, height, drug) => {
+export const gene: DrawerProvider = (width, height, drug, disease, interactor) => {
   const thick = extract(Style.properties.global.thickness);
   const dHeight = extract(Style.properties.gene.decorationHeight);
   const dWidth = extract(Style.properties.gene.decorationExtraWidth);
   const headSize = extract(Style.properties.gene.arrowHeadSize);
   const radius = extract(Style.properties.gene.arrowRadius);
-  const fill = extract(Style.properties.gene.fill);
+  const fill = interactor ? extract(Style.properties.interactor.fill) : extract(Style.properties.gene.fill);
   const select = extract(Style.properties.global.selectNode);
   const hover = extract(Style.properties.global.hoverNode);
   const hh = Math.sqrt(Math.pow(headSize, 2) * 3 / 4)

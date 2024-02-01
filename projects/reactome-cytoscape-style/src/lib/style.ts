@@ -116,18 +116,6 @@ export class Style {
         }
       },
       {
-        selector: 'node.InteractorOccurrences',
-        style: {
-          'label': 'data(displayName)',
-          'color': this.p('global', 'surface'),
-          "shape": "ellipse",
-          "text-valign": "center",
-          "text-halign": "center",
-          "text-wrap": 'wrap',
-          "background-color": this.p('interactor', 'fill')
-        }
-      },
-      {
         selector: 'node.drug',
         style: {
           "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 44) + 'px',
@@ -399,6 +387,18 @@ export class Style {
         }
       },
       {
+        selector: 'node.InteractorOccurrences',
+        style: {
+          'label': 'data(displayName)',
+          'color': this.p('global', 'surface'),
+          "shape": "ellipse",
+          "text-valign": "center",
+          "text-halign": "center",
+          "text-wrap": 'wrap',
+          "background-color": this.p('interactor', 'fill')
+        }
+      },
+      {
         selector: 'node.Interactor',
         style: {
           "label": "data(displayName)",
@@ -416,6 +416,37 @@ export class Style {
           "border-width": 0,
           "width": "data(width)",
           "height": "data(height)"
+        }
+      },
+      {
+        selector: 'node.RNA.Interactor, node.Protein.Interactor',
+        style: {
+          "background-color": this.p('interactor', 'fill'),
+        }
+      },
+      {
+        selector: 'node.Molecule.Interactor',
+        style: {
+          "color": this.p("molecule", 'stroke'),
+          "background-color": this.p("molecule", 'fill'),
+          "border-color": this.p("interactor", 'stroke'),
+          "border-width": this.p("global", 'thickness'),
+          // @ts-ignore
+          "corner-radius": (node: cytoscape.NodeSingular) => Math.min(node.data('width'), node.data('height')) / 2,
+        }
+      },
+      {
+        selector: 'node.InteractorOccurrences.hover',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'hoverNode'),
+        }
+      },
+      {
+        selector: 'node.InteractorOccurrences.select',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'selectNode'),
         }
       },
 
@@ -587,7 +618,12 @@ export class Style {
           'line-dash-pattern': [1, 8]
         }
       },
-
+      {
+        selector: 'edge.Interactor.hover',
+        style: {
+          "line-color": this.p('global', 'hoverEdge')
+        }
+      },
       {
         selector: "edge[?sourceOffset]",
         style: {
