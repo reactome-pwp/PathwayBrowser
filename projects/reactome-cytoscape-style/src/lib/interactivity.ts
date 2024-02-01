@@ -49,6 +49,15 @@ function initHover(cy: cytoscape.Core) {
   cy.edges()
     .on('mouseover', e => hoverReaction(e.target.connectedNodes('.reaction')))
     .on('mouseout', e => deHoverReaction(e.target.connectedNodes('.reaction')))
+
+  cy.on('mouseover mouseout', '.InteractorOccurrences', event => {
+    event.target.toggleClass('hover', event.type === 'mouseover')
+  });
+
+  cy.on('mouseover mouseout', '.Interactor', event => {
+    event.target.toggleClass('hover', event.type === 'mouseover')
+  })
+
 }
 
 function initSelect(cy: cytoscape.Core) {
@@ -64,6 +73,20 @@ function initSelect(cy: cytoscape.Core) {
     .on('select', event => selectReaction(event.target))
   cy.nodes('.Modification')
     .on('select', e => cy.nodes(`#${e.target.data('nodeId')}`).select())
+
+  cy.on('select unselect', '.InteractorOccurrences', event =>{
+    event.target.toggleClass('select', event.type === 'select')
+  })
+
+  cy.on('select', '.Interactor', event => {
+    const prop = event.target.isNode() ? 'accURL' : 'evidenceURLs';
+    const url = event.target.data(prop);
+    if (url) {
+      window.open(url);
+      event.target.unselect();
+    }
+  });
+
 }
 
 export let onZoom: (e?: cytoscape.EventObjectCore) => void;
@@ -143,11 +166,13 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
         // width: Math.max(displayName.length * CHAR_WIDTH + 2 * INTERACTOR_PADDING, DEFAULT_INTERACTOR_WIDTH),
         height: CHAR_HEIGHT + 2 * INTERACTOR_PADDING,
         source: targetNode.id(),
+        accURL: interactor.accURL,
         score: interactor.score,
         evidences: interactor.evidences,
         evidenceURLs: interactor.evidencesURL,
       },
-      classes: ['Complex', 'PhysicalEntity','Interactor'],
+      //todo: provide shape base on interactor type: Gene, RNA, Protein, Molecule
+      classes: ['Complex', 'PhysicalEntity', 'Interactor'],
       position: position
     })
   })
@@ -165,7 +190,8 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
         id: interactor.acc + '---' + targetNode.data('entity').id(),
         source: targetNode.data('entity').id(),
         target: targetNodeId,
-        edgeToTarget: targetNode.id()
+        edgeToTarget: targetNode.id(),
+        evidenceURLs: interactor.evidencesURL
       },
       classes: ['Interactor']
     })
