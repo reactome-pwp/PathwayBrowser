@@ -4,7 +4,8 @@ export type PhysicalEntity = SimpleEntity | ComposedEntity;
 export type PhysicalEntityDefinition = [PhysicalEntity, 'PhysicalEntity', ...string[]];
 export type PathwayEntity = 'Interacting' | 'SUB';
 export type PathwayEntityDefinition = [PathwayEntity, 'Pathway', ...string[]];
-export type Node = PhysicalEntity | PathwayEntity ;
+export type DiseaseInteractorEntity = 'DiseaseInteractor';
+export type Node = PhysicalEntity | PathwayEntity | DiseaseInteractorEntity;
 
 export type NodeDefinition = PathwayEntityDefinition | PhysicalEntityDefinition ;
 
