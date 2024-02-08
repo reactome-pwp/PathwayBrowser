@@ -399,23 +399,32 @@ export class Style {
         }
       },
       {
+        selector: 'node.InteractorOccurrences.Disease',
+        style: {
+          "background-color": this.p('global', 'negative')
+        }
+      },
+      {
+        selector: 'node.InteractorOccurrences.hover',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'hoverNode'),
+        }
+      },
+      {
+        selector: 'node.InteractorOccurrences.select',
+        style: {
+          "border-width": this.pm('global', 'thickness', t => t * 1),
+          "border-color": this.p('global', 'selectNode'),
+        }
+      },
+      {
         selector: 'node.Interactor',
         style: {
           "label": "data(displayName)",
           "font-family": "Roboto Mono, monospace",
           "border-color": this.p('interactor', 'stroke'),
           "text-wrap": "ellipsis",
-        }
-      },
-      {
-        selector: 'node.Interactor.Disease',
-        style: {
-          shape: 'round-hexagon',
-          "background-color": this.p('global', 'negative'),
-          "color": this.p('global', 'onPrimary'),
-          "border-width": 0,
-          "width": "data(width)",
-          "height": "data(height)"
         }
       },
       {
@@ -435,18 +444,32 @@ export class Style {
           "corner-radius": (node: cytoscape.NodeSingular) => Math.min(node.data('width'), node.data('height')) / 2,
         }
       },
+      // {
+      //   selector: 'node.Interactor.Disease',
+      //   style: {
+      //     "shape": "round-hexagon",
+      //     "background-color": this.p('global', 'negative'),
+      //     "color": this.p('global', 'onPrimary'),
+      //     "border-width": 0,
+      //     "width": "data(width)",
+      //     "height": "data(height)",
+      //     "text-halign": 'center',
+      //     "text-valign": 'center',
+      //     "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 40) + 'px',
+      //   }
+      // },
       {
-        selector: 'node.InteractorOccurrences.hover',
+        selector: 'node.DiseaseInteractor',
         style: {
-          "border-width": this.pm('global', 'thickness', t => t * 1),
-          "border-color": this.p('global', 'hoverNode'),
-        }
-      },
-      {
-        selector: 'node.InteractorOccurrences.select',
-        style: {
-          "border-width": this.pm('global', 'thickness', t => t * 1),
-          "border-color": this.p('global', 'selectNode'),
+          "shape": "round-hexagon",
+          "background-color": this.p('global', 'negative'),
+          "color": this.p('global', 'onPrimary'),
+          "border-width": 0,
+          "width": "data(width)",
+          "height": "data(height)",
+          "text-halign": 'center',
+          "text-valign": 'center',
+         "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 60) + 'px',
         }
       },
 
@@ -619,7 +642,13 @@ export class Style {
         }
       },
       {
-        selector: 'edge.Interactor.hover',
+        selector: 'edge.Interactor.Disease',
+        style: {
+          'line-color': this.p('global', 'negativeContrast'),
+        }
+      },
+      {
+        selector: 'edge.Interactor.hover, edge.Interactor.Disease.hover',
         style: {
           "line-color": this.p('global', 'hoverEdge')
         }

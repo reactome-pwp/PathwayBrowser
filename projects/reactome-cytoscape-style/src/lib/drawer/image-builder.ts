@@ -9,6 +9,7 @@ import {complex} from "./shape/complex-shape";
 import {entitySet} from "./shape/entity-sets-shape";
 import {cell} from "./shape/cell-shape";
 import {interactingPathway} from "./shape/interacting-pathway-shape";
+import {diseaseInteractor} from "./shape/disease-interactor-shape";
 
 import {sub} from "./shape/sub-shape";
 import {extract} from "../properties-utils";
@@ -105,6 +106,7 @@ const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Cell", memoize(cell, dim)],
   ["Interacting", memoize(interactingPathway, dim)],
   ["SUB", memoize(sub, dim)],
+  ["DiseaseInteractor", memoize(diseaseInteractor, dim)]
 ]);
 
 export function clearDrawersCache() {
