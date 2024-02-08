@@ -58,6 +58,8 @@ const closestToAverage = (positions: Position[]): Position => {
   return closest;
 }
 
+const INTACT = 'IntAct';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,7 +70,6 @@ export class DiagramService {
 
   constructor(private http: HttpClient) {
   }
-
 
   nodeTypeMap = new Map<string, NodeDefinition>([
       ['Gene', ['Gene', 'PhysicalEntity']],
@@ -333,7 +334,6 @@ export class DiagramService {
               displayName: item.displayName,
               height: scale(item.prop.height),
               width: scale(item.prop.width),
-              class: this.nodeTypeMap.get(item.renderableClass) || item.renderableClass.toLowerCase(),
               reactomeId: item.reactomeId,
             },
             classes: ['Shadow'],
@@ -404,7 +404,7 @@ export class DiagramService {
                     pathway: eventIdToSubPathwayId.get(reaction.reactomeId),
                     isFadeOut: reaction.isFadeOut,
                     isBackground: reaction.isFadeOut,
-                     replacedBy
+                    replacedBy
                   },
                   classes: classes,
                 };
@@ -529,37 +529,16 @@ export class DiagramService {
     });
   }
 
-  public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core | undefined) {
-    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
-
-    interactors.entities
-      .filter(interactorEntity => interactorEntity.count > 0)
-      .forEach(interactorEntity => {
-
-        const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
-        entities?.forEach(entityNode => {
-
-          const pos = {...entityNode.position()};
-          pos.x += entityNode.width() / 2;
-          pos.y -= entityNode.height() / 2;
-
-          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
-            occurrenceNodes.push({
-              data: {
-                id: entityNode.id() + '-occ',
-                displayName: interactorEntity.count,
-                entity: entityNode,
-                interactors: interactorEntity.interactors
-              },
-              classes: ['InteractorOccurrences'],
-              pannable: true,
-              grabbable: false,
-              position: pos,
-            });
-          }
-        });
-      });
-    cy?.add(occurrenceNodes);
+  lastSelectedResource: string | undefined
+  public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
+    if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
+      cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
+      this.createOccurrenceAndInteractors(interactors, cy, resource);
+      this.lastSelectedResource = resource;
+    } else if (!this.lastSelectedResource) {
+      this.createOccurrenceAndInteractors(interactors, cy, resource);
+      this.lastSelectedResource = resource;
+    }
   }
 
   public createOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {

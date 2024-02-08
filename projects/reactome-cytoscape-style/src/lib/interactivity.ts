@@ -1,4 +1,4 @@
-import cytoscape, {NodeSingular} from "cytoscape";
+import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
 import {extract} from "./properties-utils";
 import {Style} from "./style";
 import {Interactor} from "./model/interactor.model";
@@ -11,7 +11,7 @@ export function initInteractivity(cy: cytoscape.Core) {
   initHover(cy);
   initSelect(cy);
   initZoom(cy);
-  showInteractors(cy)
+  addInteractors(cy)
 }
 
 interface State {
@@ -74,7 +74,7 @@ function initSelect(cy: cytoscape.Core) {
   cy.nodes('.Modification')
     .on('select', e => cy.nodes(`#${e.target.data('nodeId')}`).select())
 
-  cy.on('select unselect', '.InteractorOccurrences', event =>{
+  cy.on('select unselect', '.InteractorOccurrences', event => {
     event.target.toggleClass('select', event.type === 'select')
   })
 
@@ -114,46 +114,70 @@ function initZoom(cy: cytoscape.Core) {
   cy.on('zoom', onZoom);
 }
 
-function showInteractors(cy: cytoscape.Core) {
-  const clickedNodes: { [key: string]: number } = {};
+function addInteractors(cy: cytoscape.Core) {
+  const clickedNodes: { [key: string]: { resource: string, count: number } } = {};
+
   cy.on('click', '.InteractorOccurrences', event => {
     const targetNode = event.target;
     const interactorsData = targetNode.data('interactors');
-
+    const resource = targetNode.data('resource')
     const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
     const [dynamicInteractors, existingInteractors] = getInteractors(interactorsData, cy, numberToAdd);
     const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
 
-    addInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd);
-    addInteractorEdges(allNodes, targetNode, cy);
+    addInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd, resource);
+    addInteractorEdges(allNodes, targetNode, cy, resource);
 
     const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
-    const layoutOptions = {
-      name: 'preset',
-      fit: false
-    }
-
-    if (clickedNodes[targetNode.id()]) {
-      // this node has been clicked before
-      interactorsToDisplay.remove();
-      removeInteractorEdges(targetNode, cy)
-      clickedNodes[targetNode.id()] = 0;
-    } else {
-      // first click on this node
-      interactorsToDisplay.layout(layoutOptions).run();
-      clickedNodes[targetNode.id()] = 1;
-    }
+    displayInteractors(interactorsToDisplay, targetNode, cy, clickedNodes)
   });
 }
 
+function displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: { [key: string]: { resource: string, count: number } }) {
+
+  const layoutOptions = {
+    name: 'preset',
+    fit: false
+  }
+
+  // todo: better way to handle this
+  /**
+   *  A toggle behavior for displaying and removing interactor nodes associated with interactor occurrence node
+   *  base on whether a node has been clicked before, tracking click counts and node resources in the process.
+   */
+  if (clickedNodes[targetNode.id()]) {
+    //check if the node has been clicked before
+    const nodeData = clickedNodes[targetNode.id()];
+    //same resource
+    if (nodeData.resource === targetNode.data('resource')) {
+      const evenClick = nodeData.count % 2 === 0;
+      //even click count, display data, odd click count, remove data
+      evenClick ? interactorsToDisplay.layout(layoutOptions).run() : (interactorsToDisplay.remove(), removeInteractorEdges(targetNode, cy));
+      nodeData.count++;
+    } else {
+      //different resource, treat it as a first click
+      interactorsToDisplay.layout(layoutOptions).run();
+      clickedNodes[targetNode.id()] = {resource: targetNode.data('resource'), count: 1};
+    }
+  } else {
+    //first click on this node
+    interactorsToDisplay.layout(layoutOptions).run();
+    clickedNodes[targetNode.id()] = {resource: targetNode.data('resource'), count: 1};
+  }
+}
+
 const DEFAULT_INTERACTOR_WIDTH = 100;
+const DEFAULT_DISGENET_WIDTH = 120
 const INTERACTOR_PADDING = 20;
 const CHAR_WIDTH = 10;
 const CHAR_HEIGHT = 12;
+const INTACT = "IntAct";
 
-function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number) {
+function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
   const interactorNodes: cytoscape.NodeDefinition[] = [];
   const interactorLayout = new InteractorsLayout();
+  // todo :
+  const resourceClass = resource === INTACT ? ['Complex', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
 
   interactorsData.forEach((interactor: Interactor, index: number) => {
     const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
@@ -162,7 +186,7 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
       data: {
         id: interactor.acc + '-' + targetNode.data('entity').id(),
         displayName: displayName,
-        width: DEFAULT_INTERACTOR_WIDTH,
+        width: resource === INTACT ? DEFAULT_INTERACTOR_WIDTH : DEFAULT_DISGENET_WIDTH,
         // width: Math.max(displayName.length * CHAR_WIDTH + 2 * INTERACTOR_PADDING, DEFAULT_INTERACTOR_WIDTH),
         height: CHAR_HEIGHT + 2 * INTERACTOR_PADDING,
         source: targetNode.id(),
@@ -170,16 +194,20 @@ function addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingu
         score: interactor.score,
         evidences: interactor.evidences,
         evidenceURLs: interactor.evidencesURL,
+        resource: resource
       },
       //todo: provide shape base on interactor type: Gene, RNA, Protein, Molecule
-      classes: ['Complex', 'PhysicalEntity', 'Interactor'],
+      classes: resourceClass,
       position: position
     })
   })
   cy?.add(interactorNodes)
 }
 
-function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined) {
+function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
+
+  const resourceClass = resource === INTACT ? ['Interactor'] : ['Interactor', 'Disease'];
+
   const interactorEdges: cytoscape.EdgeDefinition[] = [];
   interactorsData.forEach((interactor: Interactor) => {
     const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
@@ -191,9 +219,10 @@ function addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingu
         source: targetNode.data('entity').id(),
         target: targetNodeId,
         edgeToTarget: targetNode.id(),
-        evidenceURLs: interactor.evidencesURL
+        evidenceURLs: interactor.evidencesURL,
+        resource: resource
       },
-      classes: ['Interactor']
+      classes: resourceClass
     })
   })
   cy?.add(interactorEdges)
