@@ -562,6 +562,41 @@ export class DiagramService {
     cy?.add(occurrenceNodes);
   }
 
+  public createOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
+
+    const classes = resource === INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
+    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
+
+    interactors.entities
+      .filter(interactorEntity => interactorEntity.count > 0)
+      .forEach(interactorEntity => {
+
+        const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
+        entities?.forEach(entityNode => {
+
+          const pos = {...entityNode.position()};
+          pos.x += entityNode.width() / 2;
+          pos.y -= entityNode.height() / 2;
+
+          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
+            occurrenceNodes.push({
+              data: {
+                id: entityNode.id() + '-occ',
+                displayName: interactorEntity.count,
+                entity: entityNode,
+                interactors: interactorEntity.interactors,
+                resource: resource
+              },
+              classes: classes,
+              pannable: true,
+              grabbable: false,
+              position: pos,
+            });
+          }
+        });
+      });
+    cy?.add(occurrenceNodes);
+  }
 
   /**
    * Use Matrix power to convert points from an absolute coordinate system to an edge relative system

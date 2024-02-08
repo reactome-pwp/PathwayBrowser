@@ -5,6 +5,7 @@ import {Style} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {switchMap} from "rxjs";
 import {DarkService} from "../services/dark.service";
+import {InteractorService} from "../services/interactor.service";
 
 @Component({
   selector: 'cr-diagram',
@@ -18,9 +19,11 @@ export class DiagramComponent implements AfterViewInit {
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
 
   comparing: boolean = false;
+  INTACT: string = 'IntAct';
+  DISGENET: string = 'DisGeNet';
 
 
-  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService) {
+  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService) {
   }
 
   cy!: cytoscape.Core;
@@ -187,11 +190,16 @@ export class DiagramComponent implements AfterViewInit {
   };
 
 
-  getInteractors() {
-    this.diagram.getInteractorData(this.cy)
-      .subscribe(interactors => {
-        this.diagram.addOccurrenceAndInteractors(interactors, this.cy)
-      })
+  getStaticInteractors(resource: string) {
+    this.interactorsService.getStaticInteractorData(this.cy).subscribe(interactors => {
+      this.diagram.addOccurrenceAndInteractors(interactors, this.cy, resource)
+    });
+  }
+
+  getDiseaseInteractors(resource: string) {
+    this.interactorsService.getDiseaseInteractorData(this.cy).subscribe(interactors => {
+      this.diagram.addOccurrenceAndInteractors(interactors, this.cy, resource)
+    });
   }
 
   updateStyle() {
