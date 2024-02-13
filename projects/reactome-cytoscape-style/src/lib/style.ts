@@ -469,7 +469,7 @@ export class Style {
           "height": "data(height)",
           "text-halign": 'center',
           "text-valign": 'center',
-         "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 60) + 'px',
+          "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 60) + 'px',
         }
       },
 
@@ -563,7 +563,7 @@ export class Style {
         }
       }, {
         selector: 'edge.set-to-member',
-        style: {'target-arrow-shape': 'circle', "line-style": "dashed", "line-dash-pattern": [6, 10]}
+        style: {'target-arrow-shape': 'circle', "line-style": "dashed", "line-dash-pattern": [6, 10], "opacity":0.5}
       }, {
         selector: 'edge[stoichiometry > 1]',
         style: {
