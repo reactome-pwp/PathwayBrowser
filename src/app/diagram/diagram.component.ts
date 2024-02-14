@@ -1,9 +1,9 @@
-import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
+// @ts-ignore
 import {Style} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
-import {switchMap} from "rxjs";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../services/interactor.service";
 
@@ -12,7 +12,7 @@ import {InteractorService} from "../services/interactor.service";
   templateUrl: './diagram.component.html',
   styleUrls: ['./diagram.component.scss']
 })
-export class DiagramComponent implements AfterViewInit {
+export class DiagramComponent implements AfterViewInit, OnChanges {
   title = 'pathway-browser';
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
@@ -31,12 +31,12 @@ export class DiagramComponent implements AfterViewInit {
   legend!: cytoscape.Core;
   reactomeStyle!: Style;
 
+  @Input('id') diagramId: string = '';
 
-  ngAfterViewInit(): void {
-    this.dark.$dark.subscribe(this.updateStyle.bind(this))
+  loadDiagram() {
+    if (!this.cytoscapeContainer) return;
 
     const container = this.cytoscapeContainer!.nativeElement;
-    this.reactomeStyle = new Style(container);
 
     this.diagram.getDiagram(this.diagramId)
       .subscribe(elements => {
@@ -50,42 +50,54 @@ export class DiagramComponent implements AfterViewInit {
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache()
 
-      setTimeout(() => {
-        if (this.comparing) {
+        setTimeout(() => {
+          if (this.comparing) {
 
-          this.cy!.edges('[!isBackground]').style('visibility', 'hidden')
-          this.cy!.nodes('[!isBackground]').style('visibility', 'hidden')
-          this.replacedElements = this.cy!
-            .elements('[?replacedBy]')
-            .add('[?isCrossed]')
-            .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1);
-          this.replacedElementsLeft = this.replacedElements.map(ele => ele.boundingBox().x1);
-          this.cy!.elements('.Compartment').style('visibility', 'visible')
+            this.cy!.edges('[!isBackground]').style('visibility', 'hidden')
+            this.cy!.nodes('[!isBackground]').style('visibility', 'hidden')
+            this.replacedElements = this.cy!
+              .elements('[?replacedBy]')
+              .add('[?isCrossed]')
+              .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1);
+            this.replacedElementsLeft = this.replacedElements.map(ele => ele.boundingBox().x1);
+            this.cy!.elements('.Compartment').style('visibility', 'visible')
 
-          const compareContainer = this.compareContainer!.nativeElement;
-          this.cyCompare = cytoscape({
-            container: compareContainer,
-            elements: elements,
-            style: this.reactomeStyle?.getStyleSheet(),
-            layout: {name: "preset"},
-          });
-          this.cyCompare.elements('[?isFadeOut]').not('.crossed').style('visibility', 'hidden');
-          this.cyCompare.elements('.Compartment').style('visibility', 'hidden');
-          // this.cy!.nodes('[?isCrossed]').data('isCrossed', false);
-          this.cy!.nodes('.crossed').removeClass('crossed');
+            const compareContainer = this.compareContainer!.nativeElement;
+            this.cyCompare = cytoscape({
+              container: compareContainer,
+              elements: elements,
+              style: this.reactomeStyle?.getStyleSheet(),
+              layout: {name: "preset"},
+            });
+            this.cyCompare.elements('[?isFadeOut]').not('.crossed').style('visibility', 'hidden');
+            this.cyCompare.elements('.Compartment').style('visibility', 'hidden');
+            // this.cy!.nodes('[?isCrossed]').data('isCrossed', false);
+            this.cy!.nodes('.crossed').removeClass('crossed');
 
 
-          this.cyCompare!.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container))
-          this.cy!.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer))
+            this.cyCompare!.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container))
+            this.cy!.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer))
 
-          this.reactomeStyle?.bindToCytoscape(this.cyCompare);
-          this.cyCompare.minZoom(this.cy!.minZoom())
-          this.cyCompare.maxZoom(this.cy!.maxZoom())
-          this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
-          this.updateReplacementVisibility()
-        }
+            this.reactomeStyle?.bindToCytoscape(this.cyCompare);
+            this.cyCompare.minZoom(this.cy!.minZoom())
+            this.cyCompare.maxZoom(this.cy!.maxZoom())
+            this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
+            this.updateReplacementVisibility()
+          }
+        })
       })
-    })
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['diagramId']) this.loadDiagram();
+  }
+
+
+  ngAfterViewInit(): void {
+    this.dark.$dark.subscribe(this.updateStyle.bind(this))
+
+    const container = this.cytoscapeContainer!.nativeElement;
+    this.reactomeStyle = new Style(container);
 
     this.diagram.getLegend()
       .subscribe(legend => {
@@ -103,7 +115,9 @@ export class DiagramComponent implements AfterViewInit {
         this.legend.minZoom(0)
         const bb = this.legend.elements().boundingBox();
         // this.ratio = bb.w / bb.h;
-      })
+      });
+
+    this.loadDiagram();
   }
 
 
