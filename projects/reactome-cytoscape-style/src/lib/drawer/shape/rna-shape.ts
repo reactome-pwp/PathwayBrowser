@@ -1,21 +1,20 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const rna: DrawerProvider = (width, height, drug) => {
-  const thick = extract(Style.properties.global.thickness);
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
+export const rna: DrawerProvider = (properties, width, height, drug) => {
+  const thick = extract(properties.global.thickness);
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
 
   const halfWidth = width / 2;
 
-  const r = extract(Style.properties.rna.radius);
+  const r = extract(properties.rna.radius);
   const oR = r + thick;
   const iR = r - thick;
   return {
     hover: {
-      "background-image": `<rect x="0" y="0" width="${width}" height="${2*thick}" fill="${hover}"/>`,
+      "background-image": `<rect x="0" y="0" width="${width}" height="${2 * thick}" fill="${hover}"/>`,
       "background-position-y": -thick,
       "bounds-expansion": thick,
       "background-clip": "none",

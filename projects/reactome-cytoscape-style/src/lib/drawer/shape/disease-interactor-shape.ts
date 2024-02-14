@@ -1,11 +1,10 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const diseaseInteractor: DrawerProvider = (width, height, drug, disease, interactor) => {
+export const diseaseInteractor: DrawerProvider = (properties, width, height, drug, disease, interactor) => {
 
-  const hover = extract(Style.properties.global.hoverNode);
-  const t = extract(Style.properties.global.thickness);
+  const hover = extract(properties.global.hoverNode);
+  const t = extract(properties.global.thickness);
   const oR = t;
   const iR = -t;
   const oRx = Math.min(oR, width / 2)

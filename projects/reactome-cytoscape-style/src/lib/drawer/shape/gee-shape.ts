@@ -1,17 +1,16 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const genomeEncodedEntity: DrawerProvider = (width, height, drug) => {
+export const genomeEncodedEntity: DrawerProvider = (properties, width, height, drug) => {
   const fill = !drug ?
-    extract(Style.properties.genomeEncodedEntity.fill) :
-    extract(Style.properties.genomeEncodedEntity.drug) ;
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const t = extract(Style.properties.global.thickness);
-  const bottomR = extract(Style.properties.genomeEncodedEntity.bottomRadius);
+    extract(properties.genomeEncodedEntity.fill) :
+    extract(properties.genomeEncodedEntity.drug);
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const t = extract(properties.global.thickness);
+  const bottomR = extract(properties.genomeEncodedEntity.bottomRadius);
 
-  const topR = Math.min(extract(Style.properties.genomeEncodedEntity.topRadius), height - bottomR);
+  const topR = Math.min(extract(properties.genomeEncodedEntity.topRadius), height - bottomR);
   const v = height - bottomR - topR;
 
   const topOR = topR + t;

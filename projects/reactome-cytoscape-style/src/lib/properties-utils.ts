@@ -1,4 +1,3 @@
-import {Style} from "./style";
 import {Properties} from "./properties";
 
 export type Provider<T> = () => T;
@@ -49,7 +48,7 @@ export function defaultable<T>(object: T): Defaultable<T> {
   return defaultable;
 }
 
-export const propertyExtractor = <G extends keyof Properties, K extends keyof Properties[G]>(group: G, key: K) => Style.properties[group][key]
-export const propertyMapper = <G extends keyof Properties, K extends keyof Properties[G], T extends Properties[G][K] extends Property<infer X> ? X : never,  M extends (t: T) => any>(group: G, key: K, mapper: M) => mapper(extract(Style.properties[group][key]))
+export const propertyExtractor = (properties: Properties) => <G extends keyof Properties, K extends keyof Properties[G]>(group: G, key: K) => properties[group][key]
+export const propertyMapper = (properties: Properties) => <G extends keyof Properties, K extends keyof Properties[G], T extends Properties[G][K] extends Property<infer X> ? X : never, M extends (t: T) => any>(group: G, key: K, mapper: M) => mapper(extract(properties[group][key]))
 
 

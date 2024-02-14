@@ -1,15 +1,14 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const sub: DrawerProvider = (width, height, disease) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const thick = extract(Style.properties.global.thickness ) * 3;
+export const sub: DrawerProvider = (properties, width, height, disease) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const thick = extract(properties.global.thickness) * 3;
   const stroke = !disease ?
-    extract(Style.properties.pathway.stroke) :
-    extract(Style.properties.pathway.disease);
-  const fill = extract(Style.properties.pathway.fill);
+    extract(properties.pathway.stroke) :
+    extract(properties.pathway.disease);
+  const fill = extract(properties.pathway.fill);
 
   const ht = thick / 2;
   const halfHeight = height / 2;

@@ -1,15 +1,13 @@
-import {memoize} from "lodash";
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const entitySet: DrawerProvider = (width, height, drug, disease) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
+export const entitySet: DrawerProvider = (properties, width, height, drug, disease) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
 
-  const t = extract(Style.properties.global.thickness);
-  let r = extract(Style.properties.entitySet.radius);
+  const t = extract(properties.global.thickness);
+  let r = extract(properties.entitySet.radius);
 
   if (2 * r > height / 2 - t) {
 
@@ -19,11 +17,11 @@ export const entitySet: DrawerProvider = (width, height, drug, disease) => {
   width += 2 * r;
 
   const fill = !drug ?
-    extract(Style.properties.entitySet.fill) :
-    extract(Style.properties.entitySet.drug);
+    extract(properties.entitySet.fill) :
+    extract(properties.entitySet.drug);
   const stroke = !disease ?
-    extract(Style.properties.entitySet.stroke) :
-    extract(Style.properties.global.negativeContrast);
+    extract(properties.entitySet.stroke) :
+    extract(properties.global.negativeContrast);
 
   const r2 = r * 2;
   const t2 = t * 2;

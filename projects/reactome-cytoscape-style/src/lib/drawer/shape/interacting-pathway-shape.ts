@@ -1,21 +1,20 @@
 import {DrawerProvider} from "../types";
 import {extract} from "../../properties-utils";
-import {Style} from "../../style";
 
 
-export const interactingPathway: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const thick = extract(Style.properties.global.thickness);
+export const interactingPathway: DrawerProvider = (properties, width, height, drug) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const thick = extract(properties.global.thickness);
 
 
   const stroke = !drug ?
-    extract(Style.properties.pathway.stroke) :
-    extract(Style.properties.pathway.disease);
-  const fill = extract(Style.properties.pathway.fill);
+    extract(properties.pathway.stroke) :
+    extract(properties.pathway.disease);
+  const fill = extract(properties.pathway.fill);
 
 
-  let realWidth = width ;
+  let realWidth = width;
   const t = 3 * thick;
   return {
 

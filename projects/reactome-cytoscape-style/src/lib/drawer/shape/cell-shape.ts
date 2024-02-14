@@ -1,25 +1,24 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const cell: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const thick = extract(Style.properties.global.thickness);
-  const cellThick = extract(Style.properties.cell.thickness) ;
-  const stroke = extract(Style.properties.cell.stroke)
-  const fill = extract(Style.properties.cell.fill);
+export const cell: DrawerProvider = (properties, width, height, drug) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const thick = extract(properties.global.thickness);
+  const cellThick = extract(properties.cell.thickness);
+  const stroke = extract(properties.cell.stroke)
+  const fill = extract(properties.cell.fill);
 
   const ht = thick / 2;
   const halfHeight = height / 2;
   const oR = halfHeight + thick;
   const iR = halfHeight - thick;
-  const oRx = Math.min(oR, width/2)
+  const oRx = Math.min(oR, width / 2)
   return {
     background: {
       "background-image": `
 <rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
-<rect x="${ht + cellThick}" y="${2*  thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${fill}" stroke-width="0"/>
+<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${fill}" stroke-width="0"/>
 `
     },
     hover: {

@@ -1,21 +1,20 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const molecule: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const thick = extract(Style.properties.global.thickness);
+export const molecule: DrawerProvider = (properties, width, height, drug) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const thick = extract(properties.global.thickness);
   const stroke = !drug ?
-    extract(Style.properties.molecule.stroke) :
-    extract(Style.properties.molecule.drug);
-  const fill = extract(Style.properties.molecule.fill);
+    extract(properties.molecule.stroke) :
+    extract(properties.molecule.drug);
+  const fill = extract(properties.molecule.fill);
 
   const ht = thick / 2;
   const halfHeight = height / 2;
   const oR = halfHeight + thick;
   const iR = halfHeight - thick;
-  const oRx = Math.min(oR, width/2)
+  const oRx = Math.min(oR, width / 2)
   return {
     hover: {
       "background-image": `
@@ -30,7 +29,7 @@ export const molecule: DrawerProvider = (width, height, drug) => {
             Z"/>
 `,
       "background-position-y": -thick,
-      "background-position-x": -thick /2,
+      "background-position-x": -thick / 2,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",
@@ -50,7 +49,7 @@ export const molecule: DrawerProvider = (width, height, drug) => {
             Z"/>
 `,
       "background-position-y": halfHeight,
-      "background-position-x": -thick /2,
+      "background-position-x": -thick / 2,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",

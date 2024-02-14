@@ -1,12 +1,11 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const protein: DrawerProvider = (width, height, drug) => {
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
-  const thick = extract(Style.properties.global.thickness);
-  const radius = extract(Style.properties.protein.radius);
+export const protein: DrawerProvider = (properties, width, height, drug) => {
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
+  const thick = extract(properties.global.thickness);
+  const radius = extract(properties.protein.radius);
 
   const oR = radius + thick;
   const iR = radius - thick;
@@ -42,7 +41,7 @@ export const protein: DrawerProvider = (width, height, drug) => {
             a ${oR} ${iR} 0 0 1 -${oR} -${iR}
             Z"/>
 `,
-      "background-position-y": height - radius ,
+      "background-position-y": height - radius,
       "bounds-expansion": thick,
       "background-clip": "none",
       "background-image-containment": "over",

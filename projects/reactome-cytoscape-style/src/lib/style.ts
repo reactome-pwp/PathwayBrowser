@@ -3,25 +3,30 @@ import {clearDrawersCache, imageBuilder, OMMITED_ICON} from "./drawer/image-buil
 import {extract, propertyExtractor, propertyMapper} from "./properties-utils";
 
 import {Properties, setDefaults, UserProperties} from "./properties";
-import {initInteractivity, onZoom} from "./interactivity";
+import {Interactivity} from "./interactivity";
 import {HSL} from "./color";
 
 
 export class Style {
-  public static css: CSSStyleDeclaration;
-  public static properties: Properties;
+  public css: CSSStyleDeclaration;
+  public properties: Properties;
   private cy?: cytoscape.Core;
-  private p = propertyExtractor;
-  private pm = propertyMapper;
+  private readonly imageBuilder;
+  private readonly p;
+  private readonly pm;
+  private interactivity!: Interactivity;
 
   constructor(container: HTMLElement, properties: UserProperties = {}) {
-    Style.css = getComputedStyle(container);
-    Style.properties = setDefaults(properties, Style.css);
+    this.css = getComputedStyle(container);
+    this.properties = setDefaults(properties, this.css);
+    this.imageBuilder = imageBuilder(this.properties);
+    this.p = propertyExtractor(this.properties);
+    this.pm = propertyMapper(this.properties);
   }
 
   bindToCytoscape(cy: cytoscape.Core) {
     this.cy = cy;
-    initInteractivity(cy);
+    this.interactivity = new Interactivity(cy, this.properties);
     this.initSubPathwayColors()
   }
 
@@ -31,7 +36,7 @@ export class Style {
     const dH = 360 / subPathways.length;
 
     const subpathwayIdToColor = new Map<number, string>(subPathways.map((subPathway, i) => {
-      const hex = new HSL(dH * i, 100, extract(Style.properties.shadow.luminosity)).toHex();
+      const hex = new HSL(dH * i, 100, extract(this.properties.shadow.luminosity)).toHex();
       subPathway.data('color', hex);
       return [subPathway.data('reactomeId'), hex]
     }))
@@ -137,23 +142,23 @@ export class Style {
           "background-image-smoothing": "no no no no no no no no",
 
           // @ts-ignore
-          "background-image": node => imageBuilder(node)["background-image"],
+          "background-image": node => this.imageBuilder(node)["background-image"],
           // @ts-ignore
-          "background-position-y": node => imageBuilder(node)["background-position-y"] || 0,
+          "background-position-y": node => this.imageBuilder(node)["background-position-y"] || 0,
           // @ts-ignore
-          "background-position-x": node => imageBuilder(node)["background-position-x"] || 0,
+          "background-position-x": node => this.imageBuilder(node)["background-position-x"] || 0,
           // @ts-ignore
-          "background-height": node => imageBuilder(node)["background-height"] || '100%',
+          "background-height": node => this.imageBuilder(node)["background-height"] || '100%',
           // @ts-ignore
-          "background-width": node => imageBuilder(node)["background-width"] || '100%',
+          "background-width": node => this.imageBuilder(node)["background-width"] || '100%',
           // @ts-ignore
-          "background-clip": node => imageBuilder(node)["background-clip"] || 'node',
+          "background-clip": node => this.imageBuilder(node)["background-clip"] || 'node',
           // @ts-ignore
-          "background-image-containment": node => imageBuilder(node)["background-image-containment"] || 'inside',
+          "background-image-containment": node => this.imageBuilder(node)["background-image-containment"] || 'inside',
           // @ts-ignore
-          "background-image-opacity": node => imageBuilder(node)["background-image-opacity"] || 1,
+          "background-image-opacity": node => this.imageBuilder(node)["background-image-opacity"] || 1,
           // @ts-ignore
-          "bounds-expansion": node => imageBuilder(node)["bounds-expansion"][0] || 0,
+          "bounds-expansion": node => this.imageBuilder(node)["bounds-expansion"][0] || 0,
           'color': this.p('global', 'onPrimary'),
         }
       }, {
@@ -380,7 +385,7 @@ export class Style {
       }, {
         selector: 'node.omitted',
         style: {
-          "background-image": OMMITED_ICON(),
+          "background-image": OMMITED_ICON(this.properties),
           "background-fit": "cover",
           "background-height": "100%",
           "background-width": "100%",
@@ -708,10 +713,15 @@ export class Style {
     ]
   }
 
-  update(cy: cytoscape.Core) {
+  clearCache() {
+    this.imageBuilder.cache.clear!()
     clearDrawersCache();
+  }
+
+  update(cy: cytoscape.Core) {
+    this.clearCache();
     cy.style(this.getStyleSheet());
     this.initSubPathwayColors();
-    onZoom()
+    this.interactivity.onZoom()
   }
 }

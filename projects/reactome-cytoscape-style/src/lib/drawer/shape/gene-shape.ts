@@ -1,22 +1,21 @@
-import {Style} from "../../style";
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const gene: DrawerProvider = (width, height, drug, disease, interactor) => {
-  const thick = extract(Style.properties.global.thickness);
-  const dHeight = extract(Style.properties.gene.decorationHeight);
-  const dWidth = extract(Style.properties.gene.decorationExtraWidth);
-  const headSize = extract(Style.properties.gene.arrowHeadSize);
-  const radius = extract(Style.properties.gene.arrowRadius);
-  const fill = interactor ? extract(Style.properties.interactor.fill) : extract(Style.properties.gene.fill);
-  const select = extract(Style.properties.global.selectNode);
-  const hover = extract(Style.properties.global.hoverNode);
+export const gene: DrawerProvider = (properties, width, height, drug, disease, interactor) => {
+  const thick = extract(properties.global.thickness);
+  const dHeight = extract(properties.gene.decorationHeight);
+  const dWidth = extract(properties.gene.decorationExtraWidth);
+  const headSize = extract(properties.gene.arrowHeadSize);
+  const radius = extract(properties.gene.arrowRadius);
+  const fill = interactor ? extract(properties.interactor.fill) : extract(properties.gene.fill);
+  const select = extract(properties.global.selectNode);
+  const hover = extract(properties.global.hoverNode);
   const hh = Math.sqrt(Math.pow(headSize, 2) * 3 / 4)
 
   const halfWidth = width / 2;
 
-  const r = extract(Style.properties.gene.borderRadius);
+  const r = extract(properties.gene.borderRadius);
   const oR = r + thick;
   const iR = r - thick;
   return {
