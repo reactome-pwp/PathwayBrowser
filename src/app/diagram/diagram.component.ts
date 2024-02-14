@@ -38,64 +38,17 @@ export class DiagramComponent implements AfterViewInit {
     const container = this.cytoscapeContainer!.nativeElement;
     this.reactomeStyle = new Style(container);
 
-    this.route.params.pipe(
-      switchMap(params => this.diagram.getDiagram(params['id']))
-    ).subscribe(elements => {
-      this.comparing = elements.nodes.some(node => node.data['isFadeOut']) || elements.edges.some(edge => edge.data['isFadeOut'])
-      this.cy = cytoscape({
-        container: container,
-        elements: elements,
-        style: this.reactomeStyle?.getStyleSheet(),
-        layout: {name: "preset"},
-      });
-      this.reactomeStyle?.bindToCytoscape(this.cy);
-
-      const shadows = this.cy.nodes('.Shadow');
-      shadows.forEach(shadow => {
-        shadow.data('idealPosition', shadow.position())
-        shadow.grabify()
-        // @ts-ignore
-        shadow.unpanify()
-      })
-
-      shadows.forEach(a => {
-        shadows.forEach( b => {
-          if (a === b) return;
-
-
-        })
-      })
-      const duration = 20;
-
-      // setInterval(i =>
-      //   shadows.forEach(shadow => {
-      //     const idealPosition = shadow.data('idealPosition');
-      //     const currentPosition = shadow.position();
-      //     const currentPositionVec = array([currentPosition.x, currentPosition.y]);
-      //
-      //     const attractiveForce = array([idealPosition.x - currentPosition.x, idealPosition.y - currentPosition.y]);
-      //     const g = 100;
-      //     if (attractiveForce.x !== 0 && attractiveForce.y !== 0) attractiveForce.scale( shadow.length * g / Math.pow(attractiveForce.norm(), 2))
-      //     // console.log(attractiveForce.x, attractiveForce.y);
-      //
-      //     const repulsiveForces: NDArray = array([0, 0]);
-      //     const otherShadows = shadows.copy().not(shadow);
-      //     otherShadows.forEach(otherShadow => {
-      //       const otherPosition = otherShadow.position();
-      //       const repulsiveForce = array([currentPosition.x - otherPosition.x, currentPosition.y - otherPosition.y]);
-      //       repulsiveForces.add(repulsiveForce, g / Math.pow(repulsiveForce.norm(), 2))
-      //       // console.log(repulsiveForce.x, repulsiveForce.y)
-      //       // console.log(repulsiveForces.x, repulsiveForces.y)
-      //     })
-      //     // repulsiveForces.scale(1 / Math.pow(repulsiveForces.norm(), 2))
-      //     const forces = attractiveForce.add(repulsiveForces);
-      //     // console.log(forces.x, forces.y)
-      //     // console.log(currentPositionVec.x, currentPositionVec.y)
-      //     const pos = currentPositionVec.add(forces);
-      //     // console.log(pos.x, pos.y)
-      //     shadow.stop().animate({position: {x: pos.x, y: pos.y}, duration: duration})
-      //
-      //   }), duration)
+    this.diagram.getDiagram(this.diagramId)
+      .subscribe(elements => {
+        this.comparing = elements.nodes.some(node => node.data['isFadeOut']) || elements.edges.some(edge => edge.data['isFadeOut'])
+        this.cy = cytoscape({
+          container: container,
+          elements: elements,
+          style: this.reactomeStyle?.getStyleSheet(),
+          layout: {name: "preset"},
+        });
+        this.reactomeStyle.bindToCytoscape(this.cy);
+        this.reactomeStyle.clearCache()
 
       setTimeout(() => {
         if (this.comparing) {

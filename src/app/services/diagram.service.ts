@@ -4,8 +4,8 @@ import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Graph, Node as GraphNode} from "../model/graph.model";
 import {Interactors} from "../model/interactor-entity.model";
+// @ts-ignore
 import Reactome from "reactome-cytoscape-style";
-import cytoscape from "cytoscape";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
@@ -13,6 +13,11 @@ import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
 
+import cytoscape from "cytoscape";
+import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
+import {Style} from "reactome-cytoscape-style";
+
+cytoscape.use(cytoscapeFcose)
 
 
 type RelativePosition = { distances: number[], weights: number[] };
@@ -337,15 +342,12 @@ export class DiagramService {
               reactomeId: item.reactomeId,
             },
             classes: ['Shadow'],
-            position: scale({
-              x: item.prop.x + item.prop.width / 2,
-              y: item.prop.y + item.prop.height / 2,
-            }),
-            // position: closestToAverage(subpathwayIdToEventId.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position))),
-            pannable: true,
-            grabbable: false,
+            position: closestToAverage(subpathwayIdToEventIds.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position)))
           }
         });
+
+        avoidOverlap(shadowNodes);
+
 
         /**
          * iterate nodes connectors to get all edges information based on the connector type.
@@ -719,4 +721,41 @@ function getRect(node: Node): Rectangle {
     bottom: node.position.y + halfHeight,
   }
   return node.rect;
+}
+
+/**
+ * Create a temporary cytoscape session to apply a layout to the nodes in order to avoid them to overlap each others
+ */
+function avoidOverlap(definitions: cytoscape.NodeDefinition[]) {
+  const container = document.createElement("div");
+
+  const style = new Style(container, {});
+  const cy = cytoscape({
+    container: container,
+    style: style.getStyleSheet(),
+    elements: definitions,
+    layout: {name: 'preset'}
+  });
+
+  const nodes = cy.nodes();
+  nodes.forEach(node => {
+    const bb = node.boundingBox({includeLabels: true, includeNodes: false});
+    node.style({width: bb.w, height: bb.h})
+  })
+
+  const layout = nodes.layout({
+    name: 'fcose',
+    nodeRepulsion: 15,
+    animate: false,
+    fit: true,
+    packComponents: false,
+    randomize: false,
+    tile: false,
+  } as FcoseLayoutOptions);
+  layout.run()
+
+  definitions.forEach(def => def.position = cy.getElementById(def.data.id!).position());
+
+  cy.destroy()
+  container.remove()
 }

@@ -106,18 +106,24 @@ export class Style {
         }
       },
       {
-        selector: 'node.Shadow[?color]',
+        selector: 'node.Shadow',
         style: {
           'label': 'data(displayName)',
           "font-size": 80,
           "background-opacity": 0,
-          "color": 'data(color)',
+          "shape": "rectangle",
           "text-valign": "center",
           "text-halign": "center",
           "text-outline-color": this.p('global', 'surface'),
           "text-outline-width": 15,
           "text-wrap": 'wrap',
           "text-max-width": "data(width)",
+        }
+      },
+      {
+        selector: 'node.Shadow[?color]',
+        style: {
+          "color": 'data(color)',
         }
       },
       {
