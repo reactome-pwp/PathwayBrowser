@@ -413,47 +413,49 @@ export class DiagramService {
             }
           );
 
-        const linkEdges: cytoscape.EdgeDefinition[] = data.links?.map(link => {
-            const source = idToNodes.get(link.inputs[0].id)!;
-            const target = idToNodes.get(link.outputs[0].id)!;
+        const linkEdges: cytoscape.EdgeDefinition[] = data.links
+          ?.filter(link => !link.renderableClass.includes('EntitySet') || link.inputs[0].id !== link.outputs[0].id)
+          ?.map(link => {
+              const source = idToNodes.get(link.inputs[0].id)!;
+              const target = idToNodes.get(link.outputs[0].id)!;
 
-            const sourceP = scale(source.position);
-            const targetP = scale(target.position);
+              const sourceP = scale(source.position);
+              const targetP = scale(target.position);
 
-            let points = link.segments
-              .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
-              .map(pos => scale(pos));
+              let points = link.segments
+                .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
+                .map(pos => scale(pos));
 
-            let [from, to] = [points.shift()!, points.pop()!]
-            from = from ?? sourceP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
-            to = to ?? targetP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
+              let [from, to] = [points.shift()!, points.pop()!]
+              from = from ?? sourceP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
+              to = to ?? targetP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
 
-            // points = addRoundness(from, to, points);
-            const relatives = this.absoluteToRelative(from, to, points);
+              // points = addRoundness(from, to, points);
+              const relatives = this.absoluteToRelative(from, to, points);
 
-            const classes = [...this.linkClassMap.get(link.renderableClass)!];
-            if (link.isDisease) classes.push('disease');
-            const isBackground = link.isFadeOut ||
-              idToNodes.get(link.inputs[0].id)?.isBackground &&
-              idToNodes.get(link.outputs[0].id)?.isBackground;
+              const classes = [...this.linkClassMap.get(link.renderableClass)!];
+              if (link.isDisease) classes.push('disease');
+              const isBackground = link.isFadeOut ||
+                idToNodes.get(link.inputs[0].id)?.isBackground &&
+                idToNodes.get(link.outputs[0].id)?.isBackground;
 
-            return {
-              data: {
-                id: link.id + '',
-                source: link.inputs[0].id + '',
-                target: link.outputs[0].id + '',
-                weights: relatives.weights.join(" "),
-                distances: relatives.distances.join(" "),
-                sourceEndpoint: this.endpoint(sourceP, from),
-                targetEndpoint: this.endpoint(targetP, to),
-                isFadeOut: link.isFadeOut,
-                isBackground: isBackground
-              },
-              classes: classes,
-              selectable: false
+              return {
+                data: {
+                  id: link.id + '',
+                  source: link.inputs[0].id + '',
+                  target: link.outputs[0].id + '',
+                  weights: relatives.weights.join(" "),
+                  distances: relatives.distances.join(" "),
+                  sourceEndpoint: this.endpoint(sourceP, from),
+                  targetEndpoint: this.endpoint(targetP, to),
+                  isFadeOut: link.isFadeOut,
+                  isBackground: isBackground
+                },
+                classes: classes,
+                selectable: false
+              }
             }
-          }
-        )
+          )
 
         return {
           nodes: [...compartmentNodes, ...reactionNodes, ...entityNodes, ...shadowNodes],
