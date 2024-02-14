@@ -103,10 +103,20 @@ export class DiagramService {
   reactionTypeMap = new Map<string | undefined, ReactionDefinition>([
       [undefined, ['transition', 'reaction']],
       ['transition', ['transition', 'reaction']],
+      ['Transition', ['transition', 'reaction']],
+      ['Process', ['transition', 'reaction']],
+
       ['binding', ['association', 'reaction']],
+      ['Association', ['association', 'reaction']],
+
       ['dissociation', ['dissociation', 'reaction']],
+      ['Dissociation', ['dissociation', 'reaction']],
+
       ['omitted', ['omitted', 'reaction']],
+      ['Omitted Process', ['omitted', 'reaction']],
+
       ['uncertain', ['uncertain', 'reaction']],
+      ['Uncertain Process', ['uncertain', 'reaction']],
     ]
   )
 
@@ -134,7 +144,8 @@ export class DiagramService {
   linkClassMap = new Map<string, EdgeTypeDefinition>([
     ['EntitySetAndMemberLink', ['set-to-member', 'incoming']],
     ['EntitySetAndEntitySetLink', ['set-to-member', 'incoming']],
-    ['Interaction', ['production', 'outgoing']]
+    ['Interaction', ['production', 'outgoing']],
+    ['FlowLine', ['production', 'outgoing']]
   ])
 
 
