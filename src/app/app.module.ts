@@ -12,11 +12,14 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {MatButtonModule} from "@angular/material/button";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {CdkDrag, CdkDragHandle} from "@angular/cdk/drag-drop";
+import {DiagramIteratorComponent} from './diagram-iterator/diagram-iterator.component';
+import {MatInputModule} from "@angular/material/input";
 
 @NgModule({
   declarations: [
     AppComponent,
-    DiagramComponent
+    DiagramComponent,
+    DiagramIteratorComponent
   ],
   imports: [
     BrowserModule,
@@ -29,7 +32,8 @@ import {CdkDrag, CdkDragHandle} from "@angular/cdk/drag-drop";
     MatButtonModule,
     MatSlideToggleModule,
     CdkDragHandle,
-    CdkDrag
+    CdkDrag,
+    MatInputModule
   ],
   providers: [],
   bootstrap: [AppComponent]

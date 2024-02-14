@@ -1,0 +1,13 @@
+<div (keydown.arrowLeft)="previous()" (keydown.arrowRight)="next()">
+  <cr-diagram #diagram [id]="diagramId"></cr-diagram>
+
+  <button mat-raised-button (click)="previous()">Previous</button>
+  <mat-form-field>
+    <mat-label>Diagram ID</mat-label>
+    <input matInput placeholder="R-HSA-XXXXXXXX" [(ngModel)]="diagramId">
+  </mat-form-field>
+  <button mat-raised-button (click)="next()">Next</button>
+
+</div>
+
+
