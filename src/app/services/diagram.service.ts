@@ -332,7 +332,6 @@ export class DiagramService {
           if (item.nodeAttachments) {
             nodes.push(...item.nodeAttachments.map(ptm => ({
               data: {
-                ...nodes[0].data,
                 id: item.id + '-' + ptm.reactomeId,
                 reactomeId: ptm.reactomeId,
                 nodeId: item.id,
