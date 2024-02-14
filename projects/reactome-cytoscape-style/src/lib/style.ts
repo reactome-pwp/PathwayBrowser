@@ -574,7 +574,7 @@ export class Style {
         }
       }, {
         selector: 'edge.set-to-member',
-        style: {'target-arrow-shape': 'circle', "line-style": "dashed", "line-dash-pattern": [6, 10], "opacity":0.5}
+        style: {'target-arrow-shape': 'circle', "line-style": "dashed", "line-dash-pattern": [6, 10], "opacity": 0.5}
       }, {
         selector: 'edge[stoichiometry > 1]',
         style: {
