@@ -348,6 +348,12 @@ export class DiagramService {
 
         avoidOverlap(shadowNodes);
 
+        const T = 4;
+        const ARROW_MULT = 1.5;
+        const EDGE_MARGIN = 6;
+        const REACTION_RADIUS = 3 * T;
+        const MIN_DIST = EDGE_MARGIN;
+
 
         /**
          * iterate nodes connectors to get all edges information based on the connector type.
@@ -357,6 +363,11 @@ export class DiagramService {
           data.nodes.flatMap(node => {
               return node.connectors.map(connector => {
                 const reaction = idToEdges.get(connector.edgeId)!;
+
+
+                const reactionP = scale(reaction.position);
+                const nodeP = scale(node.position);
+
                 const [source, target] = connector.type !== 'OUTPUT' ?
                   [node, reaction] :
                   [reaction, node];
@@ -368,14 +379,14 @@ export class DiagramService {
                   .flatMap((segment, i) => i === 0 ? [segment.from, segment.to] : [segment.to])
                   .map(pos => scale(pos));
                 if (connector.type === 'OUTPUT') points.reverse();
-                if (points.length === 0) points.push(scale(reaction.position));
+                if (points.length === 0) points.push(reactionP);
 
                 this.addEdgeInfo(reaction, points, 'backward', sourceP);
                 this.addEdgeInfo(reaction, points, 'forward', targetP);
 
                 let [from, to] = [points.shift()!, points.pop()!]
-                from = from ?? scale(node.position); // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
-                to = to ?? scale(reaction.position); // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
+                from = from ?? nodeP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
+                to = to ?? reactionP; // Quick fix to avoid problem with reaction without visible outputs like R-HSA-2424252 in R-HSA-1474244
                 if (connector.type === 'CATALYST') {
                   to = scale(connector.endShape.centre);
                 }
@@ -385,6 +396,13 @@ export class DiagramService {
 
                 const classes = [...this.edgeTypeMap.get(connector.type)!];
                 if (reaction.isDisease) classes.push('disease');
+
+                let d = dist(from, to);
+                if (equal(from, reactionP) || equal(to, reactionP)) d -= REACTION_RADIUS;
+                if (classes.includes('positive-regulation') || classes.includes('catalysis') || classes.includes('production')) d -= ARROW_MULT * T;
+                // console.assert(d > MIN_DIST, `The edge between reaction: R-HSA-${reaction.reactomeId} and entity: R-HSA-${node.reactomeId} in pathway ${id} has a visible length of ${d} which is shorter than ${MIN_DIST}`)
+                console.assert(d > MIN_DIST, `${id}, ${hasFadeOut}, R-HSA-${reaction.reactomeId}, R-HSA-${node.reactomeId}, https://dev.reactome.org/PathwayBrowser/#/${id}&SEL=R-HSA-${reaction.reactomeId}&FLG=R-HSA-${node.reactomeId}`)
+
                 let replacement, replacedBy;
                 if (connector.isFadeOut) {
                   // First case: same node is used both special and normal context
