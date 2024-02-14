@@ -205,6 +205,8 @@ export class DiagramService {
           .map(event => [event, subpathway.dbId])
           .filter(entry => subpathwayIds.has(entry[1]))) as [number, number][] || [])
 
+        const subpathwayIdToEventIds = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]));
+
         // create a node id - graph node mapping
         const dbIdToGraphNode = new Map<number, GraphNode>(graph.nodes.map(node => ([node.dbId, node]) || []))
         const mappingList: [number, GraphNode][] = graph.nodes.flatMap(node => {
