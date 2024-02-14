@@ -16,9 +16,9 @@ export class DarkService {
     this._body = document.querySelector('body');
 
     // Update theme if other tabs are changing it
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'is-dark') this.isDark = JSON.parse(e.newValue || 'false');
-    });
+    // window.addEventListener('storage', (e) => {
+    //   if (e.key === 'is-dark') this.isDark = JSON.parse(e.newValue || 'false');
+    // });
 
     const localValue = localStorage.getItem('is-dark');
     if (localValue) this.isDark = JSON.parse(localValue);
