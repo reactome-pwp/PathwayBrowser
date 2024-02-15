@@ -83,6 +83,9 @@ export interface Properties extends PropertiesType {
     fill: Property<string>
     stroke: Property<string>
   }
+  trivial: {
+    opacity: Property<[number, number][]>
+  }
 }
 
 export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration): Properties {
@@ -173,6 +176,12 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault("fill", () => css.getPropertyValue('--interactor-fill') || '#68297C')
     .setDefault("stroke", () => css.getPropertyValue('--interactor-stroke') || '#9f5cb5')
 
+  const trivial: Properties['trivial'] = defaultable(properties.trivial || {})
+    .setDefault('opacity', () => {
+      const p = css.getPropertyValue('--trivial-opacity');
+      return p ? JSON.parse(p) : [[40, 0], [60, 100]];
+    })
+
 
   return {
     global,
@@ -188,7 +197,8 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     cell,
     pathway,
     modification,
-    interactor
+    interactor,
+    trivial
   }
 }
 

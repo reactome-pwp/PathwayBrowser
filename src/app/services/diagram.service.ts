@@ -306,6 +306,7 @@ export class DiagramService {
           let replacement: Node | undefined;
           if (item.isDisease) classes.push('disease');
           if (item.isCrossed) classes.push('crossed');
+          if (item.trivial) classes.push('trivial');
           if (item.isFadeOut) replacedBy = posToSpecialNode.get(pointToStr(item.position)) || specialNodes.find(node => overlap(item, node));
           if (!item.isFadeOut) replacement = posToNormalNode.get(pointToStr(item.position)) || normalNodes.find(node => overlap(item, node));
           if (classes.some(clazz => clazz === 'RNA')) item.prop.height -= 10;
@@ -381,7 +382,6 @@ export class DiagramService {
               return node.connectors.map(connector => {
                 const reaction = idToEdges.get(connector.edgeId)!;
 
-
                 const reactionP = scale(reaction.position);
                 const nodeP = scale(node.position);
 
@@ -413,6 +413,7 @@ export class DiagramService {
 
                 const classes = [...this.edgeTypeMap.get(connector.type)!];
                 if (reaction.isDisease) classes.push('disease');
+                if (node.trivial) classes.push('trivial');
 
                 let d = dist(from, to);
                 if (equal(from, reactionP) || equal(to, reactionP)) d -= REACTION_RADIUS;

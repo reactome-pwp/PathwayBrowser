@@ -716,6 +716,12 @@ export class Style {
           "font-weight": 400,
         }
       },
+      {
+        selector: '.trivial',
+        style: {
+          'opacity': 0,
+        }
+      },
     ]
   }
 

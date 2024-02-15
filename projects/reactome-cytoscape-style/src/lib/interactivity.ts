@@ -86,19 +86,29 @@ export class Interactivity {
   initZoom(cy: cytoscape.Core) {
     const shadows = cy.edges('[?pathway]');
     const shadowLabels = cy.nodes('.Shadow');
+    const trivial = cy.elements('.trivial');
     cy.minZoom(Math.min(cy.zoom(), extract(this.properties.shadow.labelOpacity)[0][0] / 100));
     cy.maxZoom(15);
 
     this.onZoom = e => {
       const zoomLevel = cy.zoom();
+      const shadowLabelOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
+      const trivialOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.trivial.opacity).map(v => this.p(...v))) / 100;
+      const shadowOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100;
+
       shadows.stop().animate({
         style: {
-          'underlay-opacity': this.interpolate(zoomLevel * 100, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100
+          'underlay-opacity': shadowOpacity
         }
       });
       shadowLabels.stop().animate({
         style: {
-          'text-opacity': this.interpolate(zoomLevel * 100, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100
+          'text-opacity': shadowLabelOpacity
+        }
+      });
+      trivial.stop().animate({
+        style: {
+          'opacity': trivialOpacity,
         }
       });
     }

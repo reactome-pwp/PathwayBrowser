@@ -89,6 +89,7 @@ export interface Node extends Entity {
   interactorsSummary: InteractorsSummary;
   nodeAttachments?: Attachment[];
   needDashedBorder?: boolean;
+  trivial?: boolean;
 }
 
 export interface Compartment extends Entity {
