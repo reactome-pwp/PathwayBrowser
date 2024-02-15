@@ -310,6 +310,7 @@ export class DiagramService {
           if (item.isFadeOut) replacedBy = posToSpecialNode.get(pointToStr(item.position)) || specialNodes.find(node => overlap(item, node));
           if (!item.isFadeOut) replacement = posToNormalNode.get(pointToStr(item.position)) || normalNodes.find(node => overlap(item, node));
           if (classes.some(clazz => clazz === 'RNA')) item.prop.height -= 10;
+          if (classes.some(clazz => clazz === 'Cell')) item.prop.height /= 2;
 
           const isBackground = item.isFadeOut || classes.some(clazz => clazz === 'Pathway') || item.connectors.some(connector => connector.isFadeOut);
           item.isBackground = isBackground;
