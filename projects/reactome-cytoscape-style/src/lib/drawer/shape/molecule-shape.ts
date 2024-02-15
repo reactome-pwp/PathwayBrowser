@@ -4,6 +4,7 @@ import {DrawerProvider} from "../types";
 export const molecule: DrawerProvider = (properties, {width, height, drug}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness);
   const stroke = !drug ?
     extract(properties.molecule.stroke) :
@@ -55,6 +56,19 @@ export const molecule: DrawerProvider = (properties, {width, height, drug}) => {
       "background-image-containment": "over",
       "background-height": oR,
       "background-width": width + thick,
+    },
+    flag: {
+      "background-image": `
+<rect width="${width + 4 * thick}" height="${height + 2 * thick}" rx="${oR + 2 * thick}" ry="${oR}" fill="${flag}"/>
+<rect x="${2 * thick}" y="${thick}" width="${width}" height="${height}" rx="${oR}" fill="${fill}" stroke="${stroke}" stroke-width="${thick}"/>
+`,
+      "background-position-x": -2 * thick,
+      "background-position-y": -thick,
+      "bounds-expansion": 2 * thick,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * thick,
+      "background-height": height + 2 * thick,
     }
   }
 }

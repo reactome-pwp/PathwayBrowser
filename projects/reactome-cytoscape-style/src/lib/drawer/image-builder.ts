@@ -28,13 +28,14 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   const drawerParams: DrawerParameters = {width, height, drug, disease, interactor, crossed};
 
   const drawer = provider(properties, drawerParams);
+
+  if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
+
   if (drawer.background) layers.push(drawer.background);
 
   if (node.selected() && drawer.select) layers.push(drawer.select);
 
   if (node.hasClass('hover') && drawer.hover) layers.push(drawer.hover);
-
-  if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
 
   if (drawer.decorators) layers.push(...drawer.decorators);
 
@@ -61,7 +62,7 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   const aggregated = aggregate(layers, defaultBg);
   aggregated['bounds-expansion'] = [Math.max(...aggregated['bounds-expansion'] as number[], 0)]
   return aggregated;
-}, node => node.id() + '-' + node.classes().toString() + '-s:' + node.selected())
+}, node => `${node.id()}-${node.classes().toString()}-s:${node.selected()}`)
 
 const defaultBg: Image = {
   "background-image": "",

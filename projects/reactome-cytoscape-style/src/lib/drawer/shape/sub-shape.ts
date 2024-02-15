@@ -4,6 +4,7 @@ import {DrawerProvider} from "../types";
 export const sub: DrawerProvider = (properties, {width, height, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness) * 3;
   const stroke = !disease ?
     extract(properties.pathway.stroke) :
@@ -51,6 +52,16 @@ export const sub: DrawerProvider = (properties, {width, height, disease}) => {
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
+    },
+    flag: {
+      "background-image": `
+<rect width="${width + 2 * thick}" height="${height}" rx="${oR +  thick}" ry="${oR}" fill="${flag}"/>
+`,
+      "background-position-x": -thick,
+      "bounds-expansion": 2 * thick,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 2* thick,
     }
   }
 }

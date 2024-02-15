@@ -4,6 +4,7 @@ import {DrawerProvider} from "../types";
 export const cell: DrawerProvider = (properties, {width, height}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness);
   const cellThick = extract(properties.cell.thickness);
   const stroke = extract(properties.cell.stroke)
@@ -56,6 +57,18 @@ export const cell: DrawerProvider = (properties, {width, height}) => {
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
+    },
+    flag: {
+      "background-image": `
+<rect width="${width + 4 * thick}" height="${height + 2 * thick}" rx="${oR + 2 * thick}" ry="${oR}" fill="${flag}"/>
+`,
+      "background-position-x": -2 * thick,
+      "background-position-y": -thick,
+      "bounds-expansion": 2 * thick,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * thick,
+      "background-height": height + 2 * thick,
     }
   }
 }

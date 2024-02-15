@@ -7,6 +7,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
     extract(properties.genomeEncodedEntity.drug);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
   const t = extract(properties.global.thickness);
   const bottomR = extract(properties.genomeEncodedEntity.bottomRadius);
 
@@ -72,6 +73,29 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": bottomOR,
+    },
+    flag: {
+      "background-image": `
+      <path fill="${flag}" d="
+      M ${topOR} 0
+      H ${width + 3 * t - topOR}
+      a ${topOR +  t} ${topOR} 0 0 1 ${topOR + t} ${topOR}
+      v ${v}
+      a ${bottomOR + t} ${bottomOR} 0 0 1 -${bottomOR + t} ${bottomOR}
+      H ${bottomOR + t}
+      a ${bottomOR + t} ${bottomOR} 0 0 1 -${bottomOR + t} -${bottomOR}
+      v -${v}
+      a ${topOR + t} ${topOR} 0 0 1 ${topOR + t} -${topOR}
+      Z
+      "/>
+`,
+      "background-position-x": -2 * t,
+      "background-position-y": -t,
+      "bounds-expansion": 2 * t,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * t,
+      "background-height": height + 2 * t,
     }
   }
 }

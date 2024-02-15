@@ -48,7 +48,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           layout: {name: "preset"},
         });
         this.reactomeStyle.bindToCytoscape(this.cy);
-        this.reactomeStyle.clearCache()
+        this.reactomeStyle.clearCache();
+
+        //// Test ////
+        this.cy.nodes().forEach((n, i) => {
+          n.addClass('flag')
+        })
 
         setTimeout(() => {
           if (this.comparing) {

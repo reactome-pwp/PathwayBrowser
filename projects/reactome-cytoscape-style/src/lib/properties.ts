@@ -14,6 +14,7 @@ export interface Properties extends PropertiesType {
     selectEdge: Property<string>
     hoverNode: Property<string>
     hoverEdge: Property<string>
+    flag: Property<string>
   },
   compartment: {
     fill: Property<string>
@@ -102,6 +103,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('selectEdge', () => css.getPropertyValue('--select-edge') || '#0561A6')
     .setDefault('hoverNode', () => css.getPropertyValue('--hover-node') || '#78E076')
     .setDefault('hoverEdge', () => css.getPropertyValue('--hover-edge') || '#04B601')
+    .setDefault('flag', () => css.getPropertyValue('--flag') || '#DE75B4')
 
   const compartment: Properties['compartment'] = defaultable(properties.compartment || {})
     .setDefault('opacity', () => Number.parseFloat(css.getPropertyValue('--opacity')) || 0.06)

@@ -5,6 +5,7 @@ import {DrawerProvider} from "../types";
 export const complex: DrawerProvider = (properties, {width, height, drug, disease, interactor}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
 
   const t = extract(properties.global.thickness);
   const cut = extract(properties.complex.cut);
@@ -23,13 +24,13 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
 
   const defs = `<defs>
   <path id="octogon" d="
-      M ${cut2 + t2 + delta} ${t2}
+      M ${cut + t2 + delta} ${t2}
       H ${width - cut - t2 - delta}
       l ${cut} ${cut}
       v ${v}
-      l  -${cut} ${cut}
-      H ${cut2 + t2 + delta}
-      l -${cut} 0 -${cut} -${cut}
+      l -${cut} ${cut}
+      H ${cut + t2 + delta}
+      l -${cut} -${cut}
       v -${v}
       l  ${cut} -${cut}
       Z
@@ -73,6 +74,29 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
       "background-height": stateHeight,
       "background-clip": "none",
       "bounds-expansion": t
+    },
+    flag: {
+      "background-image": `
+<path id="octogon" d="
+      M ${width / 2} ${3 * t}
+      H ${width - cut - delta}
+      l ${cut + t} ${cut}
+      v ${v}
+      l -${cut + t} ${cut}
+      H ${cut + delta + 2 * t2}
+      l -${cut + t} -${cut}
+      v -${v}
+      l  ${cut + t} -${cut}
+      Z
+      " stroke="${flag}" stroke-width="${3 * t2}" stroke-linejoin="round"/>
+`,
+      "background-position-x": -2 * t,
+      "background-position-y": -t,
+      "bounds-expansion": 2 * t,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * t,
+      "background-height": height + 2 * t,
     },
     decorators: [
       {

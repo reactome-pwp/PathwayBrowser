@@ -6,6 +6,8 @@ export const rna: DrawerProvider = (properties, {width, height}) => {
   const thick = extract(properties.global.thickness);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
+  const fill = extract(properties.rna.fill);
 
   const halfWidth = width / 2;
 
@@ -38,6 +40,34 @@ export const rna: DrawerProvider = (properties, {width, height}) => {
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
+    },
+    flag: {
+      "background-image": `
+       <path fill="${flag}" d="
+       M 0 0
+       H ${width + 4 * thick}
+       V ${height - r + thick}
+       a ${oR + thick} ${oR} 0 0 1 -${oR + thick} ${oR}
+       H ${oR + thick}
+       a ${oR + thick} ${oR} 0 0 1 -${oR + thick} -${oR}
+       Z
+       "/>
+       <path fill="${fill}" d="
+       M ${2 * thick} ${thick}
+       H ${width + 2 * thick}
+       V ${height - r + thick}
+       a ${r} ${r} 0 0 1 -${r} ${r}
+       H ${r + 2 * thick}
+       a ${r} ${r} 0 0 1 -${r} -${r}
+       Z"/>
+`,
+      "background-position-x": -2 * thick,
+      "background-position-y": -thick,
+      "bounds-expansion": 2 * thick,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * thick,
+      "background-height": height + 2 * thick,
     }
   }
 }

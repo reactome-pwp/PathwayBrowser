@@ -11,6 +11,7 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
   const fill = interactor ? extract(properties.interactor.fill) : extract(properties.gene.fill);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
   const hh = Math.sqrt(Math.pow(headSize, 2) * 3 / 4)
 
   const halfWidth = width / 2;
@@ -84,6 +85,26 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
       "background-clip": "none",
       "background-image-containment": "over",
       "background-height": oR,
+    },
+    flag: {
+      "background-image": `
+       <path fill="${flag}" d="
+       M 0 0
+       H ${width + 4 * thick}
+       V ${height - dHeight - r + thick}
+       a ${oR + thick} ${oR} 0 0 1 -${oR + thick} ${oR}
+       H ${oR + thick}
+       a ${oR + thick} ${oR} 0 0 1 -${oR + thick} -${oR}
+       Z
+       "/>
+`,
+      "background-position-x": -2 * thick,
+      "background-position-y": dHeight - thick,
+      "bounds-expansion": 2 * thick,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width + 4 * thick,
+      "background-height": height + 2 * thick - dHeight,
     }
   }
 }

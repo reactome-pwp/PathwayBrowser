@@ -5,6 +5,7 @@ import {DrawerProvider} from "../types";
 export const entitySet: DrawerProvider = (properties, {width, height, drug, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
+  const flag = extract(properties.global.flag);
 
   const t = extract(properties.global.thickness);
   let r = extract(properties.entitySet.radius);
@@ -112,6 +113,18 @@ export const entitySet: DrawerProvider = (properties, {width, height, drug, dise
 
       "background-position-y": height / 2,
       "background-height": stateHeight
+    },
+    flag: {
+      "background-image": `
+<rect width="${width}" height="${height + 2 * t}" rx="${r + 3 * t}" ry="${r + t2}" fill="${flag}"/>
+`,
+      "background-position-x": -2 * t,
+      "background-position-y": -t,
+      "bounds-expansion": 2 * t,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-width": width ,
+      "background-height": height + 2 * t,
     },
     decorators: [
       {
