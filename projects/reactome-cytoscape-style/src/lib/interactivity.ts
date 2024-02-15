@@ -109,6 +109,7 @@ export class Interactivity {
       trivial.stop().animate({
         style: {
           'opacity': trivialOpacity,
+          'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
         }
       });
     }
