@@ -14,7 +14,7 @@ import {diseaseInteractor} from "./shape/disease-interactor-shape";
 import {sub} from "./shape/sub-shape";
 import {extract} from "../properties-utils";
 import {Node} from "../types";
-import {Aggregated, DrawerProvider, Image, Memo} from "./types";
+import {Aggregated, DrawerParameters, DrawerProvider, Image, Memo} from "./types";
 import {Properties} from "../properties";
 
 
@@ -24,8 +24,10 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
-  const [width, height, drug, disease, isFadeOut, isCrossed, interactor] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed'), node.hasClass('Interactor')];
-  const drawer = provider(properties, width, height, drug, disease, interactor);
+  const [width, height, drug, disease, isFadeOut, crossed, interactor] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed'), node.hasClass('Interactor')];
+  const drawerParams: DrawerParameters = {width, height, drug, disease, interactor, crossed};
+
+  const drawer = provider(properties, drawerParams);
   if (drawer.background) layers.push(drawer.background);
 
   if (node.selected() && drawer.select) layers.push(drawer.select);
@@ -37,14 +39,14 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   if (drawer.decorators) layers.push(...drawer.decorators);
 
   if (drug) {
-    layers.push(RX(properties, width, height, clazz));
+    layers.push(RX(properties, drawerParams, clazz));
   }
 
   if (node.classes().includes('Pathway')) {
-    layers.push(Pathway(properties, width, height, clazz))
+    layers.push(Pathway(properties, drawerParams, clazz))
   }
 
-  if (isCrossed) layers.push(CROSS(properties, width, height))
+  if (crossed) layers.push(CROSS(properties,drawerParams))
 
   // Convert raw HTML to string encoded images
   layers = layers.map(l => ({
@@ -94,7 +96,14 @@ function svgStr(svgText: string, viewPortWidth: number, viewPortHeight: number) 
 }
 
 
-const dim = (properties: Properties, width: number, height: number, drug = false, disease = false, crossed = false, interactor = false) => `${width}x${height}-${drug}${disease}${crossed}${interactor}`;
+const dim = (properties: Properties, {
+  width,
+  height,
+  drug,
+  disease,
+  crossed,
+  interactor
+}: DrawerParameters) => `${width}x${height}-${drug}${disease}${crossed}${interactor}`;
 const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
@@ -124,7 +133,7 @@ function aggregate<T extends Object, K extends keyof T>(toAggregate: T[], defaul
   return aggregate;
 }
 
-const RX = (properties: Properties, width: number, height: number, clazz: Node): Image => {
+const RX = (properties: Properties, {height}: DrawerParameters, clazz: Node): Image => {
   const t = extract(properties.global.thickness);
   const color = clazz !== 'Molecule' ?
     extract(properties.global.onPrimary) :
@@ -143,7 +152,7 @@ const RX = (properties: Properties, width: number, height: number, clazz: Node):
 
 }
 
-const Pathway = (properties: Properties, width: number, height: number, clazz: Node): Image => {
+const Pathway = (properties: Properties, {height}: DrawerParameters, clazz: Node): Image => {
   const t = extract(properties.global.thickness);
   const color = clazz == 'Interacting' || 'SUB' ?
     extract(properties.global.onPrimary) :
@@ -163,14 +172,14 @@ const Pathway = (properties: Properties, width: number, height: number, clazz: N
 
 }
 
-export const CROSS = memoize((properties: Properties, width: number, height: number): Image => {
+export const CROSS = memoize((properties: Properties, {width, height}: DrawerParameters): Image => {
   const s = extract(properties.global.negative);
   const t = extract(properties.global.thickness);
   return {
     "background-image": `<line x1="${t}" y1="${t}" x2="${width - t}" y2="${height - t}" stroke-width="${2 * t}" stroke-linecap="round" stroke="${s}"/><line x1="${t}" y1="${height - t}" x2="${width - t}" y2="${t}" stroke-width="${2 * t}" stroke-linecap="round" stroke="${s}"/>`,
     "background-image-opacity": 1
   };
-}, (p, width, height) => `${width}x${height}`)
+}, (p, {width, height}) => `${width}x${height}`)
 
 export const OMMITED_ICON = memoize((properties: Properties) => {
   const s = extract(properties.global.onSurface);

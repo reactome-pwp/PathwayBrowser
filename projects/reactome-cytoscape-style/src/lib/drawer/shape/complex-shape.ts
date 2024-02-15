@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const complex: DrawerProvider = (properties, width, height, drug, disease, interactor) => {
+export const complex: DrawerProvider = (properties, {width, height, drug, disease, interactor}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
 

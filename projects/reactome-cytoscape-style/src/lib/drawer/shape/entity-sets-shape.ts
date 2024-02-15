@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const entitySet: DrawerProvider = (properties, width, height, drug, disease) => {
+export const entitySet: DrawerProvider = (properties, {width, height, drug, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
 

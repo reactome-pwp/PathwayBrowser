@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const genomeEncodedEntity: DrawerProvider = (properties, width, height, drug) => {
+export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, drug}) => {
   const fill = !drug ?
     extract(properties.genomeEncodedEntity.fill) :
     extract(properties.genomeEncodedEntity.drug);

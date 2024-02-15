@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const molecule: DrawerProvider = (properties, width, height, drug) => {
+export const molecule: DrawerProvider = (properties, {width, height, drug}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const thick = extract(properties.global.thickness);

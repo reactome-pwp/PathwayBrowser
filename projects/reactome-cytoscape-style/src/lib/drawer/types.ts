@@ -15,8 +15,17 @@ export interface Drawer {
   decorators?: Image[];
 }
 
+export interface DrawerParameters {
+  width: number,
+  height: number,
+  drug?: boolean,
+  disease?: boolean,
+  crossed?: boolean,
+  interactor?: boolean,
+}
+
 export interface DrawerProvider {
-  (properties: Properties, width: number, height: number, drug: boolean, disease: boolean, interactor: boolean): Drawer
+  (properties: Properties, params: DrawerParameters): Drawer
 }
 
 export type Memo<T> = T & _.MemoizedFunction;

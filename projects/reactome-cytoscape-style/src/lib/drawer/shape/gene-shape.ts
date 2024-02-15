@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const gene: DrawerProvider = (properties, width, height, drug, disease, interactor) => {
+export const gene: DrawerProvider = (properties, {width, height, drug, interactor}) => {
   const thick = extract(properties.global.thickness);
   const dHeight = extract(properties.gene.decorationHeight);
   const dWidth = extract(properties.gene.decorationExtraWidth);

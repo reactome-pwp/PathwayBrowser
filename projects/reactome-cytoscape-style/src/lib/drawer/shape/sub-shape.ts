@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const sub: DrawerProvider = (properties, width, height, disease) => {
+export const sub: DrawerProvider = (properties, {width, height, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const thick = extract(properties.global.thickness) * 3;

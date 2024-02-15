@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const rna: DrawerProvider = (properties, width, height, drug) => {
+export const rna: DrawerProvider = (properties, {width, height}) => {
   const thick = extract(properties.global.thickness);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
