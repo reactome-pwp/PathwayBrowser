@@ -613,7 +613,8 @@ export class Style {
           "curve-style": "round-segments",
           "segment-distances": "data(distances)",
           "segment-weights": "data(weights)",
-          "segment-radius": 50,
+          "segment-radius": 30,
+          "radius-type": 'influence-radius',
           // @ts-ignore
           "edge-distances": "endpoints",
         }

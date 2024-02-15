@@ -2,8 +2,8 @@
   "version": "v1",
   "packages": {
     "cytoscape": {
-      "version": "3.29.0",
-      "signature": "6693b47abda7927f7bd1c2681d40b538",
+      "version": "3.29.2-unstable",
+      "signature": "6a8a37cfc081a7497735bc476504ac6a",
       "file": true,
       "replaced": "^3.28.0"
     }
