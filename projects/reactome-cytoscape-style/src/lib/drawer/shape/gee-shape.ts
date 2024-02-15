@@ -10,7 +10,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
   const t = extract(properties.global.thickness);
   const bottomR = extract(properties.genomeEncodedEntity.bottomRadius);
 
-  const topR = Math.min(extract(properties.genomeEncodedEntity.topRadius), height - bottomR);
+  const topR = Math.min(extract(properties.genomeEncodedEntity.topRadius), height - bottomR, width / 2 - t);
   const v = height - bottomR - topR;
 
   const topOR = topR + t;
