@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const complex: DrawerProvider = (properties, {width, height, drug, disease, interactor}) => {
+export const complex: DrawerProvider = (properties, {width, height, drug, disease, interactor, lossOfFunction}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -102,7 +102,7 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
       {
         "background-image": `
          ${defs}
-         <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round"/>
+         <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round" ${lossOfFunction ? `stroke-dasharray="${t2}"` : ''} />
          <use href="#octogon" fill="${fill}"/>
          `
       }

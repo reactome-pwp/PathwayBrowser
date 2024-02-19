@@ -192,6 +192,7 @@ export class Style {
           "background-opacity": 0,
           "background-color": this.p('genomeEncodedEntity', 'fill'),
           "text-margin-y": this.pm('genomeEncodedEntity', 'topRadius', r => r / 10),
+          "border-width": 0 // Avoid disease border
         }
       }, {
         selector: 'node.RNA',
@@ -330,6 +331,15 @@ export class Style {
         style: {
           "background-color": this.p('modification', 'fill'),
           "shape": 'round-rectangle'
+        }
+      },
+      {
+        selector: 'node.loss-of-function',
+        style: {
+          "border-style": 'dashed',
+          //@ts-ignore
+          "border-dash-pattern": this.pm('global', 'thickness', t => [t, t*2]),
+          "border-cap": "round"
         }
       },
 

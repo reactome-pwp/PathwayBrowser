@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, drug}) => {
+export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, drug, disease, lossOfFunction}) => {
   const fill = !drug ?
     extract(properties.genomeEncodedEntity.fill) :
     extract(properties.genomeEncodedEntity.drug);
@@ -9,7 +9,9 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
   const t = extract(properties.global.thickness);
+  const t_2 = t / 2;
   const bottomR = extract(properties.genomeEncodedEntity.bottomRadius);
+  const stroke = !disease ? null : extract(properties.global.negativeContrast);
 
   const topR = Math.min(extract(properties.genomeEncodedEntity.topRadius), height - bottomR, width / 2 - t);
   const v = height - bottomR - topR;
@@ -24,19 +26,29 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
   return {
     background: {
       "background-image": `
-      <path fill="${fill}" d="
+      <path fill="${fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      ${disease ? `stroke="${stroke}" stroke-width="${t}"` : ''}
+      ${lossOfFunction ? `stroke-dasharray="${t} ${t*2}"` : ''}
+      d="
       M ${topR} 0
-      H ${width - topR}
+      H ${width - topR }
       a ${topR} ${topR} 0 0 1 ${topR} ${topR}
-      v ${v}
+      v ${v }
       a ${bottomR} ${bottomR} 0 0 1 -${bottomR} ${bottomR}
-      H ${bottomR}
+      H ${bottomR }
       a ${bottomR} ${bottomR} 0 0 1 -${bottomR} -${bottomR}
-      v -${v}
+      v -${v }
       a ${topR} ${topR} 0 0 1 ${topR} -${topR}
       Z
       "/>
-      `
+      `,
+      "bounds-expansion": t/2,
+      "background-clip": "none",
+      "background-image-containment": "over",
+      "background-position-x": -t_2,
+      "background-position-y": -t_2,
+      "background-width": width + t,
+      "background-height": height + t,
     },
     hover: {
       "background-image": `
@@ -79,7 +91,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
       <path fill="${flag}" d="
       M ${topOR} 0
       H ${width + 3 * t - topOR}
-      a ${topOR +  t} ${topOR} 0 0 1 ${topOR + t} ${topOR}
+      a ${topOR + t} ${topOR} 0 0 1 ${topOR + t} ${topOR}
       v ${v}
       a ${bottomOR + t} ${bottomOR} 0 0 1 -${bottomOR + t} ${bottomOR}
       H ${bottomOR + t}

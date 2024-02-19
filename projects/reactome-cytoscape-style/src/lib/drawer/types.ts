@@ -22,6 +22,7 @@ export interface DrawerParameters {
   disease?: boolean,
   crossed?: boolean,
   interactor?: boolean,
+  lossOfFunction?: boolean,
 }
 
 export interface DrawerProvider {

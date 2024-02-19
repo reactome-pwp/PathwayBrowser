@@ -1,6 +1,6 @@
 import cytoscape from "cytoscape";
 import {gene} from "./shape/gene-shape";
-import {memoize} from "lodash";
+import {isNumber, memoize} from "lodash";
 import {molecule} from "./shape/molecule-shape";
 import {protein} from "./shape/protein-shape";
 import {rna} from "./shape/rna-shape";
@@ -24,8 +24,15 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   if (!clazz) return aggregate(layers, defaultBg);
 
   const provider = classToDrawers.get(clazz)!;
-  const [width, height, drug, disease, isFadeOut, crossed, interactor] = [node.data("width"), node.data("height"), node.hasClass('drug'), node.hasClass('disease'), node.data('isFadeOut'), node.hasClass('crossed'), node.hasClass('Interactor')];
-  const drawerParams: DrawerParameters = {width, height, drug, disease, interactor, crossed};
+  const drawerParams: DrawerParameters = {
+    width: node.data("width"),
+    height: node.data("height"),
+    drug: node.hasClass('drug'),
+    disease: node.hasClass('disease'),
+    interactor: node.hasClass('Interactor'),
+    crossed: node.hasClass('crossed'),
+    lossOfFunction: node.hasClass('loss-of-function')
+  };
 
   const drawer = provider(properties, drawerParams);
 
@@ -39,7 +46,7 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
 
   if (drawer.decorators) layers.push(...drawer.decorators);
 
-  if (drug) {
+  if (drawerParams.drug) {
     layers.push(RX(properties, drawerParams, clazz));
   }
 
@@ -47,14 +54,14 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
     layers.push(Pathway(properties, drawerParams, clazz))
   }
 
-  if (crossed) layers.push(CROSS(properties,drawerParams))
+  if (drawerParams.crossed) layers.push(CROSS(properties, drawerParams))
 
   // Convert raw HTML to string encoded images
   layers = layers.map(l => ({
       ...l,
       "background-image": svgStr(l["background-image"] as string,
-        l["background-width"] || width,
-        l["background-height"] || height
+        isNumber(l["background-width"]) ? l["background-width"] : drawerParams.width,
+        isNumber(l["background-height"]) ? l["background-height"] : drawerParams.height
       )
     })
   );
@@ -103,8 +110,9 @@ const dim = (properties: Properties, {
   drug,
   disease,
   crossed,
-  interactor
-}: DrawerParameters) => `${width}x${height}-${drug}${disease}${crossed}${interactor}`;
+  interactor,
+  lossOfFunction
+}: DrawerParameters) => `${width}x${height}-${drug}${disease}${crossed}${interactor}${lossOfFunction}`;
 const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],
@@ -147,8 +155,8 @@ const RX = (properties: Properties, {height}: DrawerParameters, clazz: Node): Im
     `,
     "background-position-x": x,
     "background-position-y": (height / 2 - 11) + 'px',
-    "background-width": "22px",
-    "background-height": "24px",
+    "background-width": 22,
+    "background-height": 24,
   };
 
 }
@@ -167,8 +175,8 @@ const Pathway = (properties: Properties, {height}: DrawerParameters, clazz: Node
     `,
     "background-position-x": x,
     "background-position-y": (height / 2 - 18) + 'px',
-    "background-width": "36px",
-    "background-height": "36px",
+    "background-width": 36,
+    "background-height": 36,
   };
 
 }
