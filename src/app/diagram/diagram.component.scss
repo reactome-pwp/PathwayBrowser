@@ -9,7 +9,7 @@
   --on-tertiary: #FFFFFF;
   --positive: #0C9509;
   --negative: #BA1A1A;
-  --negativeContrast: #ea7d7d;
+  --negative-contrast: #ea7d7d;
   --select-node: #6EB3E4;
   --select-edge: #0561A6;
   --hover-node: #78E076;
@@ -45,8 +45,8 @@
     --on-tertiary: #0D1317;
     --positive: #10d70b;
     --negative: #ea2323;
-    --negativeContrast: #8f0000;
     --select-node: #00ffff;
+    --negative-contrast: #8f0000;
     --select-edge: #1d85cc;
     --hover-node: #ffff00;
     --hover-edge: #ffff00;
