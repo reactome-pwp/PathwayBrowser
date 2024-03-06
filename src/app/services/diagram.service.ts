@@ -315,16 +315,26 @@ export class DiagramService {
 
           const isBackground = item.isFadeOut || classes.some(clazz => clazz === 'Pathway') || item.connectors.some(connector => connector.isFadeOut);
           item.isBackground = isBackground;
+          let html = undefined;
+          let width = scale(item.prop.width);
+          let height = scale(item.prop.height);
+          let uniprotId = idToGraphNodes.get(item.id)?.identifier;
+          if (classes.some(clazz => clazz === 'Protein')) {
+            html = `<video loop id="video-${item.id}" width="${width * 0.5}" height="${height * 0.8}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
+          }
+          let fontSize = 12
           const nodes: cytoscape.NodeDefinition[] = [
             {
               data: {
                 id: item.id + '',
                 displayName: item.displayName.replace(/([/,:;-])/g, "$1\u200b"),
-                height: scale(item.prop.height),
-                width: scale(item.prop.width),
+                height: height,
+                width: width,
                 graph: idToGraphNodes.get(item.id),
-                acc: idToGraphNodes.get(item.id)?.identifier,
+                acc: uniprotId,
                 isFadeOut: item.isFadeOut,
+                html,
+                fontSize: fontSize,
                 isBackground,
                 replacement,
                 replacedBy
@@ -572,6 +582,7 @@ export class DiagramService {
   }
 
   lastSelectedResource: string | undefined
+
   public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
       cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();

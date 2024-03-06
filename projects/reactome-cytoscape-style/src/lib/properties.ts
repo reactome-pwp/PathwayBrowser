@@ -87,6 +87,12 @@ export interface Properties extends PropertiesType {
   trivial: {
     opacity: Property<[number, number][]>
   }
+  structure: {
+    opacity: Property<[number, number][]>
+  }
+  font: {
+    size: Property<number>
+  }
 }
 
 export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration): Properties {
@@ -124,6 +130,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-1') || '#001F29')
     .setDefault('drug', () => css.getPropertyValue('--drug-contrast-1') || '#3E001D')
     .setDefault('radius', 8)
+
 
   const genomeEncodedEntity: Properties['genomeEncodedEntity'] = defaultable(properties.genomeEncodedEntity || {})
     .setDefault('fill', () => css.getPropertyValue('--primary-contrast-4') || '#006782')
@@ -184,6 +191,15 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
       return p ? JSON.parse(p) : [[40, 0], [60, 100]];
     })
 
+  const structure: Properties['structure'] = defaultable(properties.structure || {})
+    .setDefault('opacity', () => {
+      const p = css.getPropertyValue('--structure-opacity');
+      return p ? JSON.parse(p) : [[130, 0], [150, 100]];
+    })
+
+  const font: Properties['font'] = defaultable(properties.font || {})
+    .setDefault('size', 12)
+
 
   return {
     global,
@@ -200,7 +216,9 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     pathway,
     modification,
     interactor,
-    trivial
+    trivial,
+    structure,
+    font
   }
 }
 

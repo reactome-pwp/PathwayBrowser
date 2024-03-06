@@ -1,11 +1,13 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
+
 // @ts-ignore
-import {Style} from "reactome-cytoscape-style";
+import {Style, Interactivity} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../services/interactor.service";
+
 
 @Component({
   selector: 'cr-diagram',
@@ -51,9 +53,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.reactomeStyle.clearCache();
 
         //// Test ////
-        this.cy.nodes().forEach((n, i) => {
-          n.addClass('flag')
-        })
+        // this.cy.nodes().forEach((n, i) => {
+        //   n.addClass('flag')
+        // })
 
         setTimeout(() => {
           if (this.comparing) {

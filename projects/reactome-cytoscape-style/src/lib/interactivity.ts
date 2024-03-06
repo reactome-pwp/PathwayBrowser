@@ -3,9 +3,14 @@ import {extract} from "./properties-utils";
 import {Interactor} from "./model/interactor.model";
 import InteractorsLayout from "./interactors-layout";
 import {Properties} from "./properties";
+import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
 
+cytoscape.use(Layers)
 
 export class Interactivity {
+
+  videoLayer!: IHTMLLayer;
+
   constructor(private cy: cytoscape.Core, private properties: Properties) {
     // @ts-ignore
     cy.elements().ungrabify().panify();
@@ -13,6 +18,7 @@ export class Interactivity {
     this.initSelect(cy);
     this.initZoom(cy);
     this.addInteractors(cy)
+    this.initStructureVideo(cy);
   }
 
   applyReaction = (action: (col: cytoscape.Collection) => void, stateKey: keyof State) => (reactionNode: cytoscape.NodeCollection) => {
@@ -87,6 +93,8 @@ export class Interactivity {
     const shadows = cy.edges('[?pathway]');
     const shadowLabels = cy.nodes('.Shadow');
     const trivial = cy.elements('.trivial');
+
+
     cy.minZoom(Math.min(cy.zoom(), extract(this.properties.shadow.labelOpacity)[0][0] / 100));
     cy.maxZoom(15);
 
@@ -95,6 +103,26 @@ export class Interactivity {
       const shadowLabelOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
       const trivialOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.trivial.opacity).map(v => this.p(...v))) / 100;
       const shadowOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100;
+
+      const proteins = cy.nodes('.Protein');
+      let baseFontSize = extract(this.properties.font.size);
+      const structureOpacityArray = extract(this.properties.structure.opacity)
+      const zoomStart = structureOpacityArray[0][0]
+      const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
+      const fontSize = this.interpolate(zoomLevel * 100, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
+
+      proteins.forEach(protein => {
+        const width = protein.data('width')
+
+        const maxWidth = this.interpolate(zoomLevel * 100, [this.p(zoomStart, width), this.p(zoomEnd, width / 2)]);
+        const margin = this.interpolate(zoomLevel * 100, [this.p(zoomStart, 0), this.p(zoomEnd, width / 4)]);
+        protein.style(
+          {
+            'font-size': fontSize,
+            'text-margin-x': margin,
+            'text-max-width': maxWidth
+          })
+      });
 
       shadows.stop().animate({
         style: {
@@ -115,6 +143,48 @@ export class Interactivity {
     }
 
     cy.on('zoom', this.onZoom);
+  }
+
+  initStructureVideo(cy: cytoscape.Core) {
+    // @ts-ignore
+    const layers: LayersPlugin = cy.layers();
+
+    this.videoLayer = layers.append('html');
+    layers.renderPerNode(
+      this.videoLayer,
+      (elem, node, bb) => {
+        const z = cy.zoom();
+        let opacity = this.interpolate(z * 100, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
+        elem.style.opacity = opacity + '';
+      },
+      {
+        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+          elem.innerHTML = node.data('html') || '';
+          elem.style.display = "flex"
+        },
+        transform: `translate(calc(-100% + ${extract(this.properties.global.thickness)/2}px), -50%)`,
+        position: 'center',
+        uniqueElements: true,
+        checkBounds: true,
+
+      }
+    );
+    this.cy
+      ?.on('mouseover', 'node.Protein', (event) => {
+        const videoId = event.target.id();
+        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.play();
+        }
+      })
+      .on('mouseout', 'node.Protein', (event) => {
+        const videoId = event.target.id();
+        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.pause();
+          // videoElement.load()
+        }
+      });
   }
 
   addInteractors(cy: cytoscape.Core) {
@@ -182,31 +252,52 @@ export class Interactivity {
     const interactorNodes: cytoscape.NodeDefinition[] = [];
     const interactorLayout = new InteractorsLayout();
     // todo :
-    const resourceClass = resource === this.INTACT ? ['Complex', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
+    const resourceClass = resource === this.INTACT ? ['Protein', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
 
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
-      const displayName = interactor.alias ? interactor.alias : interactor.acc;
+      let uniprotId = interactor.acc;
+      const displayName = interactor.alias ? interactor.alias : uniprotId;
+      const HEIGHT = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
+      let interactorNodeId = uniprotId + '-' + targetNode.data('entity').id();
+      const html = `<video loop width="${this.DEFAULT_INTERACTOR_WIDTH * 0.5}" height="${HEIGHT * 0.8}" id="video-${interactorNodeId}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
       interactorNodes.push({
         data: {
-          id: interactor.acc + '-' + targetNode.data('entity').id(),
+          id: interactorNodeId,
           displayName: displayName,
           width: resource === this.INTACT ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
           // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
-          height: this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING,
+          height: HEIGHT,
           source: targetNode.id(),
           accURL: interactor.accURL,
           score: interactor.score,
           evidences: interactor.evidences,
           evidenceURLs: interactor.evidencesURL,
-          resource: resource
+          resource: resource,
+          html
         },
         //todo: provide shape base on interactor type: Gene, RNA, Protein, Molecule
         classes: resourceClass,
         position: position
       })
     })
-    cy?.add(interactorNodes)
+    let interactors = cy.add(interactorNodes);
+    this.cy
+      ?.on('mouseover', 'node.Protein', (event) => {
+        const videoId = event.target.id();
+        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.play();
+        }
+      }).on('mouseout', 'node.Protein', (event) => {
+      const videoId = event.target.id();
+      const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.pause();
+      }
+    });
+
+    // this.initStructureControls(interactors.nodes('.Protein'))
   }
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {

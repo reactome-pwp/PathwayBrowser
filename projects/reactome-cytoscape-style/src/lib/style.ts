@@ -14,7 +14,7 @@ export class Style {
   private readonly imageBuilder;
   private readonly p;
   private readonly pm;
-  private interactivity!: Interactivity;
+  public interactivity!: Interactivity;
 
   constructor(container: HTMLElement, properties: UserProperties = {}) {
     this.css = getComputedStyle(container);
@@ -134,8 +134,10 @@ export class Style {
           "font-style": "italic"
         }
       }, {
-        selector: 'node.PhysicalEntity, node.Pathway, node.Modification',
+        selector: 'node.PhysicalEntity, node.Pathway, node.Modification, node.Protein',
         style: {
+          'font-size': 'data(fontSize)',
+          'text-margin-x' : 0,
           'label': 'data(displayName)',
           'width': 'data(width)',
           'height': 'data(height)',
@@ -143,7 +145,7 @@ export class Style {
           "text-halign": 'center',
           "text-valign": 'center',
           "text-wrap": 'wrap',
-          "text-max-width": "data(width)",
+          "text-max-width": (node:cytoscape.NodeSingular) => node.data('width') + 'px',
           // @ts-ignore
           "background-image-smoothing": "no no no no no no no no",
 
@@ -451,7 +453,9 @@ export class Style {
       {
         selector: 'node.RNA.Interactor, node.Protein.Interactor',
         style: {
-          "background-color": this.p('interactor', 'fill'),
+          "border-color": this.p('interactor', 'fill'),
+          "border-width": this.p('global', 'thickness'),
+
         }
       },
       {
