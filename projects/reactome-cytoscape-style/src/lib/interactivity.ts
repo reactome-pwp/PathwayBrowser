@@ -162,7 +162,7 @@ export class Interactivity {
           elem.innerHTML = node.data('html') || '';
           elem.style.display = "flex"
         },
-        transform: `translate(calc(-100% + ${extract(this.properties.global.thickness)/2}px), -50%)`,
+        transform: `translate(calc(-100% + ${extract(this.properties.global.thickness) / 2}px), -50%)`,
         position: 'center',
         uniqueElements: true,
         checkBounds: true,
@@ -182,7 +182,6 @@ export class Interactivity {
         const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
         if (videoElement) {
           videoElement.pause();
-          // videoElement.load()
         }
       });
   }
@@ -282,22 +281,6 @@ export class Interactivity {
       })
     })
     let interactors = cy.add(interactorNodes);
-    this.cy
-      ?.on('mouseover', 'node.Protein', (event) => {
-        const videoId = event.target.id();
-        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.play();
-        }
-      }).on('mouseout', 'node.Protein', (event) => {
-      const videoId = event.target.id();
-      const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.pause();
-      }
-    });
-
-    // this.initStructureControls(interactors.nodes('.Protein'))
   }
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {

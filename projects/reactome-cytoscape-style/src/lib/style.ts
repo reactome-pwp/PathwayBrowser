@@ -136,7 +136,7 @@ export class Style {
       }, {
         selector: 'node.PhysicalEntity, node.Pathway, node.Modification, node.Protein',
         style: {
-          'font-size': 'data(fontSize)',
+          'font-size': this.p('font','size'),
           'text-margin-x' : 0,
           'label': 'data(displayName)',
           'width': 'data(width)',

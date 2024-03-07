@@ -322,7 +322,6 @@ export class DiagramService {
           if (classes.some(clazz => clazz === 'Protein')) {
             html = `<video loop id="video-${item.id}" width="${width * 0.5}" height="${height * 0.8}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
           }
-          let fontSize = 12
           const nodes: cytoscape.NodeDefinition[] = [
             {
               data: {
@@ -334,7 +333,6 @@ export class DiagramService {
                 acc: uniprotId,
                 isFadeOut: item.isFadeOut,
                 html,
-                fontSize: fontSize,
                 isBackground,
                 replacement,
                 replacedBy
