@@ -14,7 +14,7 @@ export class Style {
   private readonly imageBuilder;
   private readonly p;
   private readonly pm;
-  private interactivity!: Interactivity;
+  public interactivity!: Interactivity;
 
   constructor(container: HTMLElement, properties: UserProperties = {}) {
     this.css = getComputedStyle(container);
@@ -378,6 +378,13 @@ export class Style {
           "border-color": this.p('global', 'selectEdge'),
         }
       }, {
+        selector: 'node.reaction.flag',
+        style: {
+          // @ts-ignore
+          "outline-width": this.pm('global', 'thickness', t => t * 1.5),
+          "outline-color": this.p('global', 'flag'),
+        }
+      }, {
         selector: 'node.association',
         style: {
           "shape": "ellipse",
@@ -609,7 +616,7 @@ export class Style {
           "target-text-offset": 35,
         }
       }, {
-        selector: "edge[?color]",
+        selector: "edge.shadow[?color]",
         style: {
           // @ts-ignore
           "underlay-color": "data(color)",
@@ -617,6 +624,14 @@ export class Style {
           "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1] / 100),
         }
       }, {
+        selector: "edge.flag",
+        style: {
+          // @ts-ignore
+          "underlay-color": this.p('global', 'flag'),
+          "underlay-padding": 10,
+          "underlay-opacity": 1,
+        }
+      },{
         selector: "edge[?weights]",
         style: {
           // @ts-ignore
