@@ -75,7 +75,6 @@ export interface Properties extends PropertiesType {
   pathway: {
     fill: Property<string>
     stroke: Property<string>
-    disease: Property<string>
   }
   modification: {
     fill: Property<string>
@@ -169,7 +168,6 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const pathway: Properties['pathway'] = defaultable(properties.pathway || {})
     .setDefault("fill", () => css.getPropertyValue('--primary-contrast-4') || '#006782')
     .setDefault("stroke", () => extract(global.onPrimary))
-    .setDefault('disease', () => extract(global.negative))
 
   const modification: Properties['modification'] = defaultable(properties.modification || {})
     .setDefault("fill", () => css.getPropertyValue('--primary-contrast-2') || '#003545')

@@ -1,14 +1,14 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const sub: DrawerProvider = (properties, {width, height, disease}) => {
+export const subPathway: DrawerProvider = (properties, {width, height, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness) * 3;
   const stroke = !disease ?
     extract(properties.pathway.stroke) :
-    extract(properties.pathway.disease);
+    extract(properties.global.negativeContrast);
   const fill = extract(properties.pathway.fill);
 
   const ht = thick / 2;

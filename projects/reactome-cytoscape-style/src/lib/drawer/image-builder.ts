@@ -11,7 +11,7 @@ import {cell} from "./shape/cell-shape";
 import {interactingPathway} from "./shape/interacting-pathway-shape";
 import {diseaseInteractor} from "./shape/disease-interactor-shape";
 
-import {sub} from "./shape/sub-shape";
+import {subPathway} from "./shape/sub-pathway-shape";
 import {extract} from "../properties-utils";
 import {Node} from "../types";
 import {Aggregated, DrawerParameters, DrawerProvider, Image, Memo} from "./types";
@@ -51,7 +51,7 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   }
 
   if (node.classes().includes('Pathway')) {
-    layers.push(Pathway(properties, drawerParams, clazz))
+    layers.push(Pathway(properties, drawerParams))
   }
 
   if (drawerParams.crossed) layers.push(CROSS(properties, drawerParams))
@@ -123,7 +123,7 @@ const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["EntitySet", memoize(entitySet, dim)],
   ["Cell", memoize(cell, dim)],
   ["Interacting", memoize(interactingPathway, dim)],
-  ["SUB", memoize(sub, dim)],
+  ["SUB", memoize(subPathway, dim)],
   ["DiseaseInteractor", memoize(diseaseInteractor, dim)]
 ]);
 
@@ -161,11 +161,11 @@ const RX = (properties: Properties, {height}: DrawerParameters, clazz: Node): Im
 
 }
 
-const Pathway = (properties: Properties, {height}: DrawerParameters, clazz: Node): Image => {
+const Pathway = (properties: Properties, {height, disease}: DrawerParameters): Image => {
   const t = extract(properties.global.thickness);
-  const color = clazz == 'Interacting' || 'SUB' ?
+  const color = !disease ?
     extract(properties.global.onPrimary) :
-    extract(properties.pathway.disease);
+    extract(properties.global.negativeContrast);
 
   let x = 5 * t;
 

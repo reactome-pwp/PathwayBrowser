@@ -11,7 +11,7 @@ export const interactingPathway: DrawerProvider = (properties, {width, height, d
 
   const stroke = !drug ?
     extract(properties.pathway.stroke) :
-    extract(properties.pathway.disease);
+    extract(properties.global.negativeContrast);
   const fill = extract(properties.pathway.fill);
 
 

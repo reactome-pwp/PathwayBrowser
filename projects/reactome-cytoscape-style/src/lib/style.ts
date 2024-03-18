@@ -313,7 +313,6 @@ export class Style {
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
             ),
-
         }
       },
       {
@@ -324,9 +323,14 @@ export class Style {
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
             ),
-
         }
-      }, {
+      },      {
+        selector: 'node.Pathway.disease',
+        style: {
+          "border-color": this.p('global', 'negativeContrast'),
+          "color": this.p('global', 'negativeContrast'),
+        }
+      },{
         selector: 'node.Modification',
         style: {
           "background-color": this.p('modification', 'fill'),
