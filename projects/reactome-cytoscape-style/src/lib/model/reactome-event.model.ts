@@ -5,7 +5,7 @@ export interface ReactomeEventTarget {
   type: 'PhysicalEntity' | 'Pathway' | 'reaction' | 'Interactor',
   element: cytoscape.Collection,
   cy: cytoscape.Core
-};
+}
 
 export enum ReactomeEventTypes {
   hover = 'reactome::hover',
