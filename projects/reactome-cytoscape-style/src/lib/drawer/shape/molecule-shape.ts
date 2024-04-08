@@ -1,14 +1,16 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const molecule: DrawerProvider = (properties, {width, height, drug}) => {
+export const molecule: DrawerProvider = (properties, {width, height, drug, interactor}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness);
-  const stroke = !drug ?
-    extract(properties.molecule.stroke) :
-    extract(properties.molecule.drug);
+  const stroke = !interactor ? (
+    !drug ?
+      extract(properties.molecule.stroke) :
+      extract(properties.molecule.drug)
+  ) : extract(properties.interactor.fill);
   const fill = extract(properties.molecule.fill);
 
   const ht = thick / 2;
