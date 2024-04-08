@@ -2,7 +2,7 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const entitySet: DrawerProvider = (properties, {width, height, drug, disease, lossOfFunction}) => {
+export const entitySet: DrawerProvider = (properties, {width, height, drug, disease, lossOfFunction, interactor}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -17,9 +17,12 @@ export const entitySet: DrawerProvider = (properties, {width, height, drug, dise
 
   width += 2 * r;
 
-  const fill = !drug ?
-    extract(properties.entitySet.fill) :
-    extract(properties.entitySet.drug);
+  const fill =
+    !interactor ?
+      !drug ?
+        extract(properties.entitySet.fill) :
+        extract(properties.entitySet.drug)
+      : extract(properties.interactor.fill);
   const stroke = !disease ?
     extract(properties.entitySet.stroke) :
     extract(properties.global.negativeContrast);

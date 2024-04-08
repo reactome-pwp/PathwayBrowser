@@ -8,8 +8,8 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
   const dWidth = extract(properties.gene.decorationExtraWidth);
   const headSize = extract(properties.gene.arrowHeadSize);
   const radius = extract(properties.gene.arrowRadius);
-  const fill = interactor ? extract(properties.interactor.fill) : extract(properties.gene.fill);
-  const stroke = disease ? extract(properties.global.negativeContrast) : null;
+  const fill = extract(properties.gene.fill);
+  const stroke = interactor ? extract(properties.interactor.fill) : disease ? extract(properties.global.negativeContrast) : null;
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -26,7 +26,7 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
     background: {
       "background-image": `
           <path fill="${fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
-      ${disease ? `stroke="${stroke}" stroke-width="${t}"` : ''}
+      ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t2}"` : ''}  d="
             M ${0} ${dHeight}
             H ${width}
