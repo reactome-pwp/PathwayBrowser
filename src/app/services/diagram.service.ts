@@ -561,32 +561,6 @@ export class DiagramService {
   }
 
 
-  public getInteractorData(cy: cytoscape.Core | undefined): Observable<Interactors> {
-
-    const graphNodes = cy?.nodes(`[graph]`);
-    const idToIdentifier = new Map<number, string>(graphNodes?.map(node => [node.data('dbId'), node.data('acc')]));
-    const result: string[] = [];
-
-    graphNodes?.forEach(entity => {
-      const schemaClass = entity.data("graph").schemaClass;
-      if (schemaClass === "EntityWithAccessionedSequence" || schemaClass === "SimpleEntity") {
-        result.push(entity.data("acc"));
-      }
-
-      if (schemaClass === "Complex" && entity.data("graph").children.length === 1) {
-        const identifiers: string[] = entity.data("graph").children.map((id: number) => idToIdentifier.get(id) || '');
-        result.push(...identifiers);
-      }
-    });
-
-    // Concatenate elements from the set values into a single string
-    const postContent = [...new Set(result)].join(',');
-
-    return this.http.post<Interactors>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', postContent, {
-      headers: new HttpHeaders({'Content-Type': 'text/plain'})
-    });
-  }
-
   lastSelectedResource: string | undefined
 
   public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
