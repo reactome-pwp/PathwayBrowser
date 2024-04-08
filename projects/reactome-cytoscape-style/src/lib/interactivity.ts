@@ -4,6 +4,7 @@ import {Interactor} from "./model/interactor.model";
 import InteractorsLayout from "./interactors-layout";
 import {Properties} from "./properties";
 import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
+import {NODE_TYPE_MAP} from "./utils";
 
 
 export class Interactivity {
@@ -212,6 +213,7 @@ export class Interactivity {
       const targetNode = event.target;
       const interactorsData = targetNode.data('interactors');
       const resource = targetNode.data('resource')
+      InteractorsLayout.BOX_WIDTH = resource === 'DisGeNet' ? this.DEFAULT_DISGENET_WIDTH / 2 : this.DEFAULT_INTERACTOR_WIDTH / 2;
       const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
       const [dynamicInteractors, existingInteractors] = this.getInteractors(interactorsData, cy, numberToAdd);
       const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
@@ -258,7 +260,7 @@ export class Interactivity {
   }
 
   readonly DEFAULT_INTERACTOR_WIDTH = 100;
-  readonly DEFAULT_DISGENET_WIDTH = 120
+  readonly DEFAULT_DISGENET_WIDTH = 250
   readonly INTERACTOR_PADDING = 20;
   readonly CHAR_WIDTH = 10;
   readonly CHAR_HEIGHT = 12;
@@ -267,19 +269,22 @@ export class Interactivity {
   addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
     const interactorNodes: cytoscape.NodeDefinition[] = [];
     const interactorLayout = new InteractorsLayout();
-    // todo :
-    const resourceClass = resource === this.INTACT ? ['Protein', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
 
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
       const displayName = interactor.alias ? interactor.alias : interactor.acc;
+      const classes = resource === this.INTACT ? [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'] : ['PhysicalEntity', 'DiseaseInteractor']
+      let width = resource === this.INTACT ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH;
+      let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
+      if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
+
       interactorNodes.push({
         data: {
           id: interactor.acc + '-' + targetNode.data('entity').id(),
-          displayName: displayName,
-          width: resource === this.INTACT ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
+          displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
+          width: width,
           // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
-          height: this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING,
+          height: height,
           source: targetNode.id(),
           accURL: interactor.accURL,
           score: interactor.score,
@@ -287,9 +292,9 @@ export class Interactivity {
           evidenceURLs: interactor.evidencesURL,
           resource: resource
         },
-        //todo: provide shape base on interactor type: Gene, RNA, Protein, Molecule
-        classes: resourceClass,
-        position: position
+        classes: classes,
+        position: position,
+        selectable: false
       })
     })
     cy?.add(interactorNodes)
@@ -313,7 +318,8 @@ export class Interactivity {
           evidenceURLs: interactor.evidencesURL,
           resource: resource
         },
-        classes: resourceClass
+        classes: resourceClass,
+        selectable: false
       })
     })
     cy?.add(interactorEdges)
