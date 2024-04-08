@@ -6,6 +6,7 @@ export interface Interactor {
   evidencesURL: string;
   id: number;
   score: number;
+  type:string;
 }
 
 export interface Position {
