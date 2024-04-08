@@ -660,13 +660,13 @@ export class Style {
         }
       },
       {
-        selector: 'edge.Interactor.Disease',
+        selector: 'edge.DiseaseInteractor',
         style: {
           'line-color': this.p('global', 'negativeContrast'),
         }
       },
       {
-        selector: 'edge.Interactor.hover, edge.Interactor.Disease.hover',
+        selector: 'edge.Interactor.hover, edge.DiseaseInteractor.hover',
         style: {
           "line-color": this.p('global', 'hoverEdge')
         }

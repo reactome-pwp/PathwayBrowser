@@ -302,7 +302,7 @@ export class Interactivity {
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
 
-    const resourceClass = resource === this.INTACT ? ['Interactor'] : ['Interactor', 'Disease'];
+    const resourceClass = resource === this.INTACT ? ['Interactor'] : ['Interactor', 'DiseaseInteractor'];
 
     const interactorEdges: cytoscape.EdgeDefinition[] = [];
     interactorsData.forEach((interactor: Interactor) => {
