@@ -168,7 +168,7 @@ export class Interactivity {
       .on('select', 'node.reaction', event => selectReaction(mapper(event.target)))
       .on('select', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).select())
 
-      .on('select', '.Interactor', e => {
+      .on('click', '.Interactor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
