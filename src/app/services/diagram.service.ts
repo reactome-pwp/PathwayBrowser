@@ -1,9 +1,8 @@
 import {Injectable} from '@angular/core';
 import {forkJoin, map, Observable, of, tap} from "rxjs";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpClient} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Graph, Node as GraphNode} from "../model/graph.model";
-import {Interactors} from "../model/interactor-entity.model";
 // @ts-ignore
 import Reactome from "reactome-cytoscape-style";
 import legend from "../../assets/json/legend.json"
@@ -66,8 +65,6 @@ const closestToAverage = (positions: Position[]): Position => {
   }
   return closest;
 }
-
-const INTACT = 'IntAct';
 
 @Injectable({
   providedIn: 'root'
@@ -558,56 +555,6 @@ export class DiagramService {
 
   private endpoint(source: Position, point: Position): string {
     return `${point.x - source.x} ${point.y - source.y}`
-  }
-
-
-  lastSelectedResource: string | undefined
-
-  public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
-    if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
-      cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
-      this.createOccurrenceAndInteractors(interactors, cy, resource);
-      this.lastSelectedResource = resource;
-    } else if (!this.lastSelectedResource) {
-      this.createOccurrenceAndInteractors(interactors, cy, resource);
-      this.lastSelectedResource = resource;
-    }
-  }
-
-  public createOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
-
-    const classes = resource === INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
-    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
-
-    interactors.entities
-      .filter(interactorEntity => interactorEntity.count > 0)
-      .forEach(interactorEntity => {
-
-        const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
-        entities?.forEach(entityNode => {
-
-          const pos = {...entityNode.position()};
-          pos.x += entityNode.width() / 2;
-          pos.y -= entityNode.height() / 2;
-
-          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
-            occurrenceNodes.push({
-              data: {
-                id: entityNode.id() + '-occ',
-                displayName: interactorEntity.count,
-                entity: entityNode,
-                interactors: interactorEntity.interactors,
-                resource: resource
-              },
-              classes: classes,
-              pannable: true,
-              grabbable: false,
-              position: pos,
-            });
-          }
-        });
-      });
-    cy?.add(occurrenceNodes);
   }
 
   /**

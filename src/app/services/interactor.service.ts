@@ -11,6 +11,7 @@ import {Interactors} from "../model/interactor-entity.model";
 export class InteractorService {
 
   private postContentCache: string = '';
+  private INTACT = 'IntAct';
 
   constructor(private http: HttpClient) {
   }
@@ -62,4 +63,54 @@ export class InteractorService {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     });
   }
+
+  lastSelectedResource: string | undefined
+  public addInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
+    if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
+      cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
+      cy.edges(`[resource='${this.lastSelectedResource}']`).remove();
+      this.createInteractorOccurrenceNode(interactors, cy, resource);
+      this.lastSelectedResource = resource;
+    } else if (!this.lastSelectedResource) {
+      this.createInteractorOccurrenceNode(interactors, cy, resource);
+      this.lastSelectedResource = resource;
+    }
+  }
+
+  public createInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
+
+    const classes = resource === this.INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
+    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
+
+    interactors.entities
+      .filter(interactorEntity => interactorEntity.count > 0)
+      .forEach(interactorEntity => {
+
+        const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
+        entities?.forEach(entityNode => {
+
+          const pos = {...entityNode.position()};
+          pos.x += entityNode.width() / 2;
+          pos.y -= entityNode.height() / 2;
+
+          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
+            occurrenceNodes.push({
+              data: {
+                id: entityNode.id() + '-occ',
+                displayName: interactorEntity.count,
+                entity: entityNode,
+                interactors: interactorEntity.interactors,
+                resource: resource
+              },
+              classes: classes,
+              pannable: true,
+              grabbable: false,
+              position: pos,
+            });
+          }
+        });
+      });
+    cy?.add(occurrenceNodes);
+  }
+
 }

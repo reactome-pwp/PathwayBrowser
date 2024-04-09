@@ -329,13 +329,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   getStaticInteractors(resource: string) {
     this.interactorsService.getStaticInteractorData(this.cy).subscribe(interactors => {
-      this.diagram.addOccurrenceAndInteractors(interactors, this.cy, resource)
+      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
     });
   }
 
   getDiseaseInteractors(resource: string) {
     this.interactorsService.getDiseaseInteractorData(this.cy).subscribe(interactors => {
-      this.diagram.addOccurrenceAndInteractors(interactors, this.cy, resource)
+      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
     });
   }
 
