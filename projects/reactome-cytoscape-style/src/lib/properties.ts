@@ -82,6 +82,7 @@ export interface Properties extends PropertiesType {
   interactor: {
     fill: Property<string>
     stroke: Property<string>
+    decorationWidth: Property<number>
   }
   trivial: {
     opacity: Property<[number, number][]>
@@ -175,6 +176,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const interactor: Properties['interactor'] = defaultable(properties.interactor || {})
     .setDefault("fill", () => css.getPropertyValue('--interactor-fill') || '#68297C')
     .setDefault("stroke", () => css.getPropertyValue('--interactor-stroke') || '#9f5cb5')
+    .setDefault('decorationWidth', () => Number.parseFloat(css.getPropertyValue('--decorationWidth')) || 20)
 
   const trivial: Properties['trivial'] = defaultable(properties.trivial || {})
     .setDefault('opacity', () => {

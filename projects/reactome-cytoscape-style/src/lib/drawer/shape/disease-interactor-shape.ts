@@ -7,11 +7,11 @@ export const diseaseInteractor: DrawerProvider = (properties, {width, height, dr
   const select = extract(properties.global.selectNode);
   const fill = extract(properties.global.negative);
   const t = extract(properties.global.thickness);
+  const decorationWidth = extract(properties.interactor.decorationWidth);
   const t4 = t * 4
   const t2 = t * 2;
   const h = height / 2 + t2;
   const midH = height / 2;
-  const decorationWidth = 20;
 
   return {
     decorators: [
