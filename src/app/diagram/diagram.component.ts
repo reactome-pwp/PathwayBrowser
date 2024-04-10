@@ -34,7 +34,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
 
   comparing: boolean = false;
-  INTACT: string = 'IntAct';
+  STATIC: string = 'Static'; //IntAct
   DISGENET: string = 'DisGeNet';
 
 
@@ -327,15 +327,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   };
 
 
-  getStaticInteractors(resource: string) {
-    this.interactorsService.getStaticInteractorData(this.cy).subscribe(interactors => {
+  getInteractors(resource: string) {
+    this.interactorsService.getInteractorData(this.cy, resource).subscribe(interactors => {
       this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
     });
   }
 
-  getDiseaseInteractors(resource: string) {
-    this.interactorsService.getDiseaseInteractorData(this.cy).subscribe(interactors => {
-      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
+  getPsicquicResource() {
+    this.interactorsService.getPsicquicResources().subscribe(resources => {
+      this.psicquicResources = resources;
     });
   }
 

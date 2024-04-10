@@ -42,29 +42,29 @@ export class InteractorService {
 
   }
 
-  public getStaticInteractorData(cy: cytoscape.Core): Observable<Interactors> {
-
-    if (!this.postContentCache) {
-      this.updatePostContentCache(cy);
+  public getInteractorData(cy: cytoscape.Core, resource: string): Observable<Interactors> {
+    this.updatePostContentCacheIfNeeded(cy);
+    let url;
+    if (resource === this.STATIC) {
+      url = this.staticUrl;
+    } else if (resource === this.DISGENET) {
+      url = this.disGeNetUrl;
+    } else {
+      url = this.psicquicUrl + resource.toLowerCase() + '/details'
     }
-    // const postContent = this.getPostContent(cy)
-    return this.http.post<Interactors>('https://dev.reactome.org/ContentService/interactors/static/molecules/details', this.postContentCache, {
+
+    return this.http.post<Interactors>(url, this.postContentCache, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     });
   }
 
-  public getDiseaseInteractorData(cy: cytoscape.Core): Observable<Interactors> {
-
+  private updatePostContentCacheIfNeeded(cy: cytoscape.Core): void {
     if (!this.postContentCache) {
       this.updatePostContentCache(cy);
     }
-    // const postContent = this.getPostContent(cy)
-    return this.http.post<Interactors>('https://dev.reactome.org/overlays/disgenet/findByGenes', this.postContentCache, {
-      headers: new HttpHeaders({'Content-Type': 'text/plain'})
-    });
   }
 
-  lastSelectedResource: string | undefined
+  lastSelectedResource: string | undefined;
   public addInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
       cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
@@ -79,7 +79,7 @@ export class InteractorService {
 
   public createInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
 
-    const classes = resource === this.INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
+    const classes = resource === this.DISGENET ? ['InteractorOccurrences', 'Disease'] : ['InteractorOccurrences'];
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
     interactors.entities
@@ -111,6 +111,12 @@ export class InteractorService {
         });
       });
     cy?.add(occurrenceNodes);
+  }
+
+  public getPsicquicResources(): Observable<PsicquicResource[]>{
+   return this.http.get<PsicquicResource[]>(this.psicquicResources, {
+      headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
+    });
   }
 
 }
