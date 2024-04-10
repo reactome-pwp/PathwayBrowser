@@ -20,6 +20,7 @@ import {
   tap
 } from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
+import {PsicquicResource} from "../model/interactor-entity.model";
 
 
 @Component({
@@ -36,6 +37,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   comparing: boolean = false;
   STATIC: string = 'Static'; //IntAct
   DISGENET: string = 'DisGeNet';
+  psicquicResources: PsicquicResource[] = []
+  selectedResource: string = '';
 
 
   constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService) {
@@ -226,6 +229,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     })
 
     this.loadDiagram();
+
+    this.getPsicquicResource();
   }
 
   flag(accs: string[]): cytoscape.CollectionArgument {
@@ -337,6 +342,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     this.interactorsService.getPsicquicResources().subscribe(resources => {
       this.psicquicResources = resources;
     });
+  }
+
+  onSelectedPsicquicResourceChange(selectedResource: string) {
+    this.interactorsService.getInteractorData(this.cy, selectedResource).subscribe(interactors =>{
+      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, selectedResource)
+    })
   }
 
   updateStyle() {

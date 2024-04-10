@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import cytoscape from "cytoscape";
 import {Observable} from "rxjs";
-import {Interactors} from "../model/interactor-entity.model";
+import {Interactors, PsicquicResource} from "../model/interactor-entity.model";
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,12 @@ import {Interactors} from "../model/interactor-entity.model";
 export class InteractorService {
 
   private postContentCache: string = '';
-  private INTACT = 'IntAct';
+  private STATIC = 'Static'; //IntAct
+  private DISGENET  = 'DisGeNet';
+  private staticUrl = 'https://dev.reactome.org/ContentService/interactors/static/molecules/details';
+  private disGeNetUrl ='https://dev.reactome.org/overlays/disgenet/findByGenes';
+  private psicquicResources = 'https://dev.reactome.org/ContentService/interactors/psicquic/resources/'
+  private psicquicUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/molecules/';
 
   constructor(private http: HttpClient) {
   }
