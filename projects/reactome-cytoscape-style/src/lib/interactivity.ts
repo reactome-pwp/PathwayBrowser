@@ -276,8 +276,8 @@ export class Interactivity {
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
       const displayName = interactor.alias ? interactor.alias : interactor.acc;
-      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor']
-      let width = resource === this.STATIC ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH;
+      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
+      let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
 
@@ -305,7 +305,7 @@ export class Interactivity {
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
 
-    const resourceClass = resource === this.STATIC ? ['Interactor'] : ['Interactor', 'DiseaseInteractor'];
+    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor']: ['Interactor'];
 
     const interactorEdges: cytoscape.EdgeDefinition[] = [];
     interactorsData.forEach((interactor: Interactor) => {
