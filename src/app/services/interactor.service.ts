@@ -83,9 +83,10 @@ export class InteractorService {
   }
 
   public createInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
-
     const classes = resource === this.DISGENET ? ['InteractorOccurrences', 'Disease'] : ['InteractorOccurrences'];
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
+
+    if (interactors.entities === undefined) return;
 
     interactors.entities
       .filter(interactorEntity => interactorEntity.count > 0)
