@@ -218,3 +218,9 @@
     z-index: 4;
   }
 }
+
+.option-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}

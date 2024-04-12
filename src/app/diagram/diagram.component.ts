@@ -21,6 +21,8 @@ import {
 } from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {PsicquicResource} from "../model/interactor-entity.model";
+import {MatSelect} from "@angular/material/select";
+import {FormControl} from "@angular/forms";
 
 
 @Component({
@@ -33,12 +35,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('psicquicSelect') psicquicSelect?: MatSelect;
 
   comparing: boolean = false;
   STATIC: string = 'Static'; //IntAct
   DISGENET: string = 'DisGeNet';
   psicquicResources: PsicquicResource[] = []
-  selectedResource: string = '';
+  selectedPsicquicResource= new FormControl();
+  isDataFromPsicquicLoading: boolean = false;
+
 
 
   constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService) {
@@ -230,7 +235,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     this.loadDiagram();
 
-    this.getPsicquicResource();
+    this.getPsicquicResources();
   }
 
   flag(accs: string[]): cytoscape.CollectionArgument {
@@ -333,20 +338,26 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   getInteractors(resource: string) {
+    if (this.selectedPsicquicResource) {
+      this.selectedPsicquicResource.reset();
+    }
     this.interactorsService.getInteractorData(this.cy, resource).subscribe(interactors => {
       this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
     });
   }
 
-  getPsicquicResource() {
+  getPsicquicResources() {
     this.interactorsService.getPsicquicResources().subscribe(resources => {
       this.psicquicResources = resources;
     });
   }
 
-  onSelectedPsicquicResourceChange(selectedResource: string) {
-    this.interactorsService.getInteractorData(this.cy, selectedResource).subscribe(interactors =>{
+  onPsicquicResourceChange(selectedResource: string) {
+    this.isDataFromPsicquicLoading = true;
+    this.interactorsService.getInteractorData(this.cy, selectedResource).subscribe(interactors => {
       this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, selectedResource)
+      this.isDataFromPsicquicLoading = false;
+      this.psicquicSelect?.close();
     })
   }
 
