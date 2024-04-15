@@ -17,6 +17,8 @@ export class InteractorService {
   private disGeNetUrl ='https://dev.reactome.org/overlays/disgenet/findByGenes';
   private psicquicResources = 'https://dev.reactome.org/ContentService/interactors/psicquic/resources/'
   private psicquicUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/molecules/';
+  uploadUrl = "https://dev.reactome.org/ContentService/interactors/upload/tuple/";
+  uplpadPsicquicUrl = "https://dev.reactome.org/ContentService/interactors/upload/psicquic/";
 
   constructor(private http: HttpClient) {
   }

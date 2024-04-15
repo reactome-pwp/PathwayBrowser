@@ -21,7 +21,8 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
   declarations: [
     AppComponent,
     DiagramComponent,
-    DiagramIteratorComponent
+    DiagramIteratorComponent,
+    CustomInteractorDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -39,7 +40,13 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     MatSelectModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    MatDialogModule,
+    MatTabsModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    NgxMatFileInputModule,
+    MatIconModule
   ],
   providers: [],
   bootstrap: [AppComponent]

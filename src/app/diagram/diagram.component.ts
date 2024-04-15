@@ -23,6 +23,8 @@ import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src
 import {PsicquicResource} from "../model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
 import {FormControl} from "@angular/forms";
+import {MatDialog} from "@angular/material/dialog";
+import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
 
 
 @Component({
@@ -45,8 +47,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   isDataFromPsicquicLoading: boolean = false;
 
 
-
-  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService) {
+  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService, public dialog: MatDialog) {
   }
 
   cy!: cytoscape.Core;
@@ -359,6 +360,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.isDataFromPsicquicLoading = false;
       this.psicquicSelect?.close();
     })
+  }
+
+  openCustomInteractorDialog() {
+    this.dialog.open(CustomInteractorDialogComponent);
   }
 
   updateStyle() {

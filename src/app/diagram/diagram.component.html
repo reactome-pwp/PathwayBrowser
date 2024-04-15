@@ -35,6 +35,8 @@
       </mat-select>
     </mat-form-field>
 
+    <button mat-raised-button (click)="openCustomInteractorDialog()">Custom resource</button>
+
     <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>
     <span>{{(reactomeEvents$ | async)?.detail?.reactomeId}}</span>
   </form>
