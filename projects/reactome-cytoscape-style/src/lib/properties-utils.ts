@@ -27,22 +27,19 @@ export type PropertiesType = {
   [k: string]: Property<any>
 }
 
-
-export type Contain<T, K extends keyof T> = T & {
+export type Defaultable<T, K extends keyof T = never> = T & {
+  setDefault<KA extends keyof T, VA extends T[KA]>(key: KA, defaultValue: VA): Defaultable<T, K | KA>;
+} & {
   [P in K]-?: T[P];
-}
-
-export type Defaultable<T> = T & {
-  setDefault<K extends keyof T, V extends T[K]>(key: K, defaultValue: V): Defaultable<Contain<T, K>>;
 }
 
 
 export function defaultable<T>(object: T): Defaultable<T> {
   const defaultable = (object) as Defaultable<T>;
 
-  defaultable.setDefault = function <K extends keyof T, V extends T[K]>(key: K, defaultValue: V): Defaultable<Contain<T, K>> {
+  defaultable.setDefault = function <K extends keyof T, KA extends keyof T, VA extends T[KA]>(this: Defaultable<T, K>, key: KA, defaultValue: VA): Defaultable<T, K | KA> {
     if (!object[key]) object[key] = defaultValue;
-    return defaultable as Defaultable<Contain<T, K>>;
+    return defaultable as Defaultable<T, K | KA>;
   };
 
   return defaultable;

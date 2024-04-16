@@ -20,5 +20,11 @@ export interface Interactors {
   resource: string;
 }
 
+export interface PsicquicResource{
+  name: string;
+  soapURL: string;
+  restURL: string;
+  active: boolean
+}
 
 

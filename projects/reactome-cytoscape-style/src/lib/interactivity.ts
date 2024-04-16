@@ -4,6 +4,8 @@ import {Interactor} from "./model/interactor.model";
 import InteractorsLayout from "./interactors-layout";
 import {Properties} from "./properties";
 import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
+import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
+import {NODE_TYPE_MAP} from "./utils";
 
 cytoscape.use(Layers)
 
@@ -21,69 +23,164 @@ export class Interactivity {
     this.initStructureVideo(cy);
   }
 
-  applyReaction = (action: (col: cytoscape.Collection) => void, stateKey: keyof State) => (reactionNode: cytoscape.NodeCollection) => {
+  expandReaction(reactionNode: cytoscape.NodeCollection) {
+    return reactionNode.connectedEdges().add(reactionNode);
+  }
+
+  applyToReaction = (action: (col: cytoscape.Collection) => void, stateKey: keyof State) => (reactionNode: cytoscape.NodeCollection) => {
     if (state[stateKey]) return;
     state[stateKey] = true;
-    action(reactionNode.connectedEdges().add(reactionNode));
+    action(this.expandReaction(reactionNode));
     state[stateKey] = false;
   };
 
-  initHover(cy: cytoscape.Core) {
-    const hoverReaction = this.applyReaction(col => col.addClass('hover'), 'hovering')
-    const deHoverReaction = this.applyReaction(col => col.removeClass('hover'), 'deHovering')
+  initHover(cy: cytoscape.Core, mapper = <X>(x: X) => x) {
+    const hoverReaction = this.applyToReaction(col => col.addClass('hover'), 'hovering')
+    const deHoverReaction = this.applyToReaction(col => col.removeClass('hover'), 'deHovering')
 
-    cy.nodes()
-      .on('mouseover', e => e.target.addClass('hover'))
-      .on('mouseout', e => e.target.removeClass('hover'))
-      .nodes('.reaction')
-      .on('mouseover', e => hoverReaction(e.target))
-      .on('mouseout', e => deHoverReaction(e.target))
 
-    cy.nodes('.Modification')
-      .on('mouseover', e => cy.nodes(`#${e.target.data('nodeId')}`).addClass('hover'))
-      .on('mouseout', e => cy.nodes(`#${e.target.data('nodeId')}`).removeClass('hover'))
+    const container = cy.container()!;
+    cy
+      .on('mouseover', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
+        element: e.target,
+        type: "PhysicalEntity",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseover', 'node.Pathway', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
+        element: e.target,
+        type: "Pathway",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseover', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
+        element: e.target,
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseover', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
+        element: e.target.connectedNodes('.reaction'),
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
 
-    cy.edges()
-      .on('mouseover', e => hoverReaction(e.target.connectedNodes('.reaction')))
-      .on('mouseout', e => deHoverReaction(e.target.connectedNodes('.reaction')))
+      .on('mouseout', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
+        element: e.target,
+        type: "PhysicalEntity",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseout', 'node.Pathway', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
+        element: e.target,
+        type: "Pathway",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseout', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
+        element: e.target,
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('mouseout', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
+        element: e.target.connectedNodes('.reaction'),
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
 
-    cy.on('mouseover mouseout', '.InteractorOccurrences', event => {
-      event.target.toggleClass('hover', event.type === 'mouseover')
-    });
+      .on('mouseover', 'node', e => mapper(e.target).addClass('hover'))
+      .on('mouseout', 'node', e => mapper(e.target).removeClass('hover'))
 
-    cy.on('mouseover mouseout', '.Interactor', event => {
-      event.target.toggleClass('hover', event.type === 'mouseover')
-    })
+      .on('mouseover', 'node.reaction', e => hoverReaction(mapper(e.target)))
+      .on('mouseout', 'node.reaction', e => deHoverReaction(mapper(e.target)))
 
+      .on('mouseover', 'edge', e => {
+        const mapped = mapper(e.target);
+        if (mapped !== e.target) console.log(mapped, mapped.connectedNodes('.reaction'))
+
+        hoverReaction(mapped.connectedNodes('.reaction'))
+      })
+      .on('mouseout', 'edge', e => deHoverReaction(mapper(e.target).connectedNodes('.reaction')))
+
+      .on('mouseover', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).addClass('hover'))
+      .on('mouseout', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).removeClass('hover'))
+
+      .on('mouseover', 'edge.Interactor', e => mapper(cy.edges(`#${e.target.data('id')}`)).addClass('hover'))
+      .on('mouseout', 'edge.Interactor', e => mapper(cy.edges(`#${e.target.data('id')}`)).removeClass('hover'))
   }
 
-  initSelect(cy: cytoscape.Core) {
-    const selectReaction = this.applyReaction(col => col.select(), 'selecting')
+  initSelect(cy: cytoscape.Core, mapper = <X>(x: X) => x) {
+    const selectReaction = this.applyToReaction(col => col.select(), 'selecting')
+    const container = cy.container()!;
 
-    cy.edges()
-      .on('select', event => selectReaction(event.target.connectedNodes('.reaction')))
-      .on('unselect', event => selectReaction(
-        cy.edges(':selected').connectedNodes('.reaction')
+    cy
+      .on('select', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
+        element: e.target,
+        type: "PhysicalEntity",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('select', 'node.Pathway', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
+        element: e.target,
+        type: "Pathway",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('select', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
+        element: e.target,
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('select', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
+        element: e.target.connectedNodes('.reaction'),
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+
+      .on('unselect', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
+        element: e.target,
+        type: "PhysicalEntity",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('unselect', 'node.Pathway', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
+        element: e.target,
+        type: "Pathway",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('unselect', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
+        element: e.target,
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+      .on('unselect', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
+        element: e.target.connectedNodes('.reaction'),
+        type: "reaction",
+        reactomeId: e.target.data('reactomeId'),
+        cy
+      })))
+
+      .on('select', 'edge', e => selectReaction(mapper(e.target).connectedNodes('.reaction')))
+      .on('unselect', 'edge', e => selectReaction(
+        mapper(cy.edges(':selected').connectedNodes('.reaction')
           .add(cy.nodes('.reaction:selected')))
-      )
-    cy.nodes('.reaction')
-      .on('select', event => selectReaction(event.target))
-    cy.nodes('.Modification')
-      .on('select', e => cy.nodes(`#${e.target.data('nodeId')}`).select())
+      )) // Avoid single element selection when double-clicking
 
-    cy.on('select unselect', '.InteractorOccurrences', event => {
-      //@ts-ignore
-      event.target.toggleClass('select', event.type === 'select')
-    })
+      .on('select', 'node.reaction', event => selectReaction(mapper(event.target)))
+      .on('select', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).select())
 
-    cy.on('select', '.Interactor', event => {
-      const prop = event.target.isNode() ? 'accURL' : 'evidenceURLs';
-      const url = event.target.data(prop);
-      if (url) {
-        window.open(url);
-        event.target.unselect();
-      }
-    });
+      .on('click', '.Interactor', e => {
+        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
+        const url = e.target.data(prop);
+        if (url) window.open(url);
+      });
 
   }
 
@@ -129,16 +226,12 @@ export class Interactivity {
           'underlay-opacity': shadowOpacity
         }
       });
-      shadowLabels.stop().animate({
-        style: {
-          'text-opacity': shadowLabelOpacity
-        }
+      shadowLabels.style({
+        'text-opacity': shadowLabelOpacity
       });
-      trivial.stop().animate({
-        style: {
-          'opacity': trivialOpacity,
-          'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
-        }
+      trivial.style({
+        'opacity': trivialOpacity,
+        'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
       });
     }
 
@@ -193,6 +286,7 @@ export class Interactivity {
       const targetNode = event.target;
       const interactorsData = targetNode.data('interactors');
       const resource = targetNode.data('resource')
+      InteractorsLayout.BOX_WIDTH = resource === 'DisGeNet' ? this.DEFAULT_DISGENET_WIDTH / 2 : this.DEFAULT_INTERACTOR_WIDTH / 2;
       const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
       const [dynamicInteractors, existingInteractors] = this.getInteractors(interactorsData, cy, numberToAdd);
       const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
@@ -205,25 +299,23 @@ export class Interactivity {
     });
   }
 
-  displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: {
-    [key: string]: { resource: string, count: number }
-  }) {
+  displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: { [key: string]: { resource: string, count: number } }) {
 
-    const layoutOptions = {
+    let layoutOptions: cytoscape.LayoutOptions = {
       name: 'preset',
       fit: false
     }
 
-    // todo: better way to handle this
     /**
      *  A toggle behavior for displaying and removing interactor nodes associated with interactor occurrence node
      *  base on whether a node has been clicked before, tracking click counts and node resources in the process.
      */
+    const resource = targetNode.data('resource');
     if (clickedNodes[targetNode.id()]) {
       //check if the node has been clicked before
       const nodeData = clickedNodes[targetNode.id()];
       //same resource
-      if (nodeData.resource === targetNode.data('resource')) {
+      if (nodeData.resource === resource) {
         const evenClick = nodeData.count % 2 === 0;
         //even click count, display data, odd click count, remove data
         evenClick ? interactorsToDisplay.layout(layoutOptions).run() : (interactorsToDisplay.remove(), this.removeInteractorEdges(targetNode, cy));
@@ -231,21 +323,22 @@ export class Interactivity {
       } else {
         //different resource, treat it as a first click
         interactorsToDisplay.layout(layoutOptions).run();
-        clickedNodes[targetNode.id()] = {resource: targetNode.data('resource'), count: 1};
+        clickedNodes[targetNode.id()] = {resource: resource, count: 1};
       }
     } else {
       //first click on this node
       interactorsToDisplay.layout(layoutOptions).run();
-      clickedNodes[targetNode.id()] = {resource: targetNode.data('resource'), count: 1};
+      clickedNodes[targetNode.id()] = {resource: resource, count: 1};
     }
   }
 
   readonly DEFAULT_INTERACTOR_WIDTH = 100;
-  readonly DEFAULT_DISGENET_WIDTH = 120
+  readonly DEFAULT_DISGENET_WIDTH = 250
   readonly INTERACTOR_PADDING = 20;
   readonly CHAR_WIDTH = 10;
   readonly CHAR_HEIGHT = 12;
-  readonly INTACT = "IntAct";
+  readonly STATIC = "Static"; //IntAct
+  readonly DISGENET ="DisGeNet";
 
   addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
     const interactorNodes: cytoscape.NodeDefinition[] = [];
@@ -260,13 +353,19 @@ export class Interactivity {
       const HEIGHT = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       let interactorNodeId = uniprotId + '-' + targetNode.data('entity').id();
       const html = `<video loop width="${this.DEFAULT_INTERACTOR_WIDTH * 0.5}" height="${HEIGHT * 0.8}" id="video-${interactorNodeId}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
+      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
+      let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
+      let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
+      if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
+
       interactorNodes.push({
         data: {
-          id: interactorNodeId,
           displayName: displayName,
           width: resource === this.INTACT ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
+          id: interactor.acc + '-' + targetNode.data('entity').id(),
+          displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
           // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
-          height: HEIGHT,
+          height: height,
           source: targetNode.id(),
           accURL: interactor.accURL,
           score: interactor.score,
@@ -275,9 +374,9 @@ export class Interactivity {
           resource: resource,
           html
         },
-        //todo: provide shape base on interactor type: Gene, RNA, Protein, Molecule
-        classes: resourceClass,
-        position: position
+        classes: classes,
+        position: position,
+        selectable: false
       })
     })
     let interactors = cy.add(interactorNodes);
@@ -285,7 +384,7 @@ export class Interactivity {
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
 
-    const resourceClass = resource === this.INTACT ? ['Interactor'] : ['Interactor', 'Disease'];
+    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor']: ['Interactor'];
 
     const interactorEdges: cytoscape.EdgeDefinition[] = [];
     interactorsData.forEach((interactor: Interactor) => {
@@ -301,7 +400,8 @@ export class Interactivity {
           evidenceURLs: interactor.evidencesURL,
           resource: resource
         },
-        classes: resourceClass
+        classes: resourceClass,
+        selectable: false
       })
     })
     cy?.add(interactorEdges)

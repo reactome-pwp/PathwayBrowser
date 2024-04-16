@@ -1,9 +1,8 @@
 import {Injectable} from '@angular/core';
 import {forkJoin, map, Observable, of, tap} from "rxjs";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpClient} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
-import {Graph, Node as GraphNode} from "../model/graph.model";
-import {Interactors} from "../model/interactor-entity.model";
+import {Graph, Node as GraphNode, Edge as GraphEdge} from "../model/graph.model";
 // @ts-ignore
 import Reactome from "reactome-cytoscape-style";
 import legend from "../../assets/json/legend.json"
@@ -67,8 +66,6 @@ const closestToAverage = (positions: Position[]): Position => {
   return closest;
 }
 
-const INTACT = 'IntAct';
-
 @Injectable({
   providedIn: 'root'
 })
@@ -121,12 +118,12 @@ export class DiagramService {
   )
 
   edgeTypeMap = new Map<string, EdgeTypeDefinition>([
-      ['INPUT', ['consumption', 'incoming']],
-      ['ACTIVATOR', ['positive-regulation', 'incoming']],
-      ['REQUIRED', ['positive-regulation', 'incoming']],
-      ['INHIBITOR', ['negative-regulation', 'incoming']],
-      ['CATALYST', ['catalysis', 'incoming']],
-      ['OUTPUT', ['production', 'outgoing']],
+      ['INPUT', ['consumption', 'incoming', 'reaction']],
+      ['ACTIVATOR', ['positive-regulation', 'incoming', 'reaction']],
+      ['REQUIRED', ['positive-regulation', 'incoming', 'reaction']],
+      ['INHIBITOR', ['negative-regulation', 'incoming', 'reaction']],
+      ['CATALYST', ['catalysis', 'incoming', 'reaction']],
+      ['OUTPUT', ['production', 'outgoing', 'reaction']],
     ]
   )
 
@@ -165,8 +162,8 @@ export class DiagramService {
 
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
-      diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
-      graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
+      diagram: this.http.get<Diagram>(`https://release.reactome.org/download/current/diagram/${id}.json`),
+      graph: this.http.get<Graph>(`https://release.reactome.org/download/current/diagram/${id}.graph.json`)
     }).pipe(
       tap((mergedResponse) => console.log('All responses:', mergedResponse)),
       map((response) => {
@@ -216,6 +213,9 @@ export class DiagramService {
         }).filter(entry => entry !== undefined);
 
         const idToGraphNodes = new Map([...mappingList]);
+        const idToGraphEdges = new Map(graph.edges.map(edge => [edge.dbId, edge]));
+
+        const dbIdToGraphEdge = new Map<number, GraphEdge>(graph.edges.map(edge => ([edge.dbId, edge]) || []))
 
         const hasFadeOut = data.nodes.some(node => node.isFadeOut);
         const normalNodes = data.nodes.filter(node => node.isFadeOut);
@@ -223,10 +223,10 @@ export class DiagramService {
         const posToNormalNode = new Map(normalNodes.map(node => [pointToStr(node.position), node]));
         const posToSpecialNode = new Map(specialNodes.map(node => [pointToStr(node.position), node]));
 
-        const normalEdges = data.edges.filter(node => node.isFadeOut);
-        const specialEdges = data.edges.filter(node => !node.isFadeOut);
-        const posToNormalEdge = new Map(normalEdges.map(node => [pointToStr(node.position), node]));
-        const posToSpecialEdge = new Map(specialEdges.map(node => [pointToStr(node.position), node]));
+        const normalEdges = data.edges.filter(edge => edge.isFadeOut);
+        const specialEdges = data.edges.filter(edge => !edge.isFadeOut);
+        const posToNormalEdge = new Map(normalEdges.map(edge => [pointToStr(edge.position), edge]));
+        const posToSpecialEdge = new Map(specialEdges.map(edge => [pointToStr(edge.position), edge]));
 
         //compartment nodes
         const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
@@ -278,11 +278,19 @@ export class DiagramService {
           return layers;
         });
 
+        const replacementMap = new Map<string, string>();
+
         //reaction nodes
         const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => {
           let replacement, replacedBy;
-          if (item.isFadeOut) replacedBy = posToSpecialEdge.get(pointToStr(item.position));
-          if (!item.isFadeOut) replacement = posToNormalEdge.get(pointToStr(item.position));
+          if (item.isFadeOut) {
+            replacedBy = posToSpecialEdge.get(pointToStr(item.position))?.id.toString() || specialEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
+            if (replacedBy) {
+              replacementMap.set(item.id.toString(), replacedBy)
+              replacementMap.set(replacedBy, item.id.toString())
+            }
+          }
+          if (!item.isFadeOut) replacement = posToNormalEdge.get(pointToStr(item.position)) || normalEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
           return ({
             data: {
               id: item.id + '',
@@ -291,6 +299,9 @@ export class DiagramService {
               output: item.outputs,
               isFadeOut: item.isFadeOut,
               isBackground: item.isFadeOut,
+              reactomeId: item.reactomeId,
+              reactionId: item.id,
+              graph: idToGraphEdges.get(item.reactomeId),
               replacement, replacedBy
             },
             classes: this.reactionTypeMap.get(item.reactionType),
@@ -302,14 +313,23 @@ export class DiagramService {
         //entity nodes
         const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.flatMap(item => {
           const classes = [...this.nodeTypeMap.get(item.renderableClass)!] || [item.renderableClass.toLowerCase()];
-          let replacedBy: Node | undefined;
-          let replacement: Node | undefined;
+          let replacedBy: string | undefined;
+          let replacement: string | undefined;
           if (item.isDisease) classes.push('disease');
           if (item.isCrossed) classes.push('crossed');
           if (item.trivial) classes.push('trivial');
           if (item.needDashedBorder) classes.push('loss-of-function');
-          if (item.isFadeOut) replacedBy = posToSpecialNode.get(pointToStr(item.position)) || specialNodes.find(node => overlap(item, node));
-          if (!item.isFadeOut) replacement = posToNormalNode.get(pointToStr(item.position)) || normalNodes.find(node => overlap(item, node));
+          if (item.isFadeOut) {
+            replacedBy = posToSpecialNode.get(pointToStr(item.position))?.id.toString()
+            if (!replacedBy) {
+              replacedBy = specialNodes.find(node => overlapLimited(item, node, 0.8))?.id.toString();
+            }
+            if (replacedBy) {
+              replacementMap.set(item.id.toString(), replacedBy)
+              replacementMap.set(replacedBy, item.id.toString())
+            }
+          }
+          if (!item.isFadeOut) replacement = posToNormalNode.get(pointToStr(item.position))?.id.toString() //|| normalNodes.find(node => overlap(item, node))?.id.toString();
           if (classes.some(clazz => clazz === 'RNA')) item.prop.height -= 10;
           if (classes.some(clazz => clazz === 'Cell')) item.prop.height /= 2;
 
@@ -322,10 +342,16 @@ export class DiagramService {
           if (classes.some(clazz => clazz === 'Protein')) {
             html = `<video loop id="video-${item.id}" width="${width * 0.5}" height="${height * 0.8}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
           }
+          if (isBackground && !item.isFadeOut) {
+            replacementMap.set(item.id.toString(), item.id.toString())
+          }
+          const isFadeOut = !item.isCrossed && item.isFadeOut;
           const nodes: cytoscape.NodeDefinition[] = [
             {
               data: {
                 id: item.id + '',
+                reactomeId: item.reactomeId,
+                acc: idToGraphNodes.get(item.id)?.identifier,
                 displayName: item.displayName.replace(/([/,:;-])/g, "$1\u200b"),
                 height: height,
                 width: width,
@@ -333,6 +359,7 @@ export class DiagramService {
                 acc: uniprotId,
                 isFadeOut: item.isFadeOut,
                 html,
+                isFadeOut,
                 isBackground,
                 replacement,
                 replacedBy
@@ -351,6 +378,10 @@ export class DiagramService {
                 displayName: ptm.label,
                 height: scale(ptm.shape.b.y - ptm.shape.a.y),
                 width: scale(ptm.shape.b.x - ptm.shape.a.x),
+                isFadeOut,
+                isBackground,
+                replacement,
+                replacedBy
               },
               classes: "Modification",
               position: scale(ptm.shape.centre)
@@ -424,24 +455,33 @@ export class DiagramService {
                 const classes = [...this.edgeTypeMap.get(connector.type)!];
                 if (reaction.isDisease) classes.push('disease');
                 if (node.trivial) classes.push('trivial');
+                if (eventIdToSubPathwayId.has(reaction.reactomeId)) classes.push('shadow');
 
                 let d = dist(from, to);
                 if (equal(from, reactionP) || equal(to, reactionP)) d -= REACTION_RADIUS;
                 if (classes.includes('positive-regulation') || classes.includes('catalysis') || classes.includes('production')) d -= ARROW_MULT * T;
                 // console.assert(d > MIN_DIST, `The edge between reaction: R-HSA-${reaction.reactomeId} and entity: R-HSA-${node.reactomeId} in pathway ${id} has a visible length of ${d} which is shorter than ${MIN_DIST}`)
-                console.assert(d > MIN_DIST, `${id}, ${hasFadeOut}, R-HSA-${reaction.reactomeId}, R-HSA-${node.reactomeId}, https://dev.reactome.org/PathwayBrowser/#/${id}&SEL=R-HSA-${reaction.reactomeId}&FLG=R-HSA-${node.reactomeId}`)
+                console.assert(d > MIN_DIST, `${id}\t${data.displayName}\t${hasFadeOut}\tR-HSA-${reaction.reactomeId}\tR-HSA-${node.reactomeId}\thttps://release.reactome.org/PathwayBrowser/#/${id}&SEL=R-HSA-${reaction.reactomeId}&FLG=R-HSA-${node.reactomeId}\thttps://reactome-pwp.github.io/PathwayBrowser/${id}?select=${reaction.reactomeId}&flag=${node.reactomeId}`)
 
                 let replacement, replacedBy;
                 if (connector.isFadeOut) {
                   // First case: same node is used both special and normal context
-                  replacedBy = node.connectors.find(otherConnector => otherConnector !== connector && !otherConnector.isFadeOut && samePoint(idToEdges.get(otherConnector.edgeId)!.position, reaction.position))
+                  // replacedBy = node.connectors.find(otherConnector => otherConnector !== connector && !otherConnector.isFadeOut && samePoint(idToEdges.get(otherConnector.edgeId)!.position, reaction.position))?.edgeId;
                   // Second case: different nodes are used between special and normal context
-                  replacedBy = replacedBy || (posToSpecialEdge.get(pointToStr(reaction.position)) && posToSpecialNode.get(pointToStr(node.position)));
+                  // replacedBy = replacedBy || (posToSpecialNode.get(pointToStr(node.position)) && posToSpecialEdge.get(pointToStr(reaction.position)))?.id;
+
+                  replacedBy = replacementMap.get(node.id.toString()) && replacementMap.get(reaction.id.toString())
                 }
-                // if (!connector.isFadeOut) replacement = posToNormalEdge.get(pointToStr(reaction.position)) && posToNormalNode.get(pointToStr(node.position));
+                if (!connector.isFadeOut) {
+                  // First case: same node is used both special and normal context
+                  replacement = node.connectors.find(otherConnector => otherConnector !== connector && otherConnector.isFadeOut && samePoint(idToEdges.get(otherConnector.edgeId)!.position, reaction.position))?.edgeId;
+                  // Second case: different nodes are used between special and normal context
+                  replacement = replacement || (posToNormalNode.get(pointToStr(node.position)) && posToNormalEdge.get(pointToStr(reaction.position)))?.id;
+                }
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
                     id: this.getEdgeId(source, connector, target, edgeIds),
+                    graph: dbIdToGraphEdge.get(reaction.reactomeId),
                     source: source.id + '',
                     target: target.id + '',
                     stoichiometry: connector.stoichiometry.value,
@@ -450,11 +490,13 @@ export class DiagramService {
                     sourceEndpoint: this.endpoint(sourceP, from),
                     targetEndpoint: this.endpoint(targetP, to),
                     pathway: eventIdToSubPathwayId.get(reaction.reactomeId),
+                    reactomeId: reaction.reactomeId,
+                    reactionId: reaction.id,
                     isFadeOut: reaction.isFadeOut,
                     isBackground: reaction.isFadeOut,
-                    replacedBy
+                    replacedBy, replacement
                   },
-                  classes: classes,
+                  classes: classes
                 };
                 return edge
               });
@@ -750,11 +792,27 @@ function samePoint(p1: Position, p2: Position) {
   return p1.x === p2.x && p1.y === p2.y
 }
 
+function overlapLimited(nodeA: Node, nodeB: Node, limit: number = 0.8): boolean {
+  if (nodeA.position.x === nodeB.position.x && nodeA.position.y === nodeB.position.y) return true;
+  const rectA = getRect(nodeA), rectB = getRect(nodeB);
+  const o: Rectangle = {
+    left: Math.max(rectA.left, rectB.left),
+    right: Math.min(rectA.right, rectB.right),
+    top: Math.max(rectA.top, rectB.top),
+    bottom: Math.min(rectA.bottom, rectB.bottom)
+  }
+  return (o.left < o.right && o.top < o.bottom) && ((area(o) / area(rectA)) > limit);
+}
+
 function overlap(nodeA: Node, nodeB: Node): boolean {
   if (nodeA.position.x === nodeB.position.x && nodeA.position.y === nodeB.position.y) return true;
   const rectA = getRect(nodeA), rectB = getRect(nodeB);
   return Math.max(rectA.left, rectB.left) < Math.min(rectA.right, rectB.right)
     && Math.max(rectA.top, rectB.top) < Math.min(rectA.bottom, rectB.bottom);
+}
+
+function area(rect: Rectangle) {
+  return (rect.right - rect.left) * (rect.bottom - rect.top)
 }
 
 function getRect(node: Node): Rectangle {

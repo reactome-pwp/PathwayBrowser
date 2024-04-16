@@ -151,7 +151,7 @@
 
 .drag-container {
   position: absolute;
-  left: 50%;
+  left: 10%;
   width: 100%;
   pointer-events: all;
   //position: relative;
@@ -219,4 +219,10 @@
     left: -2px;
     z-index: 4;
   }
+}
+
+.option-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }

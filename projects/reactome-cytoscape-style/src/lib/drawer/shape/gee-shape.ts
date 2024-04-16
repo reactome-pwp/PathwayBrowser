@@ -1,9 +1,16 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, drug, disease, lossOfFunction}) => {
+export const genomeEncodedEntity: DrawerProvider = (properties, {
+  width,
+  height,
+  drug,
+  disease,
+  interactor,
+  lossOfFunction
+}) => {
   const fill = !drug ?
-    extract(properties.genomeEncodedEntity.fill) :
+    extract(properties.complex.fill) :
     extract(properties.genomeEncodedEntity.drug);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -11,7 +18,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
   const t = extract(properties.global.thickness);
   const t_2 = t / 2;
   const bottomR = extract(properties.genomeEncodedEntity.bottomRadius);
-  const stroke = !disease ? null : extract(properties.global.negativeContrast);
+  const stroke = !interactor ? !disease ? null : extract(properties.global.negativeContrast) : extract(properties.interactor.fill);
 
   const topR = Math.min(extract(properties.genomeEncodedEntity.topRadius), height - bottomR, width / 2 - t);
   const v = height - bottomR - topR;
@@ -27,22 +34,22 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {width, height, 
     background: {
       "background-image": `
       <path fill="${fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
-      ${disease ? `stroke="${stroke}" stroke-width="${t}"` : ''}
-      ${lossOfFunction ? `stroke-dasharray="${t} ${t*2}"` : ''}
+      ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
+      ${lossOfFunction ? `stroke-dasharray="${t} ${t * 2}"` : ''}
       d="
       M ${topR} 0
-      H ${width - topR }
+      H ${width - topR}
       a ${topR} ${topR} 0 0 1 ${topR} ${topR}
-      v ${v }
+      v ${v}
       a ${bottomR} ${bottomR} 0 0 1 -${bottomR} ${bottomR}
-      H ${bottomR }
+      H ${bottomR}
       a ${bottomR} ${bottomR} 0 0 1 -${bottomR} -${bottomR}
-      v -${v }
+      v -${v}
       a ${topR} ${topR} 0 0 1 ${topR} -${topR}
       Z
       "/>
       `,
-      "bounds-expansion": t/2,
+      "bounds-expansion": t / 2,
       "background-clip": "none",
       "background-image-containment": "over",
       "background-position-x": -t_2,
