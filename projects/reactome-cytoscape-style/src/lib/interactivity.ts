@@ -48,13 +48,13 @@ export class Interactivity {
         cy
       })))
       .on('mouseover', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
-        element: this.expandReaction(e.target),
+        element: e.target,
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
       })))
       .on('mouseover', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.hover, {
-        element: this.expandReaction(e.target.connectedNodes('.reaction')),
+        element: e.target.connectedNodes('.reaction'),
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
@@ -73,13 +73,13 @@ export class Interactivity {
         cy
       })))
       .on('mouseout', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
-        element: this.expandReaction(e.target),
+        element: e.target,
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
       })))
       .on('mouseout', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.leave, {
-        element: this.expandReaction(e.target.connectedNodes('.reaction')),
+        element: e.target.connectedNodes('.reaction'),
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
@@ -124,13 +124,13 @@ export class Interactivity {
         cy
       })))
       .on('select', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
-        element: this.expandReaction(e.target),
+        element: e.target,
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
       })))
       .on('select', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
-        element: this.expandReaction(e.target.connectedNodes('.reaction')),
+        element: e.target.connectedNodes('.reaction'),
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
@@ -149,13 +149,13 @@ export class Interactivity {
         cy
       })))
       .on('unselect', 'node.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
-        element: this.expandReaction(e.target),
+        element: e.target,
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
       })))
       .on('unselect', 'edge.reaction', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
-        element: this.expandReaction(e.target.connectedNodes('.reaction')),
+        element: e.target.connectedNodes('.reaction'),
         type: "reaction",
         reactomeId: e.target.data('reactomeId'),
         cy
