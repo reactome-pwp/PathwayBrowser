@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import cytoscape from "cytoscape";
-import {Observable} from "rxjs";
-import {Interactors, PsicquicResource} from "../model/interactor-entity.model";
+import {map, Observable, switchMap, tap} from "rxjs";
+import {Interactors, InteractorToken, PsicquicResource} from "../model/interactor-entity.model";
 
 @Injectable({
   providedIn: 'root',
@@ -15,16 +15,23 @@ export class InteractorService {
   private DISGENET  = 'DisGeNet';
   private staticUrl = 'https://dev.reactome.org/ContentService/interactors/static/molecules/details';
   private disGeNetUrl ='https://dev.reactome.org/overlays/disgenet/findByGenes';
-  private psicquicResources = 'https://dev.reactome.org/ContentService/interactors/psicquic/resources/'
+  private psicquicResourcesUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/resources/'
   private psicquicUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/molecules/';
-  uploadUrl = "https://dev.reactome.org/ContentService/interactors/upload/tuple/";
-  uplpadPsicquicUrl = "https://dev.reactome.org/ContentService/interactors/upload/psicquic/";
+  public uploadUrl = "https://dev.reactome.org/ContentService/interactors/upload/tuple/";
+  public uplpadPsicquicUrl = "https://dev.reactome.org/ContentService/interactors/upload/psicquic/url";
+  private tokenUrl = "https://dev.reactome.org/ContentService/interactors/token/"
 
   constructor(private http: HttpClient) {
   }
 
   private updatePostContentCache(cy: cytoscape.Core): void {
     this.postContentCache = this.getPostContent(cy);
+  }
+
+  private updatePostContentCacheIfNeeded(cy: cytoscape.Core): void {
+    if (!this.postContentCache) {
+      this.updatePostContentCache(cy);
+    }
   }
 
   public getPostContent(cy: cytoscape.Core) {
@@ -63,12 +70,6 @@ export class InteractorService {
     return this.http.post<Interactors>(url, this.postContentCache, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     });
-  }
-
-  private updatePostContentCacheIfNeeded(cy: cytoscape.Core): void {
-    if (!this.postContentCache) {
-      this.updatePostContentCache(cy);
-    }
   }
 
   lastSelectedResource: string | undefined;
@@ -122,9 +123,29 @@ export class InteractorService {
   }
 
   public getPsicquicResources(): Observable<PsicquicResource[]>{
-   return this.http.get<PsicquicResource[]>(this.psicquicResources, {
+   return this.http.get<PsicquicResource[]>(this.psicquicResourcesUrl, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
     });
+  }
+
+  public getInteractorToken(name: string, url: string, body: string | FormData) {
+    return this.http.post<InteractorToken>(url, body, {
+      params: new HttpParams().set('name', name),
+    })
+  }
+
+  public getInteractorsFromToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<Interactors> {
+    this.updatePostContentCacheIfNeeded(cy);
+    return this.getInteractorToken(name, url, body).pipe(
+      switchMap(token => {
+        return this.http.post<Interactors>(this.tokenUrl + token.summary.token, this.postContentCache, {
+          headers: new HttpHeaders({'Content-Type': 'text/plain'})
+        }).pipe(
+          map(interactors => ({...interactors})
+          )
+        );
+      })
+    );
   }
 
 }

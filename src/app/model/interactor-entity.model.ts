@@ -28,3 +28,24 @@ export interface PsicquicResource{
 }
 
 
+export interface InteractorToken{
+  summary: Summary;
+  warningMessage: string;
+}
+
+interface Summary {
+  token:string;
+  interactors: number;
+  interactions: number;
+  fileName: string;
+  name: string
+}
+
+export class ResourceCategory {
+  url: string | undefined
+  input: string | FormData | undefined
+}
+
+export interface ActionMap {
+  [key: string]: { url: string, input: string | FormData};
+}

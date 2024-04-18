@@ -363,7 +363,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   openCustomInteractorDialog() {
-    this.dialog.open(CustomInteractorDialogComponent);
+    this.dialog.open(CustomInteractorDialogComponent, {
+      data: {cy: this.cy}
+    });
   }
 
   updateStyle() {
