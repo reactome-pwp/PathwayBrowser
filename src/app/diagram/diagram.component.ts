@@ -364,7 +364,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   openCustomInteractorDialog() {
     this.dialog.open(CustomInteractorDialogComponent, {
-      data: {cy: this.cy}
+      data: {cy: this.cy},
+      restoreFocus:false // Deselect button when closing
     });
   }
 
