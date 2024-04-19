@@ -29,7 +29,7 @@
         <mat-option *ngFor="let resource of psicquicResources" [value]="resource.name" [disabled]="!resource.active" (click)="psicquicSelect.open()">
           <div class="option-content">
             <span><i>{{ resource.name }}</i></span>
-            <mat-spinner style="padding-right: 30px" diameter="20" *ngIf="isDataFromPsicquicLoading && selectedPsicquicResource.value === resource.name"></mat-spinner>
+            <mat-spinner diameter="20" *ngIf="isDataFromPsicquicLoading && selectedPsicquicResource.value === resource.name"></mat-spinner>
           </div>
         </mat-option>
       </mat-select>
