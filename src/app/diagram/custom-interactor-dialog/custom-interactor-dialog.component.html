@@ -9,7 +9,7 @@
       </mat-form-field>
     </div>
     <mat-tab-group (selectedTabChange)="onTabChange($event)">
-      <mat-tab label="Add your data" aria-labelledby="add-data">
+      <mat-tab label="Add your data" aria-labelledby="data">
         <section>
           <mat-radio-group (change)="onItemChange($event)">
             <mat-radio-button class="margin" *ngFor="let item of items; let i = index" [value]="item.name"
@@ -19,7 +19,7 @@
         </section>
 
         <mat-form-field *ngIf="selectedValue === 'form'" class="full-width">
-          <ngx-mat-file-input formControlName="fileControl" (change)="onFileChange($event)"  [multiple]=false>
+          <ngx-mat-file-input formControlName="form" (change)="onFileChange($event)"  [multiple]=false>
             <mat-icon ngxMatFileInputIcon>folder</mat-icon>
           </ngx-mat-file-input>
           <mat-hint><strong>Upload a file stored locally on your computer.</strong></mat-hint>
@@ -34,13 +34,13 @@
 
         <mat-form-field *ngIf="selectedValue === 'content'" class="full-width">
           <mat-label>Copy & paste your data here</mat-label>
-          <textarea matInput formControlName="contentControl"></textarea>
+          <textarea matInput formControlName="content"></textarea>
           <mat-hint><strong>Copy and paste your data in columns.</strong></mat-hint>
         </mat-form-field>
 
-        <mat-form-field *ngIf="selectedValue === 'URL'" class="full-width">
+        <mat-form-field *ngIf="selectedValue === 'url'" class="full-width">
           <mat-label>URL</mat-label>
-          <input matInput formControlName='urlControl'>
+          <input matInput formControlName='url'>
           <mat-hint><strong>Upload a publicly accessible data though its URL.</strong></mat-hint>
         </mat-form-field>
 
@@ -48,7 +48,7 @@
       <mat-tab label="Add your PSICQUIC service" aria-labelledby="psicquic">
         <mat-form-field class="full-width">
           <mat-label>URL</mat-label>
-          <input matInput formControlName="psicquicUrlControl">
+          <input matInput formControlName="psicquicUrl">
           <mat-hint><strong>Add your custom PSICQUIC service through its URL.</strong></mat-hint>
         </mat-form-field>
       </mat-tab>

@@ -14,9 +14,8 @@ import {MatTabChangeEvent} from "@angular/material/tabs";
 import {MatRadioChange} from "@angular/material/radio";
 import {InteractorService} from "../../services/interactor.service";
 import cytoscape from "cytoscape";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {InteractorToken, ResourceCategory} from "../../model/interactor-entity.model";
-import {HttpClient, HttpParams} from "@angular/common/http";
+import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import {ResourceCategory} from "../../model/interactor-entity.model";
 
 
 @Component({
@@ -30,24 +29,24 @@ export class CustomInteractorDialogComponent implements OnInit {
   name = new FormControl('', [Validators.required, Validators.pattern(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)]);
   resourceForm!: FormGroup;
   errorMessage = '';
-  selectedValue = 'form';
-  file : File | null = null
-  tabId = 'add-data';
+  tabId = 'data'; // Default value
+  selectedValue = 'form'; // Default value
+  isDataLoading: boolean =false;
   items = [
     {'name': 'form', 'content': 'File'},
     {'name': 'content', 'content': 'Copy & Paste'},
-    {'name': 'URL', 'content': 'URL'}]
+    {'name': 'url', 'content': 'URL'}]
 
-  constructor(private http: HttpClient,private interactorService: InteractorService, private fb: FormBuilder, @Inject(MAT_DIALOG_DATA) public data: {
+  constructor(private interactorService: InteractorService, private dialogRef: MatDialogRef<CustomInteractorDialogComponent>,private fb: FormBuilder, @Inject(MAT_DIALOG_DATA) public data: {
     cy: cytoscape.Core
   }) {
 
     this.resourceForm = this.fb.group({
-      selectedValue: [this.items[0].name], //Default value form
-      fileControl: [''],
-      contentControl: [''],
-      urlControl: [''],
-      psicquicUrlControl: ['']
+      selectedValue: [''],
+      form: [''], // file uploader
+      content: [''],
+      url: [''],
+      psicquicUrl: ['']
     }, {validators: this.formGroupValidator});
 
     merge(this.name.statusChanges, this.name.valueChanges)
@@ -61,11 +60,11 @@ export class CustomInteractorDialogComponent implements OnInit {
   }
 
   formGroupValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-    const fileControlValue = control.value.fileControl;
-    const contentControlValue = control.value.contentControl;
-    const urlControlValue = control.value.urlControl;
-    const psicquicUrlControl = control.value.psicquicUrlControl;
-    if (fileControlValue || contentControlValue || urlControlValue || psicquicUrlControl) {
+    const fileValue = control.value.form;
+    const contentValue = control.value.content;
+    const urlValue = control.value.url;
+    const psicquicUrlValue = control.value.psicquicUrl;
+    if (fileValue || contentValue || urlValue || psicquicUrlValue) {
       return null
     } else {
       return {invalid: true};
@@ -82,26 +81,20 @@ export class CustomInteractorDialogComponent implements OnInit {
     }
   }
 
-//todo remove below
-  selectedFile: any = null;
-  onFileSelected(event: any): void {
-    this.selectedFile = event.target.files[0] ?? null;
-  }
-
-  onFileChange($event: Event) {
-    const inputElement =$event.target as HTMLInputElement;
-    if (inputElement.files && inputElement.files.length) {
-      const file = inputElement.files[0]; //Single file upload
-      this.resourceForm.patchValue({ fileControl: file });
-    }
-  }
-
   onTabChange($event: MatTabChangeEvent) {
     this.tabId = $event.tab.ariaLabelledby;
   }
 
   onItemChange($event: MatRadioChange) {
     this.selectedValue = $event.value;
+  }
+
+  onFileChange($event: Event) {
+    const inputElement =$event.target as HTMLInputElement;
+    if (inputElement.files && inputElement.files.length) {
+      const file = inputElement.files[0]; // Single file upload
+      this.resourceForm.patchValue({ form: file });
+    }
   }
 
   submit() {
@@ -116,66 +109,26 @@ export class CustomInteractorDialogComponent implements OnInit {
   private getInputs(): ResourceCategory {
     const category = new ResourceCategory();
     const formValue = this.resourceForm.value;
-    console.log(formValue.fileControl)
-    if (this.tabId === 'add-data') {
-      switch (this.selectedValue) {
-        case 'form': {
-          category.url = this.interactorService.uploadUrl + "form";
-          category.input = this.prepareFormData(formValue.fileControl)
-          break;
-        }
-        case 'content': {
-          category.url = this.interactorService.uploadUrl + "content";
-          category.input = formValue.contentControl;
-          break;
-        }
-        case 'URL': {
-          category.url = this.interactorService.uploadUrl + "url";
-          category.input = formValue.urlControl;
-          break;
-        }
-      }
 
-      // category.url = this.interactorService.uploadUrl + this.selectedValue.toLowerCase();
-     //  category.input = formValue[this.selectedValue.toLowerCase() + 'Control'];
-
+    if (this.tabId === 'data') {
+       category.url = this.interactorService.uploadUrl + this.selectedValue.toLowerCase();
+       category.input = formValue[this.selectedValue.toLowerCase()];
+       if(this.selectedValue.toLowerCase() === this.items[0].name){
+         category.input= this.prepareFormData(formValue.form)
+       }
     }
 
     if (this.tabId === 'psicquic') {
       category.url = this.interactorService.uplpadPsicquicUrl;
-      category.input = formValue.psicquicUrlControl;
+      category.input = formValue.psicquicUrl;
     }
     return category
   }
 
-
-  private prepareFormData(fileControl: string | Blob): FormData {
+  private prepareFormData(formControl: string | Blob): FormData {
     const formData = new FormData();
-    formData.append("file", fileControl);
+    formData.append("file", formControl);
     return formData;
-  }
-
-  submitFile() {
-
-    const formData = new FormData();
-    const formValue = this.resourceForm.value;
-    formData.append('file',formValue.fileControl)
-    console.log(formValue.fileControl)
-    formData.forEach((value,key) => {
-      console.log("print")
-      console.log(key+" "+value)
-    });
-
-
-      this.http.post<InteractorToken>("https://dev.reactome.org/ContentService/interactors/upload/tuple/form", formData, {
-        params: new HttpParams().set('name', this.name.value!),
-      //  headers: new HttpHeaders({'Content-Type': 'multipart/form-data'})
-      }).subscribe((result) => {
-        // worked
-        console.log(result.summary.token)
-      }, err => {
-        console.log(err);
-      });
   }
 
 }
