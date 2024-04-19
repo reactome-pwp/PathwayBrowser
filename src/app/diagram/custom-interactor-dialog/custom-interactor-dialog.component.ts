@@ -98,10 +98,13 @@ export class CustomInteractorDialogComponent implements OnInit {
   }
 
   submit() {
+    this.isDataLoading = true;
     const category = this.getInputs();
     if(category){
       this.interactorService.getInteractorsFromToken(this.name.value!, category.url!, category.input!, this.cy).subscribe(interactors => {
         this.interactorService.addInteractorOccurrenceNode(interactors, this.cy, interactors.resource)
+        this.isDataLoading = false;
+        this.dialogRef.close();
       })
     }
   }

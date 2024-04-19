@@ -57,9 +57,12 @@
       <button mat-flat-button color="primary" mat-dialog-close>Close</button>
       <button mat-flat-button color="primary"
               [disabled]="resourceForm.invalid && !resourceForm.get('name')?.invalid"
-              type="submit" mat-dialog-close (click)="submit()" cdkFocusInitial>Submit
+              type="submit" (click)="submit()">
+        <div class="button-row">
+          Submit
+          <mat-spinner class="spinner-color" diameter="20" *ngIf="isDataLoading"></mat-spinner>
+        </div>
       </button>
-      {{resourceForm.invalid}}
     </mat-dialog-actions>
   </form>
 </mat-dialog-content>
