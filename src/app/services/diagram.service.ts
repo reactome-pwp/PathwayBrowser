@@ -1,20 +1,19 @@
 import {Injectable} from '@angular/core';
 import {forkJoin, map, Observable, of, tap} from "rxjs";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
-import {Graph, Node as GraphNode, Edge as GraphEdge} from "../model/graph.model";
+import {Edge as GraphEdge, Graph, Node as GraphNode} from "../model/graph.model";
 // @ts-ignore
-import Reactome from "reactome-cytoscape-style";
+import Reactome, {Style} from "reactome-cytoscape-style";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
 
+import cytoscape from "cytoscape";
+import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
+import {Interactors} from "../model/interactor-entity.model";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
-
-import cytoscape from "cytoscape";
-import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
-import {Style} from "reactome-cytoscape-style";
 
 cytoscape.use(cytoscapeFcose)
 
@@ -340,7 +339,7 @@ export class DiagramService {
           let height = scale(item.prop.height);
           let uniprotId = idToGraphNodes.get(item.id)?.identifier;
           if (classes.some(clazz => clazz === 'Protein')) {
-            html = `<video loop id="video-${item.id}" width="${width * 0.5}" height="${height * 0.8}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
+            html = `<video loop id="video-${item.id}" width="auto" height="${height}"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm"></video>`;
           }
           if (isBackground && !item.isFadeOut) {
             replacementMap.set(item.id.toString(), item.id.toString())
@@ -351,13 +350,11 @@ export class DiagramService {
               data: {
                 id: item.id + '',
                 reactomeId: item.reactomeId,
-                acc: idToGraphNodes.get(item.id)?.identifier,
                 displayName: item.displayName.replace(/([/,:;-])/g, "$1\u200b"),
                 height: height,
                 width: width,
                 graph: idToGraphNodes.get(item.id),
                 acc: uniprotId,
-                isFadeOut: item.isFadeOut,
                 html,
                 isFadeOut,
                 isBackground,
@@ -622,6 +619,7 @@ export class DiagramService {
   }
 
   lastSelectedResource: string | undefined
+  private INTACT: string = "IntAct";
 
   public addOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
@@ -636,7 +634,7 @@ export class DiagramService {
 
   public createOccurrenceAndInteractors(interactors: Interactors, cy: cytoscape.Core, resource: string) {
 
-    const classes = resource === INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
+    const classes = resource === this.INTACT ? ['InteractorOccurrences'] : ['InteractorOccurrences', 'Disease']
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
     interactors.entities

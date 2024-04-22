@@ -204,12 +204,14 @@ export class Interactivity {
       const proteins = cy.nodes('.Protein');
       let baseFontSize = extract(this.properties.font.size);
       const structureOpacityArray = extract(this.properties.structure.opacity)
+      const color = extract(this.properties.protein.fill)
       const zoomStart = structureOpacityArray[0][0]
       const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
       const fontSize = this.interpolate(zoomLevel * 100, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
 
       proteins.forEach(protein => {
         const width = protein.data('width')
+        const height = protein.data('height')
 
         const maxWidth = this.interpolate(zoomLevel * 100, [this.p(zoomStart, width), this.p(zoomEnd, width / 2)]);
         const margin = this.interpolate(zoomLevel * 100, [this.p(zoomStart, 0), this.p(zoomEnd, width / 4)]);
@@ -217,7 +219,7 @@ export class Interactivity {
           {
             'font-size': fontSize,
             'text-margin-x': margin,
-            'text-max-width': maxWidth
+            'text-max-width': maxWidth,
           })
       });
 
@@ -245,7 +247,7 @@ export class Interactivity {
     this.videoLayer = layers.append('html');
     layers.renderPerNode(
       this.videoLayer,
-      (elem, node, bb) => {
+      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
         const z = cy.zoom();
         let opacity = this.interpolate(z * 100, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
         elem.style.opacity = opacity + '';
@@ -255,7 +257,7 @@ export class Interactivity {
           elem.innerHTML = node.data('html') || '';
           elem.style.display = "flex"
         },
-        transform: `translate(calc(-100% + ${extract(this.properties.global.thickness) / 2}px), -50%)`,
+        transform: `translate(-70%, -50%)`,
         position: 'center',
         uniqueElements: true,
         checkBounds: true,
@@ -299,7 +301,9 @@ export class Interactivity {
     });
   }
 
-  displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: { [key: string]: { resource: string, count: number } }) {
+  displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: {
+    [key: string]: { resource: string, count: number }
+  }) {
 
     let layoutOptions: cytoscape.LayoutOptions = {
       name: 'preset',
@@ -338,13 +342,13 @@ export class Interactivity {
   readonly CHAR_WIDTH = 10;
   readonly CHAR_HEIGHT = 12;
   readonly STATIC = "Static"; //IntAct
-  readonly DISGENET ="DisGeNet";
+  readonly DISGENET = "DisGeNet";
 
   addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
     const interactorNodes: cytoscape.NodeDefinition[] = [];
     const interactorLayout = new InteractorsLayout();
     // todo :
-    const resourceClass = resource === this.INTACT ? ['Protein', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
+    const resourceClass = resource === this.STATIC ? ['Protein', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
 
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
@@ -352,7 +356,7 @@ export class Interactivity {
       const displayName = interactor.alias ? interactor.alias : uniprotId;
       const HEIGHT = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       let interactorNodeId = uniprotId + '-' + targetNode.data('entity').id();
-      const html = `<video loop width="${this.DEFAULT_INTERACTOR_WIDTH * 0.5}" height="${HEIGHT * 0.8}" id="video-${interactorNodeId}"><source src="assets/video/960x540/${uniprotId}.webm" type="video/webm"></video>`;
+      const html = `<video loop width="${this.DEFAULT_INTERACTOR_WIDTH + 10}" height="${HEIGHT + 10}" id="video-${interactorNodeId}"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm"></video>`;
       const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
       let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
@@ -360,8 +364,7 @@ export class Interactivity {
 
       interactorNodes.push({
         data: {
-          displayName: displayName,
-          width: resource === this.INTACT ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
+          width: resource === this.STATIC ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
           id: interactor.acc + '-' + targetNode.data('entity').id(),
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
           // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
@@ -384,7 +387,7 @@ export class Interactivity {
 
   addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
 
-    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor']: ['Interactor'];
+    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor'] : ['Interactor'];
 
     const interactorEdges: cytoscape.EdgeDefinition[] = [];
     interactorsData.forEach((interactor: Interactor) => {

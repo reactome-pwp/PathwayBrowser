@@ -27,7 +27,6 @@ import {FormControl} from "@angular/forms";
 import {DiagramStateService} from "../services/diagram-state.service";
 
 
-
 @Component({
   selector: 'cr-diagram',
   templateUrl: './diagram.component.html',
@@ -44,9 +43,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   STATIC: string = 'Static'; //IntAct
   DISGENET: string = 'DisGeNet';
   psicquicResources: PsicquicResource[] = []
-  selectedPsicquicResource= new FormControl();
+  selectedPsicquicResource = new FormControl();
   isDataFromPsicquicLoading: boolean = false;
-
 
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService) {
@@ -96,57 +94,58 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         setTimeout(() => {
           if (this.comparing) {
 
-          this.cy.elements('[!isBackground]').style('visibility', 'hidden')
-          this.replacedElements = this.cy!
-            .elements('[?replacedBy]')
-            .add('[?isCrossed]')
-            .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1);
-          this.replacedElementsLeft = this.replacedElements.map(ele => ele.boundingBox().x1);
-          this.cy!.elements('.Compartment').style('visibility', 'visible')
+            this.cy.elements('[!isBackground]').style('visibility', 'hidden')
+            this.replacedElements = this.cy!
+              .elements('[?replacedBy]')
+              .add('[?isCrossed]')
+              .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1);
+            this.replacedElementsLeft = this.replacedElements.map(ele => ele.boundingBox().x1);
+            this.cy!.elements('.Compartment').style('visibility', 'visible')
 
-          const compareContainer = this.compareContainer!.nativeElement;
-          this.cyCompare = cytoscape({
-            container: compareContainer,
-            elements: elements,
-            style: this.reactomeStyle?.getStyleSheet(),
-            layout: {name: "preset"},
-          });
+            const compareContainer = this.compareContainer!.nativeElement;
+            this.cyCompare = cytoscape({
+              container: compareContainer,
+              elements: elements,
+              style: this.reactomeStyle?.getStyleSheet(),
+              layout: {name: "preset"},
+            });
 
-          this.cyCompare.elements('[?isFadeOut]').style('visibility', 'hidden');
-          this.cyCompare.elements('.Compartment').style('visibility', 'hidden');
-          this.cy!.nodes('.crossed').removeClass('crossed');
+            this.cyCompare.elements('[?isFadeOut]').style('visibility', 'hidden');
+            this.cyCompare.elements('.Compartment').style('visibility', 'hidden');
+            this.cy!.nodes('.crossed').removeClass('crossed');
 
-          this.cyCompare!.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container))
-          this.cy!.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer))
+            this.cyCompare!.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container))
+            this.cy!.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer))
 
-          this.reactomeEvents$.subscribe(event => {
-            const src = event.detail.cy;
-            const tgt = src === this.cy ? this.cyCompare : this.cy;
+            this.reactomeEvents$.subscribe(event => {
+              const src = event.detail.cy;
+              const tgt = src === this.cy ? this.cyCompare : this.cy;
 
-            const replacedBy = event.detail.element.data('replacedBy') ||
-              event.detail.element.data('replacement') ||
-              (event.detail.element.data('isBackground') && !event.detail.element.data('isFadeOut') && event.detail.element.data('id'))
-            if (!replacedBy) return;
+              const replacedBy = event.detail.element.data('replacedBy') ||
+                event.detail.element.data('replacement') ||
+                (event.detail.element.data('isBackground') && !event.detail.element.data('isFadeOut') && event.detail.element.data('id'))
+              if (!replacedBy) return;
 
-            let replacements = tgt.getElementById(replacedBy);
-            if (event.detail.type === 'reaction') {
-              replacements = replacements.add(tgt.elements(`[reactionId=${replacedBy}]`))
-            }
+              let replacements = tgt.getElementById(replacedBy);
+              if (event.detail.type === 'reaction') {
+                replacements = replacements.add(tgt.elements(`[reactionId=${replacedBy}]`))
+              }
 
-            this.applyEvent(event, replacements)
-          })
+              this.applyEvent(event, replacements)
+            })
 
-          this.reactomeStyle?.bindToCytoscape(this.cyCompare);
-          this.cyCompare.minZoom(this.cy!.minZoom())
-          this.cyCompare.maxZoom(this.cy!.maxZoom())
-          this.updateReplacementVisibility()
+            this.reactomeStyle?.bindToCytoscape(this.cyCompare);
+            this.cyCompare.minZoom(this.cy!.minZoom())
+            this.cyCompare.maxZoom(this.cy!.maxZoom())
+            this.updateReplacementVisibility()
 
-          setTimeout(() => {
-            this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
-          })
-        }
+            setTimeout(() => {
+              this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
+            })
+          }
 
-        this.stateToDiagram();
+          this.stateToDiagram();
+        })
       })
   }
 
