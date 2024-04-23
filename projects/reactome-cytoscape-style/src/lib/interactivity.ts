@@ -364,7 +364,7 @@ export class Interactivity {
 
       interactorNodes.push({
         data: {
-          width: resource === this.STATIC ? this.DEFAULT_INTERACTOR_WIDTH : this.DEFAULT_DISGENET_WIDTH,
+          width: width,
           id: interactor.acc + '-' + targetNode.data('entity').id(),
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
           // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
