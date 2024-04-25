@@ -25,7 +25,7 @@
 
     <mat-form-field appearance="outline">
       <mat-label>PSICQUIC</mat-label>
-      <mat-select #psicquicSelect [formControl]="selectedPsicquicResource" (selectionChange)="onPsicquicResourceChange($event.value)">
+      <mat-select #psicquicSelect [formControl]="selectedPsicquicResource" [hideSingleSelectionIndicator]=true (selectionChange)="onPsicquicResourceChange($event.value)">
         <mat-option *ngFor="let resource of psicquicResources" [value]="resource.name" [disabled]="!resource.active" (click)="psicquicSelect.open()">
           <div class="option-content">
             <span><i>{{ resource.name }}</i></span>
