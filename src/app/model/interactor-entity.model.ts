@@ -1,5 +1,3 @@
-import {NodeDefinition} from "../../../projects/reactome-cytoscape-style/src/lib/types";
-
 export interface InteractorEntity {
   acc: string;
   count: number;
@@ -57,7 +55,6 @@ export interface Segment {
   to: Position;
 }
 
-
 export class InputCategory {
   url: string | undefined
   content: string | FormData | undefined
@@ -66,14 +63,4 @@ export class InputCategory {
 export class Resource {
   token: InteractorToken | undefined;
 }
-//todo: refactor it to not use NodeDefinition
-export const NODE_TYPE_MAP = new Map<string, NodeDefinition>([
-    ['Gene', ['Gene', 'PhysicalEntity']],
-    ['RNA', ['RNA', 'PhysicalEntity']],
-    ['Protein', ['Protein', 'PhysicalEntity']],
-    ['Entity', ['GenomeEncodedEntity', 'PhysicalEntity']],
-    ['Complex', ['Complex', 'PhysicalEntity']],
-    ['EntitySet', ['EntitySet', 'PhysicalEntity']],
-    ['Chemical', ['Molecule', 'PhysicalEntity']],
-  ]
-)
+

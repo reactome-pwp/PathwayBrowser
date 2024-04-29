@@ -6,12 +6,12 @@ import {
   Interactor,
   Interactors,
   InteractorToken,
-  NODE_TYPE_MAP,
   PsicquicResource
 } from "../model/interactor-entity.model";
 
 
 import InteractorsLayout from "../utils/interactors-layout";
+import {DiagramService} from "./diagram.service";
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +39,8 @@ export class InteractorService {
   lastSelectedResource = '';
   selectedNodes: string[] = [];
 
-  constructor(private http: HttpClient) {
+
+  constructor(private http: HttpClient, private diagramService : DiagramService) {
   }
 
   private updatePostContentCache(cy: cytoscape.Core): void {
@@ -186,7 +187,7 @@ export class InteractorService {
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
       const displayName = interactor.alias ? interactor.alias : interactor.acc;
-      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
+      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...this.diagramService.nodeTypeMap.get(interactor.type)!, 'Interactor'];
       let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       //if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
