@@ -53,7 +53,7 @@ export class Style {
       {
         selector: "*",
         style: {
-          "font-family": "Helvetica",
+          "font-family": "Roboto",
           "font-weight": 600,
           "z-index": 1
         }

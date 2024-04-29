@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {HttpClient} from "@angular/common/http";
 import {DiagramComponent} from "../diagram/diagram.component";
-import {combineLatest, from, interval, switchMap, tap, zip} from "rxjs";
+import {combineLatest} from "rxjs";
 
 @Component({
   selector: 'cr-diagram-iterator',

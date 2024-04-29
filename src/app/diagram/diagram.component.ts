@@ -11,13 +11,12 @@ import {
 } from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-// @ts-ignore
 import {ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {ActivatedRoute} from "@angular/router";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../services/interactor.service";
 import {
-  concatMap,
+  concatMap, delay,
   distinctUntilChanged,
   filter,
   fromEvent,
@@ -33,6 +32,7 @@ import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src
 import {PsicquicResource, Resource} from "../model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
 import {FormControl} from "@angular/forms";
+import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
 import {CustomInteractorDialogComponent} from "../custom-interactor-dialog/custom-interactor-dialog.component";
 
@@ -58,7 +58,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   resourceTokens: Resource[] = [];
 
 
-  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
+
+  constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
   }
 
   cy!: cytoscape.Core;
@@ -74,6 +75,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     filter(() => !this._ignore),
     share()
   );
+
+  private stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram())
+
 
   @Input('id') diagramId: string = '';
 
@@ -145,13 +149,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
           })
         }
+
+        this.stateToDiagram();
       })
   }
+
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['diagramId']) this.loadDiagram();
   }
-
 
   ngAfterViewInit(): void {
     this.dark.$dark.subscribe(this.updateStyle.bind(this))
@@ -184,10 +190,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         // this.ratio = bb.w / bb.h;
       });
 
-    let ignore = false;
-
     // legendContainer.addEventListener(type, (e) => this._reactomeEvents$.next(e as ReactomeEvent))
-    of(...Object.values(ReactomeEventTypes)).pipe(
+    const legend2state = of(...Object.values(ReactomeEventTypes)).pipe(
       map(type => fromEvent(legendContainer, type)),
       mergeAll(),
       filter(() => !this._ignore),
@@ -205,13 +209,17 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           matchingElement = matchingElement.add(matchingElement.connectedEdges())
         }
 
-        this._ignore = true;
+        // this._ignore = true;
         switch (event.type) {
           case ReactomeEventTypes.select:
-            this.flagElements(matchingElement)
+            // this.flagElements(matchingElement, this.cy);
+            this.state.set('flag', [classes[0] + (classes.includes('drug') ? '.' : '!') + 'drug'])
+            this.stateToDiagram();
             break;
           case ReactomeEventTypes.unselect:
-            this.flagElements(this.cy.collection())
+            this.state.set('flag', [])
+            this.stateToDiagram();
+            // this.flagElements(this.cy.collection(), this.cy);
             break;
           case ReactomeEventTypes.hover:
             matchingElement.addClass('hover')
@@ -220,14 +228,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             matchingElement.removeClass('hover')
             break;
         }
-        this._ignore = false;
+        // this._ignore = false;
 
         return matchingElement;
       })
-    ).subscribe()
+    ).subscribe();
 
 
-    this.reactomeEvents$.subscribe(event => {
+    const diagram2legend = this.reactomeEvents$.subscribe(event => {
       const classes = event.detail.element.classes();
       let matchingElement: cytoscape.NodeCollection | cytoscape.EdgeCollection = this.legend.elements(`.${classes[0]}`);
 
@@ -246,37 +254,88 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this._ignore = true;
       this.applyEvent(event, matchingElement);
       this._ignore = false;
-    })
+    });
+
+    const diagramSelect2state = this.reactomeEvents$
+      .pipe(delay(0))
+      .subscribe(e => {
+          if (e.type !== ReactomeEventTypes.select) return;
+          let elements: cytoscape.NodeSingular = e.detail.element;
+          if (e.detail.type === 'reaction') {
+            elements = e.detail.cy.elements('node.reaction:selected')
+          }
+          const reactomeIds = elements.map(el => el.data('graph.stId'));
+          this.state.set('select', reactomeIds)
+        }
+      );
 
     this.loadDiagram();
 
     this.getPsicquicResources();
   }
 
-  flag(accs: string[]): cytoscape.CollectionArgument {
-    let toFlag: cytoscape.Collection;
 
-    toFlag = this.cy.elements(`[acc=${accs[0]}]`).or(`[reactomeId=${accs[0]}]`)
-    for (let i = 1; i < accs.length; i++) {
-      toFlag = toFlag.or(`[acc=${accs[i]}]`).or(`[reactomeId=${accs[i]}]`)
+  private stateToDiagram() {
+    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
+      this.flag(this.state.get('flag'), cy);
+      this.select(this.state.get("select"), cy);
     }
-
-    return this.flagElements(toFlag)
   }
 
-  flagElements(toFlag: cytoscape.CollectionArgument): cytoscape.CollectionArgument {
-    const shadowNodes = this.cy.nodes('.Shadow');
-    const shadowEdges = this.cy.edges('[?color]');
-    const trivials = this.cy.elements('.trivial');
+  getElements(accs: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
+    let elements: cytoscape.Collection;
+
+    elements = cy.collection()
+    for (let i = 0; i < accs.length; i++) {
+      const acc = accs[i];
+      if (typeof acc === 'string') {
+        if (acc.startsWith('R-')) {
+          elements = elements.or(`[graph.stId="${acc}"]`)
+        } else {
+          if (acc.endsWith('!drug')) {
+            elements = elements.or(`.${acc}`).not('.drug')
+          } else {
+            elements = elements.or(`.${acc}`).and('.drug')
+          }
+        }
+      } else {
+        elements = elements.or(`[acc=${acc}]`).or(`[reactomeId=${acc}]`)
+      }
+    }
+    return elements;
+  }
+
+  select(accs: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
+    const select = this.state.get("select");
+    console.log(select)
+    let selected = this.getElements(select, cy);
+    selected.select();
+    this.state.get("flag")
+    if ("connectedNodes" in selected) {
+      console.log("Connected nodes", selected.connectedNodes())
+      selected = selected.add(selected.connectedNodes());
+    }
+    cy.fit(selected, 100)
+    return selected;
+  }
+
+  flag(accs: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
+    return this.flagElements(this.getElements(accs, cy), cy)
+  }
+
+  flagElements(toFlag: cytoscape.CollectionArgument, cy: cytoscape.Core): cytoscape.CollectionArgument {
+    const shadowNodes = cy.nodes('.Shadow');
+    const shadowEdges = cy.edges('[?color]');
+    const trivials = cy.elements('.trivial');
 
     if (toFlag.nonempty()) {
       this.cy.batch(() => {
         shadowNodes.style({visibility: 'hidden'})
         shadowEdges.removeClass('shadow')
-        this.cy.off('zoom', this.reactomeStyle.interactivity.onZoom)
+        cy.off('zoom', this.reactomeStyle.interactivity.onZoom)
         trivials.style({opacity: 1})
-        this.cy.edges().style({'underlay-opacity': 0})
-        this.cy.elements().removeClass('flag')
+        cy.edges().style({'underlay-opacity': 0})
+        cy.elements().removeClass('flag')
         toFlag.addClass('flag')
           .edges().style({'underlay-opacity': 1})
       })
@@ -288,12 +347,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         trivials.style({opacity: 1})
         shadowEdges.addClass('shadow')
 
-        this.cy.elements().removeClass('flag')
-        this.cy.on('zoom', this.reactomeStyle.interactivity.onZoom)
+        cy.elements().removeClass('flag')
+        cy.on('zoom', this.reactomeStyle.interactivity.onZoom)
         this.reactomeStyle.interactivity.onZoom()
       })
 
-      return this.cy.collection()
+      return cy.collection()
     }
   }
 

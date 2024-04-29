@@ -3,7 +3,7 @@ import cytoscape from "cytoscape";
 export interface ReactomeEventTarget {
   reactomeId: string,
   type: 'PhysicalEntity' | 'Pathway' | 'reaction' | 'Interactor',
-  element: cytoscape.Collection,
+  element: cytoscape.NodeSingular,
   cy: cytoscape.Core
 }
 
