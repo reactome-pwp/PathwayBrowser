@@ -287,6 +287,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
       this.flag(this.state.get('flag'), cy);
       this.select(this.state.get("select"), cy);
+      this.getInteractors(this.state.get("overlay"))
     }
   }
 
@@ -426,6 +427,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     this.interactorsService.getInteractorData(this.cy, resource).subscribe(interactors => {
       this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
     });
+
+    this.state.set('overlay', resource)
   }
 
   getPsicquicResources() {
@@ -441,6 +444,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.isDataFromPsicquicLoading = false;
       this.psicquicSelect?.close();
     })
+    this.state.set('overlay', selectedResource)
   }
 
   openCustomInteractorDialog() {

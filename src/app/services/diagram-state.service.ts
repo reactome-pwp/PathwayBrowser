@@ -1,6 +1,7 @@
-import {booleanAttribute, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from "rxjs";
+import {isArray} from "lodash";
 
 
 export interface UrlParam<T> {
@@ -12,6 +13,7 @@ export type State = {
   [token: string]: UrlParam<any>
   select: UrlParam<(string | number)[]>
   flag: UrlParam<(string | number)[]>
+  overlay: UrlParam<(string)>
 };
 
 @Injectable({
@@ -23,7 +25,8 @@ export class DiagramStateService {
 
   private state: State = {
     select: {otherTokens: ['SEL'], value: []},
-    flag: {otherTokens: ['FLG'], value: []}
+    flag: {otherTokens: ['FLG'], value: []},
+    overlay: {value: ''}
   };
 
   private _state$ = new BehaviorSubject<State>(this.state);
@@ -38,9 +41,13 @@ export class DiagramStateService {
         const tokens: string[] = [mainToken, ...param.otherTokens || []];
         const token = tokens.find(token => params.has(token));
         if (token) {
-          const rawValue = params.get(token)!;
           const formerValue = param.value;
-          param.value = rawValue.split(',').map(v => v.charAt(0).match(/d/) ? parseInt(v) : v);
+          if (isArray(param.value)) {
+            const rawValue = params.get(token)!;
+            param.value = rawValue.split(',').map(v => v.charAt(0).match(/d/) ? parseInt(v) : v);
+          } else {
+            param.value = params.get(token)!;
+          }
           change = change || formerValue == param.value;
         }
       }
