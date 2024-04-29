@@ -71,6 +71,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @Output()
   public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
     distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
+    filter(e => e.detail.type ==='Interactor'),
     tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
     filter(() => !this._ignore),
     share()
@@ -246,9 +247,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         const reaction = event.detail.element.nodes('.reaction');
         matchingElement = this.legend.nodes(`.${reaction.classes()[0]}`).first()
         matchingElement = matchingElement.add(matchingElement.connectedEdges())
-      } else if (event.detail.type === 'Interactor') {
-        matchingElement = event.detail.element.nodes()
-        this.interactorsService.addInteractorNodes(matchingElement, this.cy);
       }
 
       this._ignore = true;
@@ -266,6 +264,19 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           }
           const reactomeIds = elements.map(el => el.data('graph.stId'));
           this.state.set('select', reactomeIds)
+        }
+      );
+
+    const selectInteractorNumber = this.reactomeEvents$
+      .pipe(delay(0))
+      .subscribe(e => {
+          if (e.type !== ReactomeEventTypes.select) return;
+          let elements: cytoscape.NodeSingular = e.detail.element;
+
+          if (e.detail.type === 'Interactor') {
+            const interactorNumberNodes = elements.nodes()
+            this.interactorsService.addInteractorNodes(interactorNumberNodes, this.cy);
+          }
         }
       );
 
