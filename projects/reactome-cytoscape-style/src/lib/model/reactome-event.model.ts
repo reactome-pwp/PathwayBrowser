@@ -12,7 +12,10 @@ export enum ReactomeEventTypes {
   leave = 'reactome::leave',
 
   select = 'reactome::select',
-  unselect = 'reactome::unselect'
+  unselect = 'reactome::unselect',
+
+  open = 'reactome::open',
+  close = 'reactome::close'
 }
 
 export class ReactomeEvent extends CustomEvent<ReactomeEventTarget> {

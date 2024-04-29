@@ -12,11 +12,11 @@ import {
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
 import {ReactomeEvent, Style} from "reactome-cytoscape-style";
-import {ActivatedRoute} from "@angular/router";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../services/interactor.service";
 import {
-  concatMap, delay,
+  concatMap,
+  delay,
   distinctUntilChanged,
   filter,
   fromEvent,
@@ -53,7 +53,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   STATIC: string = 'Static'; //IntAct
   DISGENET: string = 'DisGeNet';
   psicquicResources: PsicquicResource[] = []
-  selectedPsicquicResource= new FormControl();
+  selectedPsicquicResource = new FormControl();
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: Resource[] = [];
 
@@ -71,7 +71,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @Output()
   public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
     distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
-    filter(e => e.detail.type ==='Interactor'),
     tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
     filter(() => !this._ignore),
     share()
@@ -268,15 +267,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       );
 
     const selectInteractorNumber = this.reactomeEvents$
-      .pipe(delay(0))
-      .subscribe(e => {
-          if (e.type !== ReactomeEventTypes.select) return;
+      .pipe(
+        filter(e => [ReactomeEventTypes.open, ReactomeEventTypes.close].includes(e.type as ReactomeEventTypes)),
+        filter(e => e.detail.type === 'Interactor'),
+      ).subscribe(e => {
           let elements: cytoscape.NodeSingular = e.detail.element;
-
-          if (e.detail.type === 'Interactor') {
-            const interactorNumberNodes = elements.nodes()
-            this.interactorsService.addInteractorNodes(interactorNumberNodes, this.cy);
-          }
+          const interactorNumberNodes = elements.nodes()
+          this.interactorsService.addInteractorNodes(interactorNumberNodes, this.cy);
         }
       );
 
@@ -449,7 +446,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   openCustomInteractorDialog() {
     const dialogRef = this.dialog.open(CustomInteractorDialogComponent, {
       data: {cy: this.cy},
-      restoreFocus:false // Deselect button when closing
+      restoreFocus: false // Deselect button when closing
     });
 
     dialogRef.afterClosed().subscribe(result => {

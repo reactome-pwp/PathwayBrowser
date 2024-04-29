@@ -132,12 +132,17 @@ export class Interactivity {
         cy
       })))
 
-      .on('select', 'node.InteractorOccurrences', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.select, {
-        element: e.target,
-        type: "Interactor",
-        reactomeId: e.target.data('reactomeId'),
-        cy
-      })))
+      .on('click', 'node.InteractorOccurrences', e => {
+        const openClass = 'opened';
+        e.target.toggleClass(openClass);
+        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+        container.dispatchEvent(new ReactomeEvent(eventType, {
+          element: e.target,
+          type: "Interactor",
+          reactomeId: e.target.data('reactomeId'),
+          cy
+        }))
+      })
 
       .on('unselect', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
         element: e.target,

@@ -36,6 +36,8 @@ export class InteractorService {
   readonly CHAR_WIDTH = 10;
   readonly CHAR_HEIGHT = 12;
 
+  lastSelectedResource = '';
+  selectedNodes: string[] = [];
 
   constructor(private http: HttpClient) {
   }
@@ -88,7 +90,7 @@ export class InteractorService {
     });
   }
 
-  lastSelectedResource: string | undefined;
+
 
   public addInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
@@ -96,9 +98,11 @@ export class InteractorService {
       cy.edges(`[resource='${this.lastSelectedResource}']`).remove();
       this.createInteractorOccurrenceNode(interactors, cy, resource);
       this.lastSelectedResource = resource;
+      this.selectedNodes = [];
     } else if (!this.lastSelectedResource) {
       this.createInteractorOccurrenceNode(interactors, cy, resource);
       this.lastSelectedResource = resource;
+      this.selectedNodes = []
     }
   }
 
@@ -122,7 +126,7 @@ export class InteractorService {
           if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
             occurrenceNodes.push({
               data: {
-                id: entityNode.id() + '-occ',
+                id: entityNode.id() + '-occ' + '-' + resource.toLowerCase(),
                 displayName: interactorEntity.count,
                 entity: entityNode,
                 interactors: interactorEntity.interactors,
@@ -210,7 +214,7 @@ export class InteractorService {
     cy?.add(interactorNodes)
   }
 
-  selectedNodes: string[] = [];
+
 
   public createInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
 
