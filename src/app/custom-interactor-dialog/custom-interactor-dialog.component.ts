@@ -12,10 +12,10 @@ import {merge} from "rxjs";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {MatTabChangeEvent} from "@angular/material/tabs";
 import {MatRadioChange} from "@angular/material/radio";
-import {InteractorService} from "../../services/interactor.service";
+import {InteractorService} from "../services/interactor.service";
 import cytoscape from "cytoscape";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
-import {ResourceCategory} from "../../model/interactor-entity.model";
+import {InputCategory, Resource} from "../model/interactor-entity.model";
 
 
 @Component({
@@ -31,16 +31,16 @@ export class CustomInteractorDialogComponent implements OnInit {
   errorMessage = '';
   tabId = 'data'; // Default value
   selectedValue = 'form'; // Default value
-  isDataLoading: boolean =false;
+  isDataLoading: boolean = false;
+  resource = new Resource();
   items = [
     {'name': 'form', 'content': 'File'},
     {'name': 'content', 'content': 'Copy & Paste'},
     {'name': 'url', 'content': 'URL'}]
 
-  constructor(private interactorService: InteractorService, private dialogRef: MatDialogRef<CustomInteractorDialogComponent>,private fb: FormBuilder, @Inject(MAT_DIALOG_DATA) public data: {
+  constructor(private interactorService: InteractorService, private dialogRef: MatDialogRef<CustomInteractorDialogComponent>, private fb: FormBuilder, @Inject(MAT_DIALOG_DATA) public data: {
     cy: cytoscape.Core
   }) {
-
     this.resourceForm = this.fb.group({
       selectedValue: [''],
       form: [''], // file uploader
@@ -90,42 +90,43 @@ export class CustomInteractorDialogComponent implements OnInit {
   }
 
   onFileChange($event: Event) {
-    const inputElement =$event.target as HTMLInputElement;
+    const inputElement = $event.target as HTMLInputElement;
     if (inputElement.files && inputElement.files.length) {
       const file = inputElement.files[0]; // Single file upload
-      this.resourceForm.patchValue({ form: file });
+      this.resourceForm.patchValue({form: file});
     }
   }
 
   submit() {
     this.isDataLoading = true;
-    const category = this.getInputs();
-    if(category){
-      this.interactorService.getInteractorsFromToken(this.name.value!, category.url!, category.input!, this.cy).subscribe(interactors => {
-        this.interactorService.addInteractorOccurrenceNode(interactors, this.cy, interactors.resource)
+    const userInput = this.getInputs();
+    if (userInput) {
+      this.interactorService.getInteractorsFromToken(this.name.value!, userInput.url!, userInput.content!, this.cy).subscribe((result) => {
+        this.interactorService.addInteractorOccurrenceNode(result.interactors, this.cy, result.interactors.resource)
+        this.resource.token =result.token
         this.isDataLoading = false;
         this.dialogRef.close();
       })
     }
   }
 
-  private getInputs(): ResourceCategory {
-    const category = new ResourceCategory();
+  private getInputs(): InputCategory {
+    const input = new InputCategory();
     const formValue = this.resourceForm.value;
 
     if (this.tabId === 'data') {
-       category.url = this.interactorService.uploadUrl + this.selectedValue.toLowerCase();
-       category.input = formValue[this.selectedValue.toLowerCase()];
-       if(this.selectedValue.toLowerCase() === this.items[0].name){
-         category.input= this.prepareFormData(formValue.form)
-       }
+      input.url = this.interactorService.uploadUrl + this.selectedValue;
+      input.content = formValue[this.selectedValue];
+      if (this.selectedValue === this.items[0].name) { // Prepare formdata when file is uploaded
+        input.content = this.prepareFormData(formValue.form)
+      }
     }
 
     if (this.tabId === 'psicquic') {
-      category.url = this.interactorService.uplpadPsicquicUrl;
-      category.input = formValue.psicquicUrl;
+      input.url = this.interactorService.uplpadPsicquicUrl;
+      input.content = formValue.psicquicUrl;
     }
-    return category
+    return input
   }
 
   private prepareFormData(formControl: string | Blob): FormData {

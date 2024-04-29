@@ -1,4 +1,14 @@
-import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
 // @ts-ignore
@@ -20,11 +30,11 @@ import {
   tap
 } from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
-import {PsicquicResource} from "../model/interactor-entity.model";
+import {PsicquicResource, Resource} from "../model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
 import {FormControl} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
-import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
+import {CustomInteractorDialogComponent} from "../custom-interactor-dialog/custom-interactor-dialog.component";
 
 
 @Component({
@@ -45,9 +55,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   psicquicResources: PsicquicResource[] = []
   selectedPsicquicResource= new FormControl();
   isDataFromPsicquicLoading: boolean = false;
+  resourceTokens: Resource[] = [];
 
 
-  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService, public dialog: MatDialog) {
+  constructor(private diagram: DiagramService, private route: ActivatedRoute, public dark: DarkService, private interactorsService: InteractorService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
   }
 
   cy!: cytoscape.Core;
@@ -363,10 +374,35 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   openCustomInteractorDialog() {
-    this.dialog.open(CustomInteractorDialogComponent, {
+    const dialogRef = this.dialog.open(CustomInteractorDialogComponent, {
       data: {cy: this.cy},
       restoreFocus:false // Deselect button when closing
     });
+
+    dialogRef.afterClosed().subscribe(result => {
+      const resource = dialogRef.componentInstance.resource
+      if (resource.token) {
+        this.resourceTokens!.push(resource)
+      }
+      this.cdr.detectChanges();
+    })
+  }
+
+  deleteResource(resource: Resource) {
+    const index = this.resourceTokens!.indexOf(resource);
+    if (index !== -1) {
+      this.resourceTokens!.splice(index, 1);
+      this.cy.elements(`[resource = '${resource.token?.summary.token}']`).remove();
+    }
+  }
+
+  onCustomResourceChange(resource: Resource) {
+    this.interactorsService.sendPostRequest(resource.token!, this.cy).subscribe((result) => {
+      this.interactorsService.addInteractorOccurrenceNode(result.interactors, this.cy, result.interactors.resource)
+    })
+  }
+  isSelected(resource: Resource): boolean {
+    return this.resourceTokens!.includes(resource);
   }
 
   updateStyle() {

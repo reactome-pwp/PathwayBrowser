@@ -40,4 +40,18 @@
     <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>
     <span>{{(reactomeEvents$ | async)?.detail?.reactomeId}}</span>
   </form>
+
+
+  <mat-selection-list style="width: 260px" *ngIf="resourceTokens?.length != 0" [multiple]="false">
+    <mat-list-option color="primary" *ngFor="let resourceToken of resourceTokens" [value]="resourceToken"
+                     [selected]="isSelected(resourceToken)" (click)="onCustomResourceChange(resourceToken)">
+      <div class="option-content">
+        <div>{{ resourceToken.token?.summary?.name }}</div>
+        <button mat-icon-button color="primary" (click)="deleteResource(resourceToken)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-list-option>
+  </mat-selection-list>
+
 </div>
