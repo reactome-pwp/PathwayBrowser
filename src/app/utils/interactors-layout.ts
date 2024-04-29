@@ -1,5 +1,6 @@
-import {Interactor, Position, Segment} from "./model/interactor.model";
+
 import {NodeSingular} from "cytoscape";
+import {Interactor, Position, Segment} from "../model/interactor-entity.model";
 
 class InteractorsLayout {
 

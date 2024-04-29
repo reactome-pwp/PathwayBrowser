@@ -238,6 +238,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         const reaction = event.detail.element.nodes('.reaction');
         matchingElement = this.legend.nodes(`.${reaction.classes()[0]}`).first()
         matchingElement = matchingElement.add(matchingElement.connectedEdges())
+      } else if (event.detail.type === 'Interactor') {
+        matchingElement = event.detail.element.nodes()
+        this.interactorsService.addInteractorNodes(matchingElement, this.cy);
       }
 
       this._ignore = true;

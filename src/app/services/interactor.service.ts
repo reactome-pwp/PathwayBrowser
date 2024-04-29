@@ -1,8 +1,17 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
-import cytoscape from "cytoscape";
-import {map, Observable, switchMap, tap} from "rxjs";
-import {Interactors, InteractorToken, PsicquicResource} from "../model/interactor-entity.model";
+import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
+import {map, Observable, switchMap} from "rxjs";
+import {
+  Interactor,
+  Interactors,
+  InteractorToken,
+  NODE_TYPE_MAP,
+  PsicquicResource
+} from "../model/interactor-entity.model";
+
+
+import InteractorsLayout from "../utils/interactors-layout";
 
 @Injectable({
   providedIn: 'root',
@@ -12,14 +21,21 @@ export class InteractorService {
 
   private postContentCache: string = '';
   private STATIC = 'Static'; //IntAct
-  private DISGENET  = 'DisGeNet';
+  private DISGENET = 'DisGeNet';
   private staticUrl = 'https://dev.reactome.org/ContentService/interactors/static/molecules/details';
-  private disGeNetUrl ='https://dev.reactome.org/overlays/disgenet/findByGenes';
+  private disGeNetUrl = 'https://dev.reactome.org/overlays/disgenet/findByGenes';
   private psicquicResourcesUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/resources/'
   private psicquicUrl = 'https://dev.reactome.org/ContentService/interactors/psicquic/molecules/';
   public uploadUrl = "https://dev.reactome.org/ContentService/interactors/upload/tuple/";
   public uplpadPsicquicUrl = "https://dev.reactome.org/ContentService/interactors/upload/psicquic/url";
   private tokenUrl = "https://dev.reactome.org/ContentService/interactors/token/"
+
+  readonly DEFAULT_INTERACTOR_WIDTH = 100;
+  readonly DEFAULT_DISGENET_WIDTH = 250
+  readonly INTERACTOR_PADDING = 20;
+  readonly CHAR_WIDTH = 10;
+  readonly CHAR_HEIGHT = 12;
+
 
   constructor(private http: HttpClient) {
   }
@@ -73,6 +89,7 @@ export class InteractorService {
   }
 
   lastSelectedResource: string | undefined;
+
   public addInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
       cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
@@ -122,8 +139,129 @@ export class InteractorService {
     cy?.add(occurrenceNodes);
   }
 
-  public getPsicquicResources(): Observable<PsicquicResource[]>{
-   return this.http.get<PsicquicResource[]>(this.psicquicResourcesUrl, {
+  public addInteractorNodes(nodes: cytoscape.NodeCollection, cy: cytoscape.Core) {
+    const targetNode = nodes[0]; // get only one
+    const interactorsData = targetNode.data('interactors');
+    const resource = targetNode.data('resource')
+    InteractorsLayout.BOX_WIDTH = resource === 'DisGeNet' ? this.DEFAULT_DISGENET_WIDTH / 2 : this.DEFAULT_INTERACTOR_WIDTH / 2;
+    const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
+    const [dynamicInteractors, existingInteractors] = this.getAllInteractors(interactorsData, cy, numberToAdd);
+    const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
+
+    this.createInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd, resource);
+    this.createInteractorEdges(allNodes, targetNode, cy, resource);
+
+    const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
+    this.displayInteractors(interactorsToDisplay, targetNode, cy)
+  }
+
+  public getAllInteractors(interactorsData: Interactor[], cy: cytoscape.Core, numberToAdd: number) {
+    const dynamicInteractors = [];
+    const existingInteractors = [];
+    let currentSize = 0;
+    // get interactors to draw with a provided a number, collect existing interactors for creating edge
+    for (const interactor of interactorsData) {
+      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
+      const accToEntityNode = new Map(diagramNodes?.map(node => [node.data('acc'), node]));
+
+      if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
+        dynamicInteractors.push(interactor);
+        currentSize++;
+        if (currentSize === numberToAdd) break;
+      } else {
+        existingInteractors.push(interactor);
+      }
+    }
+    return [dynamicInteractors, existingInteractors];
+  }
+
+  public createInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
+    const interactorNodes: cytoscape.NodeDefinition[] = [];
+    const interactorLayout = new InteractorsLayout();
+
+    interactorsData.forEach((interactor: Interactor, index: number) => {
+      const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
+      const displayName = interactor.alias ? interactor.alias : interactor.acc;
+      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
+      let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
+      let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
+      //if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
+      if (interactor.type === 'Gene') height += 20;
+
+      interactorNodes.push({
+        data: {
+          id: interactor.acc + '-' + targetNode.data('entity').id(),
+          displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
+          width: width,
+          // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
+          height: height,
+          source: targetNode.id(),
+          accURL: interactor.accURL,
+          score: interactor.score,
+          evidences: interactor.evidences,
+          evidenceURLs: interactor.evidencesURL,
+          resource: resource
+        },
+        classes: classes,
+        position: position,
+        selectable: false
+      })
+    })
+    cy?.add(interactorNodes)
+  }
+
+  selectedNodes: string[] = [];
+
+  public createInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
+
+    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor'] : ['Interactor'];
+
+    const interactorEdges: cytoscape.EdgeDefinition[] = [];
+    interactorsData.forEach((interactor: Interactor) => {
+      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
+      const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
+      const targetNodeId = accToEntityNode.get(interactor.acc) ? accToEntityNode.get(interactor.acc)?.data('id') : interactor.acc + '-' + targetNode.data('entity').id();
+      interactorEdges.push({
+        data: {
+          id: interactor.acc + '---' + targetNode.data('entity').id(),
+          source: targetNode.data('entity').id(),
+          target: targetNodeId,
+          edgeToTarget: targetNode.id(),
+          evidenceURLs: interactor.evidencesURL,
+          resource: resource
+        },
+        classes: resourceClass,
+        selectable: false
+      })
+    })
+    cy?.add(interactorEdges)
+  }
+
+  public displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core) {
+
+    let layoutOptions: cytoscape.LayoutOptions = {
+      name: 'preset',
+      fit: false
+    }
+    if (this.selectedNodes.includes(targetNode.data('id'))) {
+      interactorsToDisplay.remove();
+      this.removeInteractorEdges(targetNode, cy);
+      this.selectedNodes = this.selectedNodes.filter(item => item !== targetNode.data('id'))
+    } else {
+      interactorsToDisplay.layout(layoutOptions).run();
+      this.selectedNodes.push(targetNode.data('id'))
+    }
+
+  }
+
+
+  public removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
+    const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
+    edgesToRemove.remove();
+  }
+
+  public getPsicquicResources(): Observable<PsicquicResource[]> {
+    return this.http.get<PsicquicResource[]>(this.psicquicResourcesUrl, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
     });
   }
@@ -134,17 +272,42 @@ export class InteractorService {
     })
   }
 
-  public getInteractorsFromToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<Interactors> {
+
+  public getInteractorsWithToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<{
+    token: InteractorToken,
+    interactors: Interactors
+  }> {
     this.updatePostContentCacheIfNeeded(cy);
     return this.getInteractorToken(name, url, body).pipe(
       switchMap(token => {
         return this.http.post<Interactors>(this.tokenUrl + token.summary.token, this.postContentCache, {
           headers: new HttpHeaders({'Content-Type': 'text/plain'})
         }).pipe(
-          map(interactors => ({...interactors})
-          )
+          map((interactors) => ({token: token, interactors: interactors}))
         );
       })
+    );
+  }
+
+  public getInteractorsFromToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<{
+    token: InteractorToken,
+    interactors: Interactors
+  }> {
+    this.updatePostContentCacheIfNeeded(cy);
+    return this.getInteractorToken(name, url, body).pipe(
+      switchMap(token => this.sendPostRequest(token, cy))
+    );
+  }
+
+  public sendPostRequest(token: InteractorToken, cy: cytoscape.Core): Observable<{
+    token: InteractorToken,
+    interactors: Interactors
+  }> {
+    this.updatePostContentCacheIfNeeded(cy);
+    return this.http.post<Interactors>(this.tokenUrl + token.summary.token, this.postContentCache, {
+      headers: new HttpHeaders({'Content-Type': 'text/plain'})
+    }).pipe(
+      map((interactors) => ({token: token, interactors: interactors}))
     );
   }
 
