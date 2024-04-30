@@ -34,7 +34,8 @@ import {MatSelect} from "@angular/material/select";
 import {FormControl} from "@angular/forms";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
-import {CustomInteractorDialogComponent} from "../custom-interactor-dialog/custom-interactor-dialog.component";
+import {CustomInteractorDialogComponent} from "../interactors/custom-interactor-dialog/custom-interactor-dialog.component";
+import {ResourceType} from "../interactors/common/overlay-resource";
 
 
 @Component({
@@ -50,13 +51,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('psicquicSelect') psicquicSelect?: MatSelect;
 
   comparing: boolean = false;
-  STATIC: string = 'Static'; //IntAct
-  DISGENET: string = 'DisGeNet';
   psicquicResources: PsicquicResource[] = []
   selectedPsicquicResource = new FormControl();
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: Resource[] = [];
-
+  ResourceType = ResourceType;
 
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {

@@ -16,7 +16,7 @@ import {DiagramIteratorComponent} from './diagram-iterator/diagram-iterator.comp
 import {MatInputModule} from "@angular/material/input";
 import {MatSelectModule} from "@angular/material/select";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
-import { CustomInteractorDialogComponent } from './custom-interactor-dialog/custom-interactor-dialog.component';
+import {CustomInteractorDialogComponent } from './interactors/custom-interactor-dialog/custom-interactor-dialog.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatTabsModule} from "@angular/material/tabs";
 import {MatCheckboxModule} from "@angular/material/checkbox";
