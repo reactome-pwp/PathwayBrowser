@@ -420,7 +420,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   getInteractors(resource: string) {
-    if (this.selectedPsicquicResource) {
+
+    if (!resource) return;
+    if (this.selectedPsicquicResource.value) {
       this.selectedPsicquicResource.reset();
     }
     this.interactorsService.getInteractorData(this.cy, resource).subscribe(interactors => {
