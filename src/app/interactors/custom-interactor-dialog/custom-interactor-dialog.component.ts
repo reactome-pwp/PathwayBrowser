@@ -115,7 +115,7 @@ export class CustomInteractorDialogComponent implements OnInit {
     const formValue = this.resourceForm.value;
 
     if (this.tabId === 'data') {
-      input.url = this.interactorService.uploadUrl + this.selectedValue;
+      input.url = this.interactorService.UPLOAD_URL + this.selectedValue;
       input.content = formValue[this.selectedValue];
       if (this.selectedValue === this.items[0].name) { // Prepare formdata when file is uploaded
         input.content = this.prepareFormData(formValue.form)
@@ -123,7 +123,7 @@ export class CustomInteractorDialogComponent implements OnInit {
     }
 
     if (this.tabId === 'psicquic') {
-      input.url = this.interactorService.uplpadPsicquicUrl;
+      input.url = this.interactorService.UPLOAD_PSICQUIC_URL;
       input.content = formValue.psicquicUrl;
     }
     return input

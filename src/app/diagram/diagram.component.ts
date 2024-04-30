@@ -13,7 +13,7 @@ import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
 import {ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
-import {InteractorService} from "../services/interactor.service";
+import {InteractorService} from "../interactors/services/interactor.service";
 import {
   concatMap,
   delay,
@@ -29,7 +29,7 @@ import {
   tap
 } from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
-import {PsicquicResource, Resource} from "../model/interactor-entity.model";
+import {PsicquicResource, Resource} from "../interactors/model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
 import {FormControl} from "@angular/forms";
 import {DiagramStateService} from "../services/diagram-state.service";

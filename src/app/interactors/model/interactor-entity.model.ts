@@ -42,19 +42,6 @@ interface Summary {
   name: string
 }
 
-/**
- * Interactor layout
- */
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export interface Segment {
-  from: Position;
-  to: Position;
-}
-
 export class InputCategory {
   url: string | undefined
   content: string | FormData | undefined
