@@ -197,7 +197,6 @@ export class InteractorService {
           id: interactor.acc + '-' + targetNode.data('entity').id(),
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
           width: width,
-          // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
           height: height,
           source: targetNode.id(),
           accURL: interactor.accURL,
