@@ -1,3 +1,6 @@
+@angular-material-components/file-input
+MIT
+
 @angular/animations
 MIT
 
@@ -64,6 +67,9 @@ THE SOFTWARE.
 MIT
 
 @angular/router
+MIT
+
+@ngneat/until-destroy
 MIT
 
 cose-base
