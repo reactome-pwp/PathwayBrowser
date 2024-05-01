@@ -92,6 +92,7 @@ $palettes: (
 @include mat.icon-theme($light-theme);
 @include mat.stepper-theme($light-theme);
 @include mat.menu-theme($light-theme);
+@include mat.list-theme($light-theme);
 
 
 //@include nested-stepper.theme($light-theme);

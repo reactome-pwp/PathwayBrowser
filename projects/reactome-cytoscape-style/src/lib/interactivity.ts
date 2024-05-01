@@ -1,11 +1,8 @@
-import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
+import cytoscape from "cytoscape";
 import {extract} from "./properties-utils";
-import {Interactor} from "./model/interactor.model";
-import InteractorsLayout from "./interactors-layout";
 import {Properties} from "./properties";
 import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
 import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
-import {NODE_TYPE_MAP} from "./utils";
 
 cytoscape.use(Layers)
 
@@ -141,6 +138,18 @@ export class Interactivity {
         reactomeId: e.target.data('reactomeId'),
         cy
       })))
+
+      .on('click', 'node.InteractorOccurrences', e => {
+        const openClass = 'opened';
+        e.target.toggleClass(openClass);
+        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+        container.dispatchEvent(new ReactomeEvent(eventType, {
+          element: e.target,
+          type: "Interactor",
+          reactomeId: e.target.data('reactomeId'),
+          cy
+        }))
+      })
 
       .on('unselect', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
         element: e.target,

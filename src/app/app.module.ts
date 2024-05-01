@@ -16,31 +16,47 @@ import {DiagramIteratorComponent} from './diagram-iterator/diagram-iterator.comp
 import {MatInputModule} from "@angular/material/input";
 import {MatSelectModule} from "@angular/material/select";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
+import {CustomInteractorDialogComponent } from './interactors/custom-interactor-dialog/custom-interactor-dialog.component';
+import {MatDialogModule} from "@angular/material/dialog";
+import {MatTabsModule} from "@angular/material/tabs";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatRadioModule} from "@angular/material/radio";
+import {NgxMatFileInputModule} from "@angular-material-components/file-input";
+import {MatIconModule} from "@angular/material/icon";
+import {MatListModule} from "@angular/material/list";
 
 @NgModule({
   declarations: [
     AppComponent,
     DiagramComponent,
-    DiagramIteratorComponent
+    DiagramIteratorComponent,
+    CustomInteractorDialogComponent
   ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    CommonModule,
-    HttpClientModule,
-    RouterOutlet,
-    AppRoutingModule,
-    // NoopAnimationsModule,
-    MatButtonModule,
-    MatSlideToggleModule,
-    CdkDragHandle,
-    CdkDrag,
-    MatInputModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatProgressSpinnerModule,
-    BrowserAnimationsModule
-  ],
+    imports: [
+        BrowserModule,
+        FormsModule,
+        CommonModule,
+        HttpClientModule,
+        RouterOutlet,
+        AppRoutingModule,
+        // NoopAnimationsModule,
+        MatButtonModule,
+        MatSlideToggleModule,
+        CdkDragHandle,
+        CdkDrag,
+        MatInputModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+        MatProgressSpinnerModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatTabsModule,
+        MatCheckboxModule,
+        MatRadioModule,
+        NgxMatFileInputModule,
+        MatIconModule,
+        MatListModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })
