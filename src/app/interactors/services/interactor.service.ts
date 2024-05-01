@@ -157,7 +157,7 @@ export class InteractorService {
     this.createInteractorEdges(allNodes, targetNode, cy, resource);
 
     const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
-    this.displayInteractors(interactorsToDisplay, targetNode, cy)
+    this.displayInteractors(interactorsToDisplay, targetNode, cy);
   }
 
   public getAllInteractors(interactorsData: Interactor[], cy: cytoscape.Core, numberToAdd: number) {
@@ -192,10 +192,12 @@ export class InteractorService {
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       if (interactor.type === 'Gene') height += this.GENE_DECORATION_HEIGHT;
 
+      const id = interactor.acc + '-' + targetNode.data('entity').id();
       interactorNodes.push({
         data: {
-          id: interactor.acc + '-' + targetNode.data('entity').id(),
+          id: id,
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
+          html: this.diagramService.getStructureVideoHtml({id, type:interactor.type},width, height, interactor.acc),
           width: width,
           height: height,
           source: targetNode.id(),

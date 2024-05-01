@@ -10,7 +10,7 @@ import {array} from "vectorious";
 
 import cytoscape from "cytoscape";
 import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
-import {Interactors} from "../model/interactor-entity.model";
+import {Interactors} from "../interactors/model/interactor-entity.model";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
@@ -339,7 +339,7 @@ export class DiagramService {
           let height = scale(item.prop.height);
           let uniprotId = idToGraphNodes.get(item.id)?.identifier;
           if (classes.some(clazz => clazz === 'Protein')) {
-            html = `<video loop id="video-${item.id}" width="auto" height="${height}"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm"></video>`;
+            html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, uniprotId);
           }
           if (isBackground && !item.isFadeOut) {
             replacementMap.set(item.id.toString(), item.id.toString())
@@ -554,6 +554,18 @@ export class DiagramService {
 
   }
 
+  getStructureVideoHtml(item: {
+    id: string | number,
+    type: string
+  }, width: number, height: number, uniprotId: string | undefined) {
+    if (item.type === 'Protein')
+      return `<video loop id="video-${item.id}" width="${width + 10}" height="${height + 10}">
+                <source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime">
+                <source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm">
+              </video>`;
+    return undefined;
+  }
+
   private getEdgeId(source: Edge | Node, connector: NodeConnector, target: Edge | Node, edgeIds: Map<string, number>) {
     let edgeId = `${source.id} --${this.edgeTypeToStr.get(connector.type)} ${target.id}`;
 
@@ -638,8 +650,8 @@ export class DiagramService {
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
     interactors.entities
-      .filter(interactorEntity => interactorEntity.count > 0)
-      .forEach(interactorEntity => {
+      .filter((interactorEntity) => interactorEntity.count > 0)
+      .forEach((interactorEntity) => {
 
         const entities = cy?.nodes(`[acc = '${interactorEntity.acc}']`);
         entities?.forEach(entityNode => {

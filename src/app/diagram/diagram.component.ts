@@ -11,11 +11,8 @@ import {
 } from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-import {ReactomeEvent, Style} from "reactome-cytoscape-style";
-
 // @ts-ignore
-import {Style, Interactivity, ReactomeEvent} from "reactome-cytoscape-style";
-import {ActivatedRoute} from "@angular/router";
+import {Interactivity, ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
 import {delay, distinctUntilChanged, filter, Observable, share, Subject, tap} from "rxjs";
@@ -443,6 +440,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       filter(e => e.detail.type === 'Interactor'),
     ).subscribe(e => {
         this.interactorsService.addInteractorNodes(e.detail.element.nodes(), this.cy);
+        this.reactomeStyle.interactivity.updateProteins();
+        this.reactomeStyle.interactivity.onZoom();
       }
     );
 

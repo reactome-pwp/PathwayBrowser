@@ -1,22 +1,19 @@
 import cytoscape from "cytoscape";
 import {extract} from "./properties-utils";
 import {Properties} from "./properties";
-import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
 import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
+import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
+
 
 cytoscape.use(Layers)
 
 export class Interactivity {
-
-  videoLayer!: IHTMLLayer;
-
   constructor(private cy: cytoscape.Core, private properties: Properties) {
     // @ts-ignore
     cy.elements().ungrabify().panify();
     this.initHover(cy);
     this.initSelect(cy);
     this.initZoom(cy);
-    this.addInteractors(cy)
     this.initStructureVideo(cy);
   }
 
@@ -193,61 +190,8 @@ export class Interactivity {
 
   }
 
-  onZoom!: (e?: cytoscape.EventObjectCore) => void;
+  private videoLayer!: IHTMLLayer;
 
-  initZoom(cy: cytoscape.Core) {
-    const shadows = cy.edges('[?pathway]');
-    const shadowLabels = cy.nodes('.Shadow');
-    const trivial = cy.elements('.trivial');
-
-
-    cy.minZoom(Math.min(cy.zoom(), extract(this.properties.shadow.labelOpacity)[0][0] / 100));
-    cy.maxZoom(15);
-
-    this.onZoom = e => {
-      const zoomLevel = cy.zoom();
-      const shadowLabelOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
-      const trivialOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.trivial.opacity).map(v => this.p(...v))) / 100;
-      const shadowOpacity = this.interpolate(zoomLevel * 100, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100;
-
-      const proteins = cy.nodes('.Protein');
-      let baseFontSize = extract(this.properties.font.size);
-      const structureOpacityArray = extract(this.properties.structure.opacity)
-      const color = extract(this.properties.protein.fill)
-      const zoomStart = structureOpacityArray[0][0]
-      const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
-      const fontSize = this.interpolate(zoomLevel * 100, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
-
-      proteins.forEach(protein => {
-        const width = protein.data('width')
-        const height = protein.data('height')
-
-        const maxWidth = this.interpolate(zoomLevel * 100, [this.p(zoomStart, width), this.p(zoomEnd, width / 2)]);
-        const margin = this.interpolate(zoomLevel * 100, [this.p(zoomStart, 0), this.p(zoomEnd, width / 4)]);
-        protein.style(
-          {
-            'font-size': fontSize,
-            'text-margin-x': margin,
-            'text-max-width': maxWidth,
-          })
-      });
-
-      shadows.stop().animate({
-        style: {
-          'underlay-opacity': shadowOpacity
-        }
-      });
-      shadowLabels.style({
-        'text-opacity': shadowLabelOpacity
-      });
-      trivial.style({
-        'opacity': trivialOpacity,
-        'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
-      });
-    }
-
-    cy.on('zoom', this.onZoom);
-  }
 
   initStructureVideo(cy: cytoscape.Core) {
     // @ts-ignore
@@ -257,9 +201,7 @@ export class Interactivity {
     layers.renderPerNode(
       this.videoLayer,
       (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-        const z = cy.zoom();
-        let opacity = this.interpolate(z * 100, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
-        elem.style.opacity = opacity + '';
+
       },
       {
         init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
@@ -269,8 +211,9 @@ export class Interactivity {
         transform: `translate(-70%, -50%)`,
         position: 'center',
         uniqueElements: true,
-        checkBounds: true,
-
+        checkBounds: false,
+        selector: '.Protein',
+        queryEachTime: false,
       }
     );
     this.cy
@@ -290,160 +233,61 @@ export class Interactivity {
       });
   }
 
-  addInteractors(cy: cytoscape.Core) {
-    const clickedNodes: { [key: string]: { resource: string, count: number } } = {};
+  onZoom!: (e?: cytoscape.EventObjectCore) => void;
 
-    cy.on('click', '.InteractorOccurrences', event => {
-      const targetNode = event.target;
-      const interactorsData = targetNode.data('interactors');
-      const resource = targetNode.data('resource')
-      InteractorsLayout.BOX_WIDTH = resource === 'DisGeNet' ? this.DEFAULT_DISGENET_WIDTH / 2 : this.DEFAULT_INTERACTOR_WIDTH / 2;
-      const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
-      const [dynamicInteractors, existingInteractors] = this.getInteractors(interactorsData, cy, numberToAdd);
-      const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
+  proteins!: cytoscape.NodeCollection;
 
-      this.addInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd, resource);
-      this.addInteractorEdges(allNodes, targetNode, cy, resource);
-
-      const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
-      this.displayInteractors(interactorsToDisplay, targetNode, cy, clickedNodes)
-    });
+  updateProteins() {
+    this.proteins = this.cy.nodes('.Protein');
   }
 
-  displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core, clickedNodes: {
-    [key: string]: { resource: string, count: number }
-  }) {
+  initZoom(cy: cytoscape.Core) {
+    const shadows = cy.edges('[?pathway]');
+    const shadowLabels = cy.nodes('.Shadow');
+    const trivial = cy.elements('.trivial');
+    this.updateProteins();
 
-    let layoutOptions: cytoscape.LayoutOptions = {
-      name: 'preset',
-      fit: false
+    cy.minZoom(Math.min(cy.zoom(), extract(this.properties.shadow.labelOpacity)[0][0] / 100));
+    cy.maxZoom(15);
+
+    let baseFontSize = extract(this.properties.font.size);
+    const structureOpacityArray = extract(this.properties.structure.opacity)
+    const zoomStart = structureOpacityArray[0][0];
+    const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
+
+
+    this.onZoom = e => {
+      const zoomLevel = cy.zoom();
+      const z = zoomLevel * 100;
+      const shadowLabelOpacity = this.interpolate(z, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
+      const trivialOpacity = this.interpolate(z, extract(this.properties.trivial.opacity).map(v => this.p(...v))) / 100;
+      const shadowOpacity = this.interpolate(z, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100;
+      const videoOpacity = this.interpolate(z, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
+
+      const maxWidth = this.interpolate(z, [this.p(zoomStart, 100), this.p(zoomEnd, 50)]);
+      const margin = this.interpolate(z, [this.p(zoomStart, 0), this.p(zoomEnd, 25)]);
+      const fontSize = this.interpolate(z, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
+      shadows.style({
+        'underlay-opacity': shadowOpacity
+      });
+      shadowLabels.style({
+        'text-opacity': shadowLabelOpacity
+      });
+      trivial.style({
+        'opacity': trivialOpacity,
+        'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
+      });
+      this.proteins.style(
+        {
+          'font-size': fontSize,
+          'text-margin-x': margin + "%",
+          'text-max-width': maxWidth + "%",
+        })
+
+      this.videoLayer.node.style.opacity = videoOpacity + '';
     }
 
-    /**
-     *  A toggle behavior for displaying and removing interactor nodes associated with interactor occurrence node
-     *  base on whether a node has been clicked before, tracking click counts and node resources in the process.
-     */
-    const resource = targetNode.data('resource');
-    if (clickedNodes[targetNode.id()]) {
-      //check if the node has been clicked before
-      const nodeData = clickedNodes[targetNode.id()];
-      //same resource
-      if (nodeData.resource === resource) {
-        const evenClick = nodeData.count % 2 === 0;
-        //even click count, display data, odd click count, remove data
-        evenClick ? interactorsToDisplay.layout(layoutOptions).run() : (interactorsToDisplay.remove(), this.removeInteractorEdges(targetNode, cy));
-        nodeData.count++;
-      } else {
-        //different resource, treat it as a first click
-        interactorsToDisplay.layout(layoutOptions).run();
-        clickedNodes[targetNode.id()] = {resource: resource, count: 1};
-      }
-    } else {
-      //first click on this node
-      interactorsToDisplay.layout(layoutOptions).run();
-      clickedNodes[targetNode.id()] = {resource: resource, count: 1};
-    }
-  }
-
-  readonly DEFAULT_INTERACTOR_WIDTH = 100;
-  readonly DEFAULT_DISGENET_WIDTH = 250
-  readonly INTERACTOR_PADDING = 20;
-  readonly CHAR_WIDTH = 10;
-  readonly CHAR_HEIGHT = 12;
-  readonly STATIC = "Static"; //IntAct
-  readonly DISGENET = "DisGeNet";
-
-  addInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
-    const interactorNodes: cytoscape.NodeDefinition[] = [];
-    const interactorLayout = new InteractorsLayout();
-    // todo :
-    const resourceClass = resource === this.STATIC ? ['Protein', 'PhysicalEntity', 'Interactor'] : ['PhysicalEntity', 'Interactor', 'DiseaseInteractor'];
-
-    interactorsData.forEach((interactor: Interactor, index: number) => {
-      const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
-      let uniprotId = interactor.acc;
-      const displayName = interactor.alias ? interactor.alias : uniprotId;
-      const HEIGHT = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
-      let interactorNodeId = uniprotId + '-' + targetNode.data('entity').id();
-      const html = `<video loop width="${this.DEFAULT_INTERACTOR_WIDTH + 10}" height="${HEIGHT + 10}" id="video-${interactorNodeId}"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime"><source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm"></video>`;
-      const classes = resource === this.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...NODE_TYPE_MAP.get(interactor.type)!, 'Interactor'];
-      let width = resource === this.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
-      let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
-      if (interactor.type === 'Gene') height += extract(this.properties.gene.decorationHeight);
-
-      interactorNodes.push({
-        data: {
-          width: width,
-          id: interactor.acc + '-' + targetNode.data('entity').id(),
-          displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
-          // width: Math.max(displayName.length * this.CHAR_WIDTH + 2 * this.INTERACTOR_PADDING, this.DEFAULT_INTERACTOR_WIDTH),
-          height: height,
-          source: targetNode.id(),
-          accURL: interactor.accURL,
-          score: interactor.score,
-          evidences: interactor.evidences,
-          evidenceURLs: interactor.evidencesURL,
-          resource: resource,
-          html
-        },
-        classes: classes,
-        position: position,
-        selectable: false
-      })
-    })
-    let interactors = cy.add(interactorNodes);
-  }
-
-  addInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
-
-    const resourceClass = resource === this.DISGENET ? ['Interactor', 'DiseaseInteractor'] : ['Interactor'];
-
-    const interactorEdges: cytoscape.EdgeDefinition[] = [];
-    interactorsData.forEach((interactor: Interactor) => {
-      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
-      const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
-      const targetNodeId = accToEntityNode.get(interactor.acc) ? accToEntityNode.get(interactor.acc)?.data('id') : interactor.acc + '-' + targetNode.data('entity').id();
-      interactorEdges.push({
-        data: {
-          id: interactor.acc + '---' + targetNode.data('entity').id(),
-          source: targetNode.data('entity').id(),
-          target: targetNodeId,
-          edgeToTarget: targetNode.id(),
-          evidenceURLs: interactor.evidencesURL,
-          resource: resource
-        },
-        classes: resourceClass,
-        selectable: false
-      })
-    })
-    cy?.add(interactorEdges)
-  }
-
-
-  getInteractors(interactorsData: Interactor[], cy: cytoscape.Core, numberToAdd: number) {
-    const dynamicInteractors = [];
-    const existingInteractors = [];
-    let currentSize = 0;
-    // get interactors to draw with a provided a number, collect existing interactors for creating edge
-    for (const interactor of interactorsData) {
-      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
-      const accToEntityNode = new Map(diagramNodes?.map(node => [node.data('acc'), node]));
-
-      if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
-        dynamicInteractors.push(interactor);
-        currentSize++;
-        if (currentSize === numberToAdd) break;
-      } else {
-        existingInteractors.push(interactor);
-      }
-    }
-    return [dynamicInteractors, existingInteractors];
-  }
-
-
-  removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
-    const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
-    edgesToRemove.remove();
+    cy.on('zoom', this.onZoom);
   }
 
   p(x: number, y: number): P {
