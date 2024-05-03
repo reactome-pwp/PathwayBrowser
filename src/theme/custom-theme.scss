@@ -134,6 +134,7 @@ $color-config: mat.get-color-config($light-theme);
   @include mat.icon-color($dark-theme);
   @include mat.stepper-color($dark-theme);
   @include mat.menu-color($dark-theme);
+  @include mat.list-theme($dark-theme);
 
 }
 
