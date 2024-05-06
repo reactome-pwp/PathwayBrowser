@@ -56,16 +56,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   cyCompare!: cytoscape.Core;
   legend!: cytoscape.Core;
   reactomeStyle!: Style;
-  private _reactomeEvents$: Subject<ReactomeEvent> = new Subject<ReactomeEvent>();
-  private _ignore = false;
-
-  @Output()
-  public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
-    distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
-    tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
-    filter(() => !this._ignore),
-    share()
-  );
 
 
   @Input('id') diagramId: string = '';
@@ -237,7 +227,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.cy.batch(() => {
         shadowNodes.style({visibility: 'hidden'})
         shadowEdges.removeClass('shadow')
-        cy.off('zoom', this.reactomeStyle.interactivity.onZoom)
+        cy.off('zoom', this.reactomeStyle.interactivity.onZoom.shadow)
         trivials.style({opacity: 1})
         cy.edges().style({'underlay-opacity': 0})
         cy.elements().removeClass('flag')
@@ -253,8 +243,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         shadowEdges.addClass('shadow')
 
         cy.elements().removeClass('flag')
-        cy.on('zoom', this.reactomeStyle.interactivity.onZoom)
-        this.reactomeStyle.interactivity.onZoom()
+        cy.on('zoom', this.reactomeStyle.interactivity.onZoom.shadow)
+        this.reactomeStyle.interactivity.onZoom.shadow()
       })
 
       return cy.collection()
@@ -412,6 +402,17 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   // ----- Event Syncing -----
 
+  private _reactomeEvents$: Subject<ReactomeEvent> = new Subject<ReactomeEvent>();
+  private _ignore = false;
+
+  @Output()
+  public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
+    distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
+    tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
+    filter(() => !this._ignore),
+    share()
+  );
+
   stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram());
   compareBackgroundSync = this.reactomeEvents$.pipe(
     filter(() => this.comparing),
@@ -441,7 +442,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     ).subscribe(e => {
         this.interactorsService.addInteractorNodes(e.detail.element.nodes(), this.cy);
         this.reactomeStyle.interactivity.updateProteins();
-        this.reactomeStyle.interactivity.onZoom();
+        this.reactomeStyle.interactivity.triggerZoom();
       }
     );
 

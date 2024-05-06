@@ -13,8 +13,8 @@ export class Interactivity {
     cy.elements().ungrabify().panify();
     this.initHover(cy);
     this.initSelect(cy);
-    this.initZoom(cy);
     this.initStructureVideo(cy);
+    this.initZoom(cy);
   }
 
   expandReaction(reactionNode: cytoscape.NodeCollection) {
@@ -233,7 +233,18 @@ export class Interactivity {
       });
   }
 
-  onZoom!: (e?: cytoscape.EventObjectCore) => void;
+  onZoom: {
+    [name: string]: (e?: cytoscape.EventObjectCore) => void
+    shadow: (e?: cytoscape.EventObjectCore) => void;
+    protein: (e?: cytoscape.EventObjectCore) => void;
+  } = {
+    shadow: () => undefined,
+    protein: () => undefined,
+  };
+
+  triggerZoom() {
+    Object.values(this.onZoom).forEach(onZoom => onZoom())
+  }
 
   proteins!: cytoscape.NodeCollection;
 
@@ -256,17 +267,12 @@ export class Interactivity {
     const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
 
 
-    this.onZoom = e => {
+    this.onZoom.shadow = e => {
       const zoomLevel = cy.zoom();
       const z = zoomLevel * 100;
       const shadowLabelOpacity = this.interpolate(z, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
       const trivialOpacity = this.interpolate(z, extract(this.properties.trivial.opacity).map(v => this.p(...v))) / 100;
       const shadowOpacity = this.interpolate(z, extract(this.properties.shadow.opacity).map(v => this.p(...v))) / 100;
-      const videoOpacity = this.interpolate(z, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
-
-      const maxWidth = this.interpolate(z, [this.p(zoomStart, 100), this.p(zoomEnd, 50)]);
-      const margin = this.interpolate(z, [this.p(zoomStart, 0), this.p(zoomEnd, 25)]);
-      const fontSize = this.interpolate(z, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
       shadows.style({
         'underlay-opacity': shadowOpacity
       });
@@ -277,6 +283,16 @@ export class Interactivity {
         'opacity': trivialOpacity,
         'underlay-opacity': Math.min(shadowOpacity, trivialOpacity)
       });
+    }
+
+    this.onZoom.protein = () => {
+      const zoomLevel = cy.zoom();
+      const z = zoomLevel * 100;
+      const videoOpacity = this.interpolate(z, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
+
+      const maxWidth = this.interpolate(z, [this.p(zoomStart, 100), this.p(zoomEnd, 50)]);
+      const margin = this.interpolate(z, [this.p(zoomStart, 0), this.p(zoomEnd, 25)]);
+      const fontSize = this.interpolate(z, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
       this.proteins.style(
         {
           'font-size': fontSize,
@@ -285,9 +301,12 @@ export class Interactivity {
         })
 
       this.videoLayer.node.style.opacity = videoOpacity + '';
-    }
+    };
 
-    cy.on('zoom', this.onZoom);
+    cy.on('zoom', this.onZoom.shadow);
+    cy.on('zoom', this.onZoom.protein);
+
+    this.triggerZoom()
   }
 
   p(x: number, y: number): P {

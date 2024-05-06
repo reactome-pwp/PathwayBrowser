@@ -831,6 +831,6 @@ export class Style {
     this.clearCache();
     cy.style(this.getStyleSheet());
     this.initSubPathwayColors();
-    this.interactivity.onZoom()
+    this.interactivity.triggerZoom();
   }
 }
