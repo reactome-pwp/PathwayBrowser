@@ -91,6 +91,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           boxSelectionEnabled: false
         });
         this.reactomeStyle?.bindToCytoscape(this.legend);
+        this.legend.elements().unselectify().on('click', (event) => {
+          event.target.toggleClass('flag')
+          this.legend.elements().not(event.target).removeClass('flag')
+        })
         this.legend.zoomingEnabled(false);
         this.legend.panningEnabled(false);
         this.legend.minZoom(0)
@@ -503,11 +507,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     switch (event.type) {
-      case ReactomeEventTypes.select:
+      case ReactomeEventTypes.open:
         this.state.set('flag', ['class:' + classes[0] + (classes.includes('drug') ? '.' : '!') + 'drug'])
         this.stateToDiagram();
         break;
-      case ReactomeEventTypes.unselect:
+      case ReactomeEventTypes.close:
         this.state.set('flag', [])
         this.stateToDiagram();
         break;

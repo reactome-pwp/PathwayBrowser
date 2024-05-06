@@ -13,6 +13,7 @@ export class Interactivity {
     cy.elements().ungrabify().panify();
     this.initHover(cy);
     this.initSelect(cy);
+    this.initClick(cy);
     this.initStructureVideo(cy);
     this.initZoom(cy);
   }
@@ -188,6 +189,41 @@ export class Interactivity {
         if (url) window.open(url);
       });
 
+  }
+
+  initClick(cy: cytoscape.Core) {
+    const container = cy.container()!;
+
+    cy
+      .on('click', 'node.InteractorOccurrences', e => {
+        const openClass = 'opened';
+        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+        e.target.toggleClass(openClass);
+        container.dispatchEvent(new ReactomeEvent(eventType, {
+          element: e.target,
+          type: "Interactor",
+          reactomeId: e.target.data('reactomeId'),
+          cy
+        }))
+      })
+
+      .on('click', '.Interactor', e => {
+        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
+        const url = e.target.data(prop);
+        if (url) window.open(url);
+      })
+
+      .on('click', e => {
+        const openClass = 'opened';
+        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+        e.target.toggleClass(openClass);
+        container.dispatchEvent(new ReactomeEvent(eventType, {
+          element: e.target,
+          type: "Any",
+          reactomeId: e.target.data('reactomeId'),
+          cy
+        }))
+      });
   }
 
   private videoLayer!: IHTMLLayer;

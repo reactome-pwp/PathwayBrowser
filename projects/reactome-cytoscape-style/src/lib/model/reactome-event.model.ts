@@ -2,7 +2,7 @@ import cytoscape from "cytoscape";
 
 export interface ReactomeEventTarget {
   reactomeId: string,
-  type: 'PhysicalEntity' | 'Pathway' | 'reaction' | 'Interactor',
+  type: 'PhysicalEntity' | 'Pathway' | 'reaction' | 'Interactor' | 'Any',
   element: cytoscape.NodeSingular,
   cy: cytoscape.Core
 }
@@ -15,7 +15,7 @@ export enum ReactomeEventTypes {
   unselect = 'reactome::unselect',
 
   open = 'reactome::open',
-  close = 'reactome::close'
+  close = 'reactome::close',
 }
 
 export class ReactomeEvent extends CustomEvent<ReactomeEventTarget> {
