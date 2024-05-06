@@ -42,6 +42,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('psicquicSelect') psicquicSelect?: MatSelect;
 
   comparing: boolean = false;
+  fit = true;
   psicquicResources: PsicquicResource[] = []
   selectedPsicquicResource = new FormControl();
   isDataFromPsicquicLoading: boolean = false;
@@ -162,14 +163,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  private stateToDiagram() {
-    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
-      this.flag(this.state.get('flag'), cy);
-      this.select(this.state.get("select"), cy);
-      this.getInteractors(this.state.get("overlay"))
-    }
-  }
-
   readonly classRegex = /class:(\w+)([!.]drug)?/
 
   getElements(tokens: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
@@ -196,7 +189,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           }
         }
       } else {
-        console.log('number')
         elements = elements.or(`[acc=${token}]`).or(`[reactomeId=${token}]`)
       }
     });
@@ -209,7 +201,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     if ("connectedNodes" in selected) {
       selected = selected.add(selected.connectedNodes());
     }
-    cy.fit(selected, 100)
+
+    if (this.fit) {
+      cy.fit(selected, 100)
+      this.fit = false;
+    }
 
     return selected;
   }
@@ -306,14 +302,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   };
 
 
-  getInteractors(resource: string) {
+  getInteractors(resource: string, cy: cytoscape.Core = this.cy) {
 
     if (!resource) return;
     if (this.selectedPsicquicResource.value) {
       this.selectedPsicquicResource.reset();
     }
-    this.interactorsService.getInteractorData(this.cy, resource).subscribe(interactors => {
-      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, resource)
+    this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
+      this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
     });
 
     this.state.set('overlay', resource)
@@ -414,6 +410,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   );
 
   stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram());
+
+  private stateToDiagram() {
+    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
+      this.flag(this.state.get('flag'), cy);
+      this.select(this.state.get("select"), cy);
+      this.getInteractors(this.state.get("overlay"), cy)
+    }
+  }
+
   compareBackgroundSync = this.reactomeEvents$.pipe(
     filter(() => this.comparing),
     filter((e) => e.detail.cy !== this.legend)
