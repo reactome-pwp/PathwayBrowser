@@ -137,18 +137,6 @@ export class Interactivity {
         cy
       })))
 
-      .on('click', 'node.InteractorOccurrences', e => {
-        const openClass = 'opened';
-        e.target.toggleClass(openClass);
-        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
-        container.dispatchEvent(new ReactomeEvent(eventType, {
-          element: e.target,
-          type: "Interactor",
-          reactomeId: e.target.data('reactomeId'),
-          cy
-        }))
-      })
-
       .on('unselect', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
         element: e.target,
         type: "PhysicalEntity",
@@ -183,18 +171,6 @@ export class Interactivity {
       .on('select', 'node.reaction', event => selectReaction(mapper(event.target)))
       .on('select', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).select())
 
-      .on('click', '.Interactor', e => {
-        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
-        const url = e.target.data(prop);
-        if (url) window.open(url);
-      })
-
-      .on('click', '.DiseaseInteractor', e => {
-        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
-        const url = e.target.data(prop);
-        if (url) window.open(url);
-      });
-
   }
 
   initClick(cy: cytoscape.Core) {
@@ -219,6 +195,11 @@ export class Interactivity {
         if (url) window.open(url);
       })
 
+      .on('click', '.DiseaseInteractor', e => {
+        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
+        const url = e.target.data(prop);
+        if (url) window.open(url);
+      })
       .on('click', e => {
         const openClass = 'opened';
         let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
@@ -229,7 +210,7 @@ export class Interactivity {
           reactomeId: e.target.data('reactomeId'),
           cy
         }))
-      });
+      })
   }
 
   private videoLayer!: IHTMLLayer;
