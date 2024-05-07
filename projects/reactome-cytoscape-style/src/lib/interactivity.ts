@@ -15,6 +15,7 @@ export class Interactivity {
     this.initSelect(cy);
     this.initClick(cy);
     this.initStructureVideo(cy);
+    // this.initStructureMolecule(cy);
     this.initZoom(cy);
   }
 
@@ -183,18 +184,6 @@ export class Interactivity {
       .on('select', 'node.reaction', event => selectReaction(mapper(event.target)))
       .on('select', 'node.Modification', e => mapper(cy.nodes(`#${e.target.data('nodeId')}`)).select())
 
-      .on('click', '.Interactor', e => {
-        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
-        const url = e.target.data(prop);
-        if (url) window.open(url);
-      })
-
-      .on('click', '.DiseaseInteractor', e => {
-        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
-        const url = e.target.data(prop);
-        if (url) window.open(url);
-      });
-
   }
 
   initClick(cy: cytoscape.Core) {
@@ -219,17 +208,17 @@ export class Interactivity {
         if (url) window.open(url);
       })
 
-      .on('click', e => {
-        const openClass = 'opened';
-        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
-        e.target.toggleClass(openClass);
-        container.dispatchEvent(new ReactomeEvent(eventType, {
-          element: e.target,
-          type: "Any",
-          reactomeId: e.target.data('reactomeId'),
-          cy
-        }))
-      });
+      // .on('click', e => {
+      //   const openClass = 'opened';
+      //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+      //   e.target.toggleClass(openClass);
+      //   container.dispatchEvent(new ReactomeEvent(eventType, {
+      //     element: e.target,
+      //     type: "Any",
+      //     reactomeId: e.target.data('reactomeId'),
+      //     cy
+      //   }))
+      // });
   }
 
   private videoLayer!: IHTMLLayer;
@@ -275,6 +264,33 @@ export class Interactivity {
       });
   }
 
+  private moleculeLayer!: IHTMLLayer;
+
+  initStructureMolecule(cy: cytoscape.Core) {
+    // @ts-ignore
+    const layers: LayersPlugin = cy.layers();
+
+    this.moleculeLayer = layers.append('html');
+    layers.renderPerNode(
+      this.moleculeLayer,
+      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+
+      },
+      {
+        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+          elem.innerHTML = node.data('html') || '';
+          elem.style.display = "flex"
+        },
+        transform: `translate(-100%, -50%)`,
+        position: 'center',
+        uniqueElements: true,
+        checkBounds: false,
+        selector: '.Molecule',
+        queryEachTime: false,
+      }
+    );
+  }
+
   onZoom: {
     [name: string]: (e?: cytoscape.EventObjectCore) => void
     shadow: (e?: cytoscape.EventObjectCore) => void;
@@ -291,7 +307,7 @@ export class Interactivity {
   proteins!: cytoscape.NodeCollection;
 
   updateProteins() {
-    this.proteins = this.cy.nodes('.Protein');
+    this.proteins = this.cy.nodes('.Protein').or('.Molecule');
   }
 
   initZoom(cy: cytoscape.Core) {
@@ -333,16 +349,17 @@ export class Interactivity {
       const videoOpacity = this.interpolate(z, extract(this.properties.structure.opacity).map(v => this.p(...v))) / 100;
 
       const maxWidth = this.interpolate(z, [this.p(zoomStart, 100), this.p(zoomEnd, 50)]);
-      const margin = this.interpolate(z, [this.p(zoomStart, 0), this.p(zoomEnd, 25)]);
+      this.margin = this.interpolate(z, [this.p(zoomStart, 0), this.p(zoomEnd, 0.25)]);
       const fontSize = this.interpolate(z, [this.p(zoomStart, baseFontSize), this.p(zoomEnd, baseFontSize / 2)]);
       this.proteins.style(
         {
           'font-size': fontSize,
-          'text-margin-x': margin + "%",
+          'text-margin-x': (n: cytoscape.NodeSingular) => this.margin * n.data("width"),
           'text-max-width': maxWidth + "%",
         })
 
       this.videoLayer.node.style.opacity = videoOpacity + '';
+      // this.moleculeLayer.node.style.opacity = videoOpacity + '';
     };
 
     cy.on('zoom', this.onZoom.shadow);
@@ -350,6 +367,8 @@ export class Interactivity {
 
     this.triggerZoom()
   }
+
+  margin = 0;
 
   p(x: number, y: number): P {
     return new P(x, y)

@@ -91,10 +91,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           boxSelectionEnabled: false
         });
         this.reactomeStyle?.bindToCytoscape(this.legend);
-        this.legend.elements().unselectify().on('click', (event) => {
-          event.target.toggleClass('flag')
-          this.legend.elements().not(event.target).removeClass('flag')
-        })
+        // this.legend.elements().on('click', (event) => {
+        //   event.target.toggleClass('flag')
+        //   this.legend.elements().not(event.target).removeClass('flag')
+        // })
         this.legend.zoomingEnabled(false);
         this.legend.panningEnabled(false);
         this.legend.minZoom(0)
@@ -185,15 +185,16 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               elements = elements.or(`.${clazz}`).and('.drug');
             } else if (drug === '!drug') { // Non drug physical entity
               elements = elements.or(`.${clazz}`).not('.drug');
-            } else { // Non physical entity
+            } else { // Reactions
               elements = elements.or(`.${clazz}`);
+              elements = elements.or(elements.nodes('.reaction').connectedEdges());
             }
           } else {
-            elements = elements.or(`[acc=${token}]`)
+            elements = elements.or(`[acc="${token}"]`)
           }
         }
       } else {
-        elements = elements.or(`[acc=${token}]`).or(`[reactomeId=${token}]`)
+        elements = elements.or(`[acc="${token}"]`).or(`[reactomeId="${token}"]`)
       }
     });
     return elements;
@@ -408,7 +409,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @Output()
   public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
     distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
-    tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
+    // tap(e => console.log(e.type, e.detail, e.detail.element.data(), e.detail.cy.container()?.id)),
     filter(() => !this._ignore),
     share()
   );
@@ -430,9 +431,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     const src = event.detail.cy;
     const tgt = src === this.cy ? this.cyCompare : this.cy;
 
-    const replacedBy = event.detail.element.data('replacedBy') ||
-      event.detail.element.data('replacement') ||
-      (event.detail.element.data('isBackground') && !event.detail.element.data('isFadeOut') && event.detail.element.data('id'))
+    let replacedBy = event.detail.element.data('replacedBy');
+    replacedBy = replacedBy || event.detail.element.data('replacement');
+    replacedBy = replacedBy || (event.detail.element.data('isBackground') && !event.detail.element.data('isFadeOut') && event.detail.element.data('id'));
+
     if (!replacedBy) return;
 
     let replacements = tgt.getElementById(replacedBy);
@@ -497,6 +499,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     const classes = event.detail.element.classes();
     let matchingElement: cytoscape.NodeCollection | cytoscape.EdgeCollection = this.cy.elements(`.${classes[0]}`);
 
+    // TODO move everything to use state
+
     if (event.detail.type === 'PhysicalEntity' || event.detail.type === 'Pathway') {
       if (classes.includes('drug')) matchingElement = matchingElement.nodes('.drug')
       else matchingElement = matchingElement.not('.drug')
@@ -507,12 +511,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     switch (event.type) {
-      case ReactomeEventTypes.open:
-        this.state.set('flag', ['class:' + classes[0] + (classes.includes('drug') ? '.' : '!') + 'drug'])
+      case ReactomeEventTypes.select:
+        this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))])
+        // this.flagElements(matchingElement, this.cy);
         this.stateToDiagram();
         break;
-      case ReactomeEventTypes.close:
+      case ReactomeEventTypes.unselect:
         this.state.set('flag', [])
+        // this.flagElements(this.cy.collection(), this.cy);
         this.stateToDiagram();
         break;
       case ReactomeEventTypes.hover:

@@ -289,7 +289,10 @@ export class DiagramService {
               replacementMap.set(replacedBy, item.id.toString())
             }
           }
-          if (!item.isFadeOut) replacement = posToNormalEdge.get(pointToStr(item.position)) || normalEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
+          if (!item.isFadeOut) {
+            replacement = posToNormalEdge.get(pointToStr(item.position))?.id.toString() || normalEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
+            console.log("Reaction node", replacement)
+          }
           return ({
             data: {
               id: item.id + '',
@@ -337,9 +340,12 @@ export class DiagramService {
           let html = undefined;
           let width = scale(item.prop.width);
           let height = scale(item.prop.height);
-          let uniprotId = idToGraphNodes.get(item.id)?.identifier;
+          let preferredId = idToGraphNodes.get(item.id)?.identifier;
           if (classes.some(clazz => clazz === 'Protein')) {
-            html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, uniprotId);
+            html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, preferredId);
+          } else if (classes.some(clazz => clazz === 'Molecule')) {
+            html = `<img src="https://www.ebi.ac.uk/chembl/api/data/image/CHEMBL1773903.svg" width="${width/2 - 4}" height="${height}">`;
+            // html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=200&transbg=true">`;
           }
           if (isBackground && !item.isFadeOut) {
             replacementMap.set(item.id.toString(), item.id.toString())
@@ -354,7 +360,7 @@ export class DiagramService {
                 height: height,
                 width: width,
                 graph: idToGraphNodes.get(item.id),
-                acc: uniprotId,
+                acc: preferredId,
                 html,
                 isFadeOut,
                 isBackground,
@@ -472,8 +478,12 @@ export class DiagramService {
                 if (!connector.isFadeOut) {
                   // First case: same node is used both special and normal context
                   replacement = node.connectors.find(otherConnector => otherConnector !== connector && otherConnector.isFadeOut && samePoint(idToEdges.get(otherConnector.edgeId)!.position, reaction.position))?.edgeId;
+                  // console.log("Reaction edge", replacement)
+
                   // Second case: different nodes are used between special and normal context
                   replacement = replacement || (posToNormalNode.get(pointToStr(node.position)) && posToNormalEdge.get(pointToStr(reaction.position)))?.id;
+                  // console.log("Reaction edge", replacement)
+
                 }
                 const edge: cytoscape.EdgeDefinition = {
                   data: {
