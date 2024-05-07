@@ -138,18 +138,6 @@ export class Interactivity {
         cy
       })))
 
-      .on('click', 'node.InteractorOccurrences', e => {
-        const openClass = 'opened';
-        e.target.toggleClass(openClass);
-        let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
-        container.dispatchEvent(new ReactomeEvent(eventType, {
-          element: e.target,
-          type: "Interactor",
-          reactomeId: e.target.data('reactomeId'),
-          cy
-        }))
-      })
-
       .on('unselect', 'node.PhysicalEntity', e => container.dispatchEvent(new ReactomeEvent(ReactomeEventTypes.unselect, {
         element: e.target,
         type: "PhysicalEntity",
@@ -203,6 +191,11 @@ export class Interactivity {
       })
 
       .on('click', '.Interactor', e => {
+        const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
+        const url = e.target.data(prop);
+        if (url) window.open(url);
+      })
+      .on('click', '.DiseaseInteractor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
@@ -264,32 +257,32 @@ export class Interactivity {
       });
   }
 
-  private moleculeLayer!: IHTMLLayer;
-
-  initStructureMolecule(cy: cytoscape.Core) {
-    // @ts-ignore
-    const layers: LayersPlugin = cy.layers();
-
-    this.moleculeLayer = layers.append('html');
-    layers.renderPerNode(
-      this.moleculeLayer,
-      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-
-      },
-      {
-        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-          elem.innerHTML = node.data('html') || '';
-          elem.style.display = "flex"
-        },
-        transform: `translate(-100%, -50%)`,
-        position: 'center',
-        uniqueElements: true,
-        checkBounds: false,
-        selector: '.Molecule',
-        queryEachTime: false,
-      }
-    );
-  }
+  // private moleculeLayer!: IHTMLLayer;
+  //
+  // initStructureMolecule(cy: cytoscape.Core) {
+  //   // @ts-ignore
+  //   const layers: LayersPlugin = cy.layers();
+  //
+  //   this.moleculeLayer = layers.append('html');
+  //   layers.renderPerNode(
+  //     this.moleculeLayer,
+  //     (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+  //
+  //     },
+  //     {
+  //       init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+  //         elem.innerHTML = node.data('html') || '';
+  //         elem.style.display = "flex"
+  //       },
+  //       transform: `translate(-100%, -50%)`,
+  //       position: 'center',
+  //       uniqueElements: true,
+  //       checkBounds: false,
+  //       selector: '.Molecule',
+  //       queryEachTime: false,
+  //     }
+  //   );
+  // }
 
   onZoom: {
     [name: string]: (e?: cytoscape.EventObjectCore) => void
@@ -307,7 +300,8 @@ export class Interactivity {
   proteins!: cytoscape.NodeCollection;
 
   updateProteins() {
-    this.proteins = this.cy.nodes('.Protein').or('.Molecule');
+    this.proteins = this.cy.nodes('.Protein')
+      // .or('.Molecule');
   }
 
   initZoom(cy: cytoscape.Core) {
