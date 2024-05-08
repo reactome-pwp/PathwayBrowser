@@ -4,6 +4,13 @@ body {
   background: var(--surface);
 }
 
+
 video {
-  //transform: translate(-10px, -10px);
+  filter: brightness(2);
+}
+
+.dark {
+  video {
+    filter: brightness(1);
+  }
 }

@@ -240,6 +240,8 @@ export class Interactivity {
         queryEachTime: false,
       }
     );
+
+    this.videoLayer.node.classList.add('video')
     this.cy
       ?.on('mouseover', 'node.Protein', (event) => {
         const videoId = event.target.id();
