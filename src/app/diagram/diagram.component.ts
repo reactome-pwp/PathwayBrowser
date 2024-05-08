@@ -15,7 +15,7 @@ import cytoscape from "cytoscape";
 import {Interactivity, ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
-import {delay, distinctUntilChanged, filter, Observable, share, Subject, tap} from "rxjs";
+import {delay, distinctUntilChanged, filter, Observable, share, Subject} from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {PsicquicResource, Resource} from "../interactors/model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
@@ -497,36 +497,36 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   ).subscribe((e) => {
     const event = e as ReactomeEvent;
     const classes = event.detail.element.classes();
-    let matchingElement: cytoscape.NodeCollection | cytoscape.EdgeCollection = this.cy.elements(`.${classes[0]}`);
+    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
+      let matchingElement: cytoscape.NodeCollection | cytoscape.EdgeCollection = cy.elements(`.${classes[0]}`);
 
-    // TODO move everything to use state
+      // TODO move everything to use state
 
-    if (event.detail.type === 'PhysicalEntity' || event.detail.type === 'Pathway') {
-      if (classes.includes('drug')) matchingElement = matchingElement.nodes('.drug')
-      else matchingElement = matchingElement.not('.drug')
-    } else if (event.detail.type === 'reaction') {
-      const reaction = event.detail.element.nodes('.reaction');
-      matchingElement = this.cy.nodes(`.${reaction.classes()[0]}`)
-      matchingElement = matchingElement.add(matchingElement.connectedEdges())
-    }
+      if (event.detail.type === 'PhysicalEntity' || event.detail.type === 'Pathway') {
+        if (classes.includes('drug')) matchingElement = matchingElement.nodes('.drug')
+        else matchingElement = matchingElement.not('.drug')
+      } else if (event.detail.type === 'reaction') {
+        const reaction = event.detail.element.nodes('.reaction');
+        matchingElement = this.cy.nodes(`.${reaction.classes()[0]}`)
+        matchingElement = matchingElement.add(matchingElement.connectedEdges())
+      }
 
-    switch (event.type) {
-      case ReactomeEventTypes.select:
-        this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))])
-        // this.flagElements(matchingElement, this.cy);
-        this.stateToDiagram();
-        break;
-      case ReactomeEventTypes.unselect:
-        this.state.set('flag', [])
-        // this.flagElements(this.cy.collection(), this.cy);
-        this.stateToDiagram();
-        break;
-      case ReactomeEventTypes.hover:
-        matchingElement.addClass('hover')
-        break;
-      case ReactomeEventTypes.leave:
-        matchingElement.removeClass('hover')
-        break;
+      switch (event.type) {
+        case ReactomeEventTypes.select:
+          this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))])
+          this.stateToDiagram();
+          break;
+        case ReactomeEventTypes.unselect:
+          this.state.set('flag', [])
+          this.stateToDiagram();
+          break;
+        case ReactomeEventTypes.hover:
+          matchingElement.addClass('hover')
+          break;
+        case ReactomeEventTypes.leave:
+          matchingElement.removeClass('hover')
+          break;
+      }
     }
   });
 

@@ -5,12 +5,15 @@ body {
 }
 
 
-video {
+.video {
   filter: brightness(2);
 }
 
 .dark {
-  video {
+  .video {
     filter: brightness(1);
+  }
+  .molecule {
+    filter: invert(1) hue-rotate(180deg);
   }
 }

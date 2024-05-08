@@ -291,7 +291,6 @@ export class DiagramService {
           }
           if (!item.isFadeOut) {
             replacement = posToNormalEdge.get(pointToStr(item.position))?.id.toString() || normalEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
-            console.log("Reaction node", replacement)
           }
           return ({
             data: {
@@ -344,8 +343,7 @@ export class DiagramService {
           if (classes.some(clazz => clazz === 'Protein')) {
             html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, preferredId);
           } else if (classes.some(clazz => clazz === 'Molecule')) {
-            html = `<img src="https://www.ebi.ac.uk/chembl/api/data/image/CHEMBL1773903.svg" width="${width/2 - 4}" height="${height}">`;
-            // html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=200&transbg=true">`;
+            html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=200&transbg=true" style="max-width: ${width/2 - 4}px; max-height:${height}px" alt="">`;
           }
           if (isBackground && !item.isFadeOut) {
             replacementMap.set(item.id.toString(), item.id.toString())

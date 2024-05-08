@@ -15,7 +15,7 @@ export class Interactivity {
     this.initSelect(cy);
     this.initClick(cy);
     this.initStructureVideo(cy);
-    // this.initStructureMolecule(cy);
+    this.initStructureMolecule(cy);
     this.initZoom(cy);
   }
 
@@ -259,32 +259,34 @@ export class Interactivity {
       });
   }
 
-  // private moleculeLayer!: IHTMLLayer;
-  //
-  // initStructureMolecule(cy: cytoscape.Core) {
-  //   // @ts-ignore
-  //   const layers: LayersPlugin = cy.layers();
-  //
-  //   this.moleculeLayer = layers.append('html');
-  //   layers.renderPerNode(
-  //     this.moleculeLayer,
-  //     (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-  //
-  //     },
-  //     {
-  //       init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-  //         elem.innerHTML = node.data('html') || '';
-  //         elem.style.display = "flex"
-  //       },
-  //       transform: `translate(-100%, -50%)`,
-  //       position: 'center',
-  //       uniqueElements: true,
-  //       checkBounds: false,
-  //       selector: '.Molecule',
-  //       queryEachTime: false,
-  //     }
-  //   );
-  // }
+  private moleculeLayer!: IHTMLLayer;
+
+  initStructureMolecule(cy: cytoscape.Core) {
+    // @ts-ignore
+    const layers: LayersPlugin = cy.layers();
+
+    this.moleculeLayer = layers.append('html');
+    this.moleculeLayer.node.classList.add('molecule')
+
+    layers.renderPerNode(
+      this.moleculeLayer,
+      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+
+      },
+      {
+        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+          elem.innerHTML = node.data('html') || '';
+          elem.style.display = "flex"
+        },
+        transform: `translate(-100%, -50%)`,
+        position: 'center',
+        uniqueElements: true,
+        checkBounds: false,
+        selector: '.Molecule',
+        queryEachTime: false,
+      }
+    );
+  }
 
   onZoom: {
     [name: string]: (e?: cytoscape.EventObjectCore) => void
@@ -303,7 +305,7 @@ export class Interactivity {
 
   updateProteins() {
     this.proteins = this.cy.nodes('.Protein')
-      // .or('.Molecule');
+      .or('.Molecule');
   }
 
   initZoom(cy: cytoscape.Core) {
@@ -355,7 +357,7 @@ export class Interactivity {
         })
 
       this.videoLayer.node.style.opacity = videoOpacity + '';
-      // this.moleculeLayer.node.style.opacity = videoOpacity + '';
+      this.moleculeLayer.node.style.opacity = videoOpacity + '';
     };
 
     cy.on('zoom', this.onZoom.shadow);
