@@ -93,6 +93,12 @@ export interface Properties extends PropertiesType {
   font: {
     size: Property<number>
   }
+  features : {
+    edit: Property<boolean>
+    compare: Property<boolean>
+    interactors: Property<boolean>
+    analysis: Property<boolean>
+  }
 }
 
 export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclaration): Properties {
@@ -200,6 +206,11 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const font: Properties['font'] = defaultable(properties.font || {})
     .setDefault('size', 12)
 
+  const features: Properties['features'] = defaultable(properties.features || {})
+    .setDefault("edit", false)
+    .setDefault("compare", true)
+    .setDefault("analysis", true)
+    .setDefault("interactors", true);
 
   return {
     global,
@@ -218,7 +229,8 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     interactor,
     trivial,
     structure,
-    font
+    font,
+    features
   }
 }
 
