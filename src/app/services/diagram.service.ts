@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
+import {catchError, forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Edge as GraphEdge, Graph, Node as GraphNode} from "../model/graph.model";
@@ -160,20 +160,20 @@ export class DiagramService {
   }
 
   public getNormalPathway(id: string): Observable<string> {
-    return this.http.get(`https://release.reactome.org/ContentService/data/query/${id}/normalPathway`, {responseType: "text"}).pipe(
+    return this.http.get(`https://dev.reactome.org/ContentService/data/query/${id}/normalPathway`, {responseType: "text"}).pipe(
       map(data => data.split('\t')[0])
     )
   }
 
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
-      diagram: this.http.get<Diagram>(`https://release.reactome.org/download/current/diagram/${id}.json`),
-      graph: this.http.get<Graph>(`https://release.reactome.org/download/current/diagram/${id}.graph.json`)
+      diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
+      graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
     }).pipe(
       switchMap(({diagram, graph}) => {
-        if (!diagram.forNormalDraw) {
+        if (diagram.forNormalDraw !== undefined && !diagram.forNormalDraw) {
           return this.getNormalPathway(diagram.stableId).pipe(
-            switchMap(normalPathwayId => this.http.get<Graph>(`https://release.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)),
+            switchMap(normalPathwayId => this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)),
             tap(normalGraph => console.log('Normal graph:', normalGraph)),
             map(normalGraph => {
               graph.nodes.push(...normalGraph.nodes);
@@ -183,7 +183,8 @@ export class DiagramService {
                 graph.subpathways.push(...normalGraph.subpathways);
               }
               return {diagram, graph};
-            })
+            }),
+            catchError(err => of({diagram, graph}))
           )
         } else {
           return of({diagram, graph});
