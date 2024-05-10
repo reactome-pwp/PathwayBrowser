@@ -23,6 +23,8 @@ export interface Diagram {
    */
   shadows: SubPathway[];
   forNormalDraw: boolean;
+  dbId: number;
+  stableId: string;
 }
 
 

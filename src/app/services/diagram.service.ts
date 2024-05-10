@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {forkJoin, map, Observable, of, tap} from "rxjs";
+import {forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Edge as GraphEdge, Graph, Node as GraphNode} from "../model/graph.model";
@@ -159,43 +159,65 @@ export class DiagramService {
     return of(legend)
   }
 
+  public getNormalPathway(id: string): Observable<string> {
+    return this.http.get(`https://release.reactome.org/ContentService/data/query/${id}/normalPathway`, {responseType: "text"}).pipe(
+      map(data => data.split('\t')[0])
+    )
+  }
+
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
       diagram: this.http.get<Diagram>(`https://release.reactome.org/download/current/diagram/${id}.json`),
       graph: this.http.get<Graph>(`https://release.reactome.org/download/current/diagram/${id}.graph.json`)
     }).pipe(
+      switchMap(({diagram, graph}) => {
+        if (!diagram.forNormalDraw) {
+          return this.getNormalPathway(diagram.stableId).pipe(
+            switchMap(normalPathwayId => this.http.get<Graph>(`https://release.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)),
+            tap(normalGraph => console.log('Normal graph:', normalGraph)),
+            map(normalGraph => {
+              graph.nodes.push(...normalGraph.nodes);
+              graph.edges.push(...normalGraph.edges);
+              if (normalGraph.subpathways) {
+                graph.subpathways = graph.subpathways || [];
+                graph.subpathways.push(...normalGraph.subpathways);
+              }
+              return {diagram, graph};
+            })
+          )
+        } else {
+          return of({diagram, graph});
+        }
+      }),
       tap((mergedResponse) => console.log('All responses:', mergedResponse)),
-      map((response) => {
+      map(({diagram, graph}) => {
 
-        const data = response.diagram
-        const graph = response.graph
+        console.log("edge.reactionType", new Set(diagram.edges.flatMap(edge => edge.reactionType)))
+        console.log("node.connectors.types", new Set(diagram.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
+        console.log("node.renderableClass", new Set(diagram.nodes.flatMap(node => node.renderableClass)))
+        console.log("links.renderableClass", new Set(diagram.links.flatMap(link => link.renderableClass)))
+        console.log("shadow.renderableClass", new Set(diagram.shadows.flatMap(shadow => shadow.renderableClass)))
 
-        console.log("edge.reactionType", new Set(data.edges.flatMap(edge => edge.reactionType)))
-        console.log("node.connectors.types", new Set(data.nodes.flatMap(node => node.connectors.flatMap(con => con.type))))
-        console.log("node.renderableClass", new Set(data.nodes.flatMap(node => node.renderableClass)))
-        console.log("links.renderableClass", new Set(data.links.flatMap(link => link.renderableClass)))
-        console.log("shadow.renderableClass", new Set(data.shadows.flatMap(shadow => shadow.renderableClass)))
-
-        const idToEdges = new Map<number, Edge>(data.edges.map(edge => [edge.id, edge]));
-        const idToNodes = new Map<number, Node>(data.nodes.map(node => [node.id, node]));
+        const idToEdges = new Map<number, Edge>(diagram.edges.map(edge => [edge.id, edge]));
+        const idToNodes = new Map<number, Node>(diagram.nodes.map(node => [node.id, node]));
         const reactomeIdToEdge = new Map<number, Edge>(
           [
-            // ...data.nodes.map(node => [node.reactomeId, node]),
-            ...data.edges.map(edge => [edge.reactomeId, edge])
+            // ...diagram.nodes.map(node => [node.reactomeId, node]),
+            ...diagram.edges.map(edge => [edge.reactomeId, edge])
           ] as [number, Edge][]
         );
 
         const edgeIds = new Map<string, number>();
-        const forwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.from)), scale(segment.to)])) as [string, Position][];
+        const forwardArray = diagram.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.from)), scale(segment.to)])) as [string, Position][];
         this.extraLine = new Map<string, Position>(forwardArray);
-        console.assert(forwardArray.length === this.extraLine.size, "Some edge data have been lost because 2 segments are starting from the same point")
+        console.assert(forwardArray.length === this.extraLine.size, "Some edge diagram have been lost because 2 segments are starting from the same point")
 
-        const backwardArray = data.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.to)), scale(segment.from)])) as [string, Position][];
+        const backwardArray = diagram.edges.flatMap(edge => edge.segments.map(segment => [posToStr(edge, scale(segment.to)), scale(segment.from)])) as [string, Position][];
         this.reverseExtraLine = new Map<string, Position>(backwardArray);
-        console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge data have been lost because 2 segments are ending at the same point")
+        console.assert(backwardArray.length == this.reverseExtraLine.size, "Some edge diagram have been lost because 2 segments are ending at the same point")
 
 
-        const subpathwayIds = new Set<number>(data.shadows.map((shadow) => shadow.reactomeId))
+        const subpathwayIds = new Set<number>(diagram.shadows.map((shadow) => shadow.reactomeId))
 
         const eventIdToSubPathwayId = new Map<number, number>(graph.subpathways?.flatMap(subpathway => subpathway.events
           .map(event => [event, subpathway.dbId])
@@ -216,19 +238,19 @@ export class DiagramService {
 
         const dbIdToGraphEdge = new Map<number, GraphEdge>(graph.edges.map(edge => ([edge.dbId, edge]) || []))
 
-        const hasFadeOut = data.nodes.some(node => node.isFadeOut);
-        const normalNodes = data.nodes.filter(node => node.isFadeOut);
-        const specialNodes = data.nodes.filter(node => !node.isFadeOut);
+        const hasFadeOut = diagram.nodes.some(node => node.isFadeOut);
+        const normalNodes = diagram.nodes.filter(node => node.isFadeOut);
+        const specialNodes = diagram.nodes.filter(node => !node.isFadeOut);
         const posToNormalNode = new Map(normalNodes.map(node => [pointToStr(node.position), node]));
         const posToSpecialNode = new Map(specialNodes.map(node => [pointToStr(node.position), node]));
 
-        const normalEdges = data.edges.filter(edge => edge.isFadeOut);
-        const specialEdges = data.edges.filter(edge => !edge.isFadeOut);
+        const normalEdges = diagram.edges.filter(edge => edge.isFadeOut);
+        const specialEdges = diagram.edges.filter(edge => !edge.isFadeOut);
         const posToNormalEdge = new Map(normalEdges.map(edge => [pointToStr(edge.position), edge]));
         const posToSpecialEdge = new Map(specialEdges.map(edge => [pointToStr(edge.position), edge]));
 
         //compartment nodes
-        const compartmentNodes: cytoscape.NodeDefinition[] = data?.compartments.flatMap(item => {
+        const compartmentNodes: cytoscape.NodeDefinition[] = diagram?.compartments.flatMap(item => {
           const propToRects = (prop: Prop): { [p: string]: number } => ({
             left: scale(prop.x),
             top: scale(prop.y),
@@ -280,7 +302,7 @@ export class DiagramService {
         const replacementMap = new Map<string, string>();
 
         //reaction nodes
-        const reactionNodes: cytoscape.NodeDefinition[] = data?.edges.map(item => {
+        const reactionNodes: cytoscape.NodeDefinition[] = diagram?.edges.map(item => {
           let replacement, replacedBy;
           if (item.isFadeOut) {
             replacedBy = posToSpecialEdge.get(pointToStr(item.position))?.id.toString() || specialEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
@@ -312,7 +334,7 @@ export class DiagramService {
 
 
         //entity nodes
-        const entityNodes: cytoscape.NodeDefinition[] = data?.nodes.flatMap(item => {
+        const entityNodes: cytoscape.NodeDefinition[] = diagram?.nodes.flatMap(item => {
           const classes = [...this.nodeTypeMap.get(item.renderableClass)!] || [item.renderableClass.toLowerCase()];
           let replacedBy: string | undefined;
           let replacement: string | undefined;
@@ -341,9 +363,10 @@ export class DiagramService {
           let height = scale(item.prop.height);
           let preferredId = idToGraphNodes.get(item.id)?.identifier;
           if (classes.some(clazz => clazz === 'Protein')) {
+            console.log(item.id, idToGraphNodes.get(item.id), preferredId)
             html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, preferredId);
           } else if (classes.some(clazz => clazz === 'Molecule')) {
-            html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=200&transbg=true" style="max-width: ${width/2 - 4}px; max-height:${height}px" alt="">`;
+            html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=1080&transbg=true" style="max-width: ${width / 2 - 4}px; max-height:${height}px" alt="">`;
           }
           if (isBackground && !item.isFadeOut) {
             replacementMap.set(item.id.toString(), item.id.toString())
@@ -392,7 +415,7 @@ export class DiagramService {
         });
 
         //sub pathways
-        const shadowNodes: cytoscape.NodeDefinition[] = data?.shadows.map(item => {
+        const shadowNodes: cytoscape.NodeDefinition[] = diagram?.shadows.map(item => {
           return {
             data: {
               id: item.id + '',
@@ -420,7 +443,7 @@ export class DiagramService {
          *
          */
         const edges: cytoscape.EdgeDefinition[] =
-          data.nodes.flatMap(node => {
+          diagram.nodes.flatMap(node => {
               return node.connectors.map(connector => {
                 const reaction = idToEdges.get(connector.edgeId)!;
 
@@ -462,7 +485,7 @@ export class DiagramService {
                 if (equal(from, reactionP) || equal(to, reactionP)) d -= REACTION_RADIUS;
                 if (classes.includes('positive-regulation') || classes.includes('catalysis') || classes.includes('production')) d -= ARROW_MULT * T;
                 // console.assert(d > MIN_DIST, `The edge between reaction: R-HSA-${reaction.reactomeId} and entity: R-HSA-${node.reactomeId} in pathway ${id} has a visible length of ${d} which is shorter than ${MIN_DIST}`)
-                console.assert(d > MIN_DIST, `${id}\t${data.displayName}\t${hasFadeOut}\tR-HSA-${reaction.reactomeId}\tR-HSA-${node.reactomeId}\thttps://release.reactome.org/PathwayBrowser/#/${id}&SEL=R-HSA-${reaction.reactomeId}&FLG=R-HSA-${node.reactomeId}\thttps://reactome-pwp.github.io/PathwayBrowser/${id}?select=${reaction.reactomeId}&flag=${node.reactomeId}`)
+                console.assert(d > MIN_DIST, `${id}\t${diagram.displayName}\t${hasFadeOut}\tR-HSA-${reaction.reactomeId}\tR-HSA-${node.reactomeId}\thttps://release.reactome.org/PathwayBrowser/#/${id}&SEL=R-HSA-${reaction.reactomeId}&FLG=R-HSA-${node.reactomeId}\thttps://reactome-pwp.github.io/PathwayBrowser/${id}?select=${reaction.reactomeId}&flag=${node.reactomeId}`)
 
                 let replacement, replacedBy;
                 if (connector.isFadeOut) {
@@ -508,7 +531,7 @@ export class DiagramService {
             }
           );
 
-        const linkEdges: cytoscape.EdgeDefinition[] = data.links
+        const linkEdges: cytoscape.EdgeDefinition[] = diagram.links
           ?.filter(link => !link.renderableClass.includes('EntitySet') || link.inputs[0].id !== link.outputs[0].id)
           ?.map(link => {
               const source = idToNodes.get(link.inputs[0].id)!;
