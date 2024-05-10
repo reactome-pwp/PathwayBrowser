@@ -10,7 +10,7 @@ import {HSL} from "./color";
 export class Style {
   public css: CSSStyleDeclaration;
   public properties: Properties;
-  private cy?: cytoscape.Core;
+  public cy?: cytoscape.Core;
   private readonly imageBuilder;
   private readonly p;
   private readonly pm;

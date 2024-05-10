@@ -201,17 +201,17 @@ export class Interactivity {
         if (url) window.open(url);
       })
 
-      // .on('click', e => {
-      //   const openClass = 'opened';
-      //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
-      //   e.target.toggleClass(openClass);
-      //   container.dispatchEvent(new ReactomeEvent(eventType, {
-      //     element: e.target,
-      //     type: "Any",
-      //     reactomeId: e.target.data('reactomeId'),
-      //     cy
-      //   }))
-      // });
+    // .on('click', e => {
+    //   const openClass = 'opened';
+    //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
+    //   e.target.toggleClass(openClass);
+    //   container.dispatchEvent(new ReactomeEvent(eventType, {
+    //     element: e.target,
+    //     type: "Any",
+    //     reactomeId: e.target.data('reactomeId'),
+    //     cy
+    //   }))
+    // });
   }
 
   private videoLayer!: IHTMLLayer;
@@ -225,7 +225,7 @@ export class Interactivity {
     layers.renderPerNode(
       this.videoLayer,
       (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-
+        elem.style.visibility = node.visible() ? 'visible' : 'hidden';
       },
       {
         init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
@@ -271,7 +271,7 @@ export class Interactivity {
     layers.renderPerNode(
       this.moleculeLayer,
       (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-
+        elem.style.visibility = node.visible() ? 'visible' : 'hidden';
       },
       {
         init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {

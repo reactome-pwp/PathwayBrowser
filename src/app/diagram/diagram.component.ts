@@ -54,9 +54,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   cy!: cytoscape.Core;
-  cyCompare!: cytoscape.Core;
-  legend!: cytoscape.Core;
   reactomeStyle!: Style;
+  cyCompare!: cytoscape.Core;
+  reactomeStyleCompare!: Style;
+  legend!: cytoscape.Core;
+
+  cys:cytoscape.Core[] = [];
 
 
   @Input('id') diagramId: string = '';
@@ -121,6 +124,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           style: this.reactomeStyle?.getStyleSheet(),
           layout: {name: "preset"},
         });
+        this.cys[0] = this.cy;
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
 
@@ -148,15 +152,18 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         style: this.reactomeStyle?.getStyleSheet(),
         layout: {name: "preset"},
       });
+      this.cys[1] = this.cyCompare;
 
-      this.cyCompare.elements('[?isFadeOut]').style('visibility', 'hidden');
-      this.cyCompare.elements('.Compartment').style('visibility', 'hidden');
+
+      this.cyCompare.elements('[?isFadeOut]').remove();
+      this.cyCompare.elements('.Compartment').remove();
       this.cy!.nodes('.crossed').removeClass('crossed');
 
       this.cyCompare!.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container))
       this.cy!.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer))
 
-      this.reactomeStyle?.bindToCytoscape(this.cyCompare);
+      this.reactomeStyleCompare = new Style(compareContainer);
+      this.reactomeStyleCompare?.bindToCytoscape(this.cyCompare);
       this.cyCompare.minZoom(this.cy!.minZoom())
       this.cyCompare.maxZoom(this.cy!.maxZoom())
       this.updateReplacementVisibility()
@@ -307,17 +314,19 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   };
 
 
-  getInteractors(resource: string, cy: cytoscape.Core = this.cy) {
+  getInteractors(resource: string) {
+    this.cys.forEach(cy => {
+      if (!resource) return;
+      if (this.selectedPsicquicResource.value) {
+        this.selectedPsicquicResource.reset();
+      }
+      this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
+        console.log(resource, cy.container()?.id, interactors)
+        this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
+      });
 
-    if (!resource) return;
-    if (this.selectedPsicquicResource.value) {
-      this.selectedPsicquicResource.reset();
-    }
-    this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-      this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
-    });
-
-    this.state.set('overlay', resource)
+      this.state.set('overlay', resource)
+    })
   }
 
   getPsicquicResources() {
@@ -361,7 +370,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   onCustomResourceChange(resource: Resource) {
     this.interactorsService.sendPostRequest(resource.token!, this.cy).subscribe((result) => {
-      this.interactorsService.addInteractorOccurrenceNode(result.interactors, this.cy, result.interactors.resource)
+      this.cys.forEach(cy => {
+        this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource)
+      })
     })
   }
 
@@ -420,8 +431,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
       this.flag(this.state.get('flag'), cy);
       this.select(this.state.get("select"), cy);
-      this.getInteractors(this.state.get("overlay"), cy)
     }
+    this.getInteractors(this.state.get("overlay"))
   }
 
   compareBackgroundSync = this.reactomeEvents$.pipe(
@@ -451,9 +462,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       filter(e => [ReactomeEventTypes.open, ReactomeEventTypes.close].includes(e.type as ReactomeEventTypes)),
       filter(e => e.detail.type === 'Interactor'),
     ).subscribe(e => {
-        this.interactorsService.addInteractorNodes(e.detail.element.nodes(), this.cy);
-        this.reactomeStyle.interactivity.updateProteins();
-        this.reactomeStyle.interactivity.triggerZoom();
+        [this.reactomeStyle, this.reactomeStyleCompare]
+          .filter(e => e !== undefined)
+          .forEach(style => {
+            this.interactorsService.addInteractorNodes(e.detail.element.nodes(), style.cy!);
+            style.interactivity.updateProteins();
+            style.interactivity.triggerZoom();
+          }
+        )
       }
     );
 

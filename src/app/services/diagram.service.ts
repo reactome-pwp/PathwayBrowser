@@ -364,7 +364,6 @@ export class DiagramService {
           let height = scale(item.prop.height);
           let preferredId = idToGraphNodes.get(item.id)?.identifier;
           if (classes.some(clazz => clazz === 'Protein')) {
-            console.log(item.id, idToGraphNodes.get(item.id), preferredId)
             html = this.getStructureVideoHtml({...item, type: 'Protein'}, width, height, preferredId);
           } else if (classes.some(clazz => clazz === 'Molecule')) {
             html = `<img src="https://www.ebi.ac.uk/chebi/displayImage.do?defaultImage=true&chebiId=${preferredId}&dimensions=1080&transbg=true" style="max-width: ${width / 2 - 4}px; max-height:${height}px" alt="">`;
