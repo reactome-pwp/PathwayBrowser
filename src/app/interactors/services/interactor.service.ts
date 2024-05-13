@@ -318,4 +318,8 @@ export class InteractorService {
     );
   }
 
+   public isCustomResource(resource: string, psiResource : PsicquicResource[]){
+    const isFromPSICQUIC =  psiResource.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === resource)
+    return resource != ResourceType.STATIC && resource != ResourceType.DISGENET && !isFromPSICQUIC;
+   }
 }

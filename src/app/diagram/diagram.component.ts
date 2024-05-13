@@ -315,16 +315,21 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   getInteractors(resource: string) {
+    const isCustom = this.interactorsService.isCustomResource(resource, this.psicquicResources)
+    const isPsicquic = this.psicquicResources.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === this.state.get('overlay'))
     this.cys.forEach(cy => {
       if (!resource) return;
-      if (this.selectedPsicquicResource.value) {
+
+      if (!isPsicquic) {
         this.selectedPsicquicResource.reset();
       }
-      this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-        console.log(resource, cy.container()?.id, interactors)
-        this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
-      });
 
+      if (!isCustom) {
+        this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
+          console.log(resource, cy.container()?.id, interactors)
+          this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
+        });
+      }
       this.state.set('overlay', resource)
     })
   }
@@ -341,8 +346,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, selectedResource)
       this.isDataFromPsicquicLoading = false;
       this.psicquicSelect?.close();
+      this.state.set('overlay', selectedResource)
     })
-    this.state.set('overlay', selectedResource)
   }
 
   openCustomInteractorDialog() {
@@ -355,6 +360,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       const resource = dialogRef.componentInstance.resource
       if (resource.token) {
         this.resourceTokens!.push(resource)
+        this.state.set('overlay', resource.token.summary.token)
       }
       this.cdr.detectChanges();
     })
@@ -371,7 +377,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   onCustomResourceChange(resource: Resource) {
     this.interactorsService.sendPostRequest(resource.token!, this.cy).subscribe((result) => {
       this.cys.forEach(cy => {
-        this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource)
+        this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
+        this.state.set('overlay', resource.token!.summary.token);
       })
     })
   }
