@@ -124,10 +124,12 @@ export class InteractorService {
           pos.x += entityNode.width() / 2;
           pos.y -= entityNode.height() / 2;
 
+          const id = entityNode.id() + '-occ' + '-' + resource.toLowerCase();
+
           if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
             occurrenceNodes.push({
               data: {
-                id: entityNode.id() + '-occ' + '-' + resource.toLowerCase(),
+                id: id,
                 displayName: interactorEntity.count,
                 entity: entityNode,
                 interactors: interactorEntity.interactors,
