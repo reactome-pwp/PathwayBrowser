@@ -189,7 +189,8 @@ export class InteractorService {
     interactorsData.forEach((interactor: Interactor, index: number) => {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
       const displayName = interactor.alias ? interactor.alias : interactor.acc;
-      const classes = resource === ResourceType.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...this.diagramService.nodeTypeMap.get(interactor.type)!, 'Interactor'];
+      const defaultType = ['Protein', 'PhysicalEntity'] // Default interactor type for custom resource when there is no type data provided
+      const classes = resource === ResourceType.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...this.diagramService.nodeTypeMap.get(interactor.type) || defaultType, 'Interactor'];
       let width = resource === ResourceType.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       if (interactor.type === 'Gene') height += this.GENE_DECORATION_HEIGHT;
