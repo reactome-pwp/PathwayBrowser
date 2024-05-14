@@ -47,7 +47,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   selectedPsicquicResource = new FormControl();
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: Resource[] = [];
-  ResourceType = ResourceType;
+  readonly ResourceType = ResourceType;
 
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
