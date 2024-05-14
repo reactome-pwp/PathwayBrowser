@@ -484,47 +484,6 @@ export class Style {
         }
       },
       {
-        selector: 'node.InteractorOccurrences',
-        style: {
-          'label': 'data(displayName)',
-          'color': this.p('global', 'surface'),
-          "shape": "ellipse",
-          "text-valign": "center",
-          "text-halign": "center",
-          "text-wrap": 'wrap',
-          "background-color": this.p('interactor', 'fill')
-        }
-      },
-      {
-        selector: 'node.InteractorOccurrences.Disease',
-        style: {
-          "background-color": this.p('global', 'negative')
-        }
-      },
-      {
-        selector: 'node.InteractorOccurrences.hover',
-        style: {
-          "border-width": this.pm('global', 'thickness', t => t * 1),
-          "border-color": this.p('global', 'hoverNode'),
-        }
-      },
-      {
-        selector: 'node.InteractorOccurrences.select',
-        style: {
-          "border-width": this.pm('global', 'thickness', t => t * 1),
-          "border-color": this.p('global', 'selectNode'),
-        }
-      },
-      {
-        selector: 'node.Interactor',
-        style: {
-          "label": "data(displayName)",
-          "font-family": "Roboto Mono, monospace",
-          "border-color": this.p('interactor', 'stroke'),
-          "text-wrap": "ellipsis",
-        }
-      },
-      {
         selector: 'node.RNA.Interactor, node.Protein.Interactor',
         style: {
           "border-color": this.p('interactor', 'fill'),
@@ -541,34 +500,6 @@ export class Style {
           "border-width": this.p("global", 'thickness'),
           // @ts-ignore
           "corner-radius": (node: cytoscape.NodeSingular) => Math.min(node.data('width'), node.data('height')) / 2,
-        }
-      },
-      // {
-      //   selector: 'node.Interactor.Disease',
-      //   style: {
-      //     "shape": "round-hexagon",
-      //     "background-color": this.p('global', 'negative'),
-      //     "color": this.p('global', 'onPrimary'),
-      //     "border-width": 0,
-      //     "width": "data(width)",
-      //     "height": "data(height)",
-      //     "text-halign": 'center',
-      //     "text-valign": 'center',
-      //     "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 40) + 'px',
-      //   }
-      // },
-      {
-        selector: 'node.DiseaseInteractor',
-        style: {
-          "shape": "round-hexagon",
-          "background-color": this.p('global', 'negative'),
-          "color": this.p('global', 'onPrimary'),
-          "border-width": 0,
-          "width": "data(width)",
-          "height": "data(height)",
-          "text-halign": 'center',
-          "text-valign": 'center',
-          "text-max-width": (node: cytoscape.NodeSingular) => (node.width() - 60) + 'px',
         }
       },
 
