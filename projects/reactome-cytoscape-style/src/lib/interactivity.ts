@@ -246,14 +246,14 @@ export class Interactivity {
       ?.on('mouseover', 'node.Protein', (event) => {
         const videoId = event.target.id();
         const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement) {
+        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
           videoElement.play();
         }
       })
       .on('mouseout', 'node.Protein', (event) => {
         const videoId = event.target.id();
         const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement) {
+        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
           videoElement.pause();
         }
       });
