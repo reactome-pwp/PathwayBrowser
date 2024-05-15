@@ -1,3 +1,5 @@
+import cytoscape from "cytoscape";
+
 export interface InteractorEntity {
   acc: string;
   count: number;
@@ -12,7 +14,8 @@ export interface Interactor {
   evidencesURL: string;
   id: number;
   score: number;
-  type: string
+  type: string;
+  existingNodes?: cytoscape.NodeCollection
 }
 
 

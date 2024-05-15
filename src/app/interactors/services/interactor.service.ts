@@ -37,8 +37,7 @@ export class InteractorService {
 
 
   postContentCache: string = '';
-  lastSelectedResource = '';
-  selectedNodes: string[] = [];
+  cyToSelectedResource = new Map<cytoscape.Core, string>();
 
 
   constructor(private http: HttpClient, private diagramService: DiagramService) {
@@ -94,21 +93,19 @@ export class InteractorService {
 
 
   public addInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
-    if (this.lastSelectedResource && this.lastSelectedResource !== resource) {
-      cy.nodes(`[resource='${this.lastSelectedResource}']`).remove();
-      cy.edges(`[resource='${this.lastSelectedResource}']`).remove();
+    if (this.cyToSelectedResource.has(cy) && this.cyToSelectedResource.get(cy) !== resource) {
+      const previousResource = this.cyToSelectedResource.get(cy);
+      cy.elements(`[resource='${previousResource}']`).remove();
       this.createInteractorOccurrenceNode(interactors, cy, resource);
-      this.lastSelectedResource = resource;
-      this.selectedNodes = [];
-    } else if (!this.lastSelectedResource) {
+      this.cyToSelectedResource.set(cy, resource);
+    } else if (!this.cyToSelectedResource.has(cy)) {
       this.createInteractorOccurrenceNode(interactors, cy, resource);
-      this.lastSelectedResource = resource;
-      this.selectedNodes = []
+      this.cyToSelectedResource.set(cy, resource);
     }
   }
 
   public createInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
-    const classes = resource === ResourceType.DISGENET ? ['InteractorOccurrences', 'Disease'] : ['InteractorOccurrences'];
+    const classes = resource === ResourceType.DISGENET ? ['InteractorOccurrences', 'disease'] : ['InteractorOccurrences'];
     const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
     if (interactors.entities === undefined) return;
@@ -126,60 +123,74 @@ export class InteractorService {
 
           const id = entityNode.id() + '-occ' + '-' + resource.toLowerCase();
 
-          if (!entityNode.data("isFadeOut") && !entityNode.classes().includes('Modification')) {
-            occurrenceNodes.push({
+          if (!entityNode.classes().includes('Modification')) {
+            const occurrenceNode = cy?.add({
               data: {
+                ...entityNode.data(),
                 id: id,
                 displayName: interactorEntity.count,
                 entity: entityNode,
                 interactors: interactorEntity.interactors,
-                resource: resource
+                resource: resource,
               },
               classes: classes,
               pannable: true,
               grabbable: false,
               position: pos,
             });
+
+            entityNode.data('occurrence', occurrenceNode);
           }
+
         });
       });
-    cy?.add(occurrenceNodes);
+    // cy?.add(occurrenceNodes);
   }
 
-  public addInteractorNodes(nodes: cytoscape.NodeCollection, cy: cytoscape.Core) {
-    const targetNode = nodes[0]; // Get only one
-    const interactorsData = targetNode.data('interactors');
-    const resource = targetNode.data('resource')
+  public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
+    const entityNode = occurrenceNode.data('entity');
+    const interactors = entityNode.closedNeighborhood('node.Interactor');
+
+    entityNode.connectedEdges('.Interactor').remove();
+    interactors.forEach((interactor: cytoscape.NodeSingular) => {
+      if (interactor.connectedEdges().empty()) {
+        interactor.remove()
+      }
+    })
+  }
+
+  public addInteractorNodes(occurrenceNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
+    const interactorsData = occurrenceNode.data('interactors');
+    const resource = occurrenceNode.data('resource')
     InteractorsLayout.BOX_WIDTH = resource === ResourceType.DISGENET ? this.DEFAULT_DISGENET_WIDTH / 2 : this.DEFAULT_INTERACTOR_WIDTH / 2;
     const numberToAdd = InteractorsLayout.getNumberOfInteractorsToDraw(interactorsData)
     const [dynamicInteractors, existingInteractors] = this.getAllInteractors(interactorsData, cy, numberToAdd);
     const allNodes: Interactor[] = [...dynamicInteractors, ...existingInteractors];
+    cy.batch(() => {
 
-    this.createInteractorNodes(dynamicInteractors, targetNode, cy, numberToAdd, resource);
-    this.createInteractorEdges(allNodes, targetNode, cy, resource);
+      const nodes = this.createInteractorNodes(dynamicInteractors, occurrenceNode, cy, dynamicInteractors.length, resource);
+      this.createInteractorEdges(allNodes, occurrenceNode, cy, resource);
 
-    const interactorsToDisplay = cy.nodes(`[source = '${targetNode.id()}']`);
-    this.displayInteractors(interactorsToDisplay, targetNode, cy);
+      this.displayInteractors(nodes, cy);
+    })
   }
 
   public getAllInteractors(interactorsData: Interactor[], cy: cytoscape.Core, numberToAdd: number) {
     const dynamicInteractors = [];
     const existingInteractors = [];
-    let currentSize = 0;
     // get interactors to draw with a provided a number, collect existing interactors for creating edge
     for (const interactor of interactorsData) {
-      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
-      const accToEntityNode = new Map(diagramNodes?.map(node => [node.data('acc'), node]));
+      const diagramNodes = cy?.nodes(`.PhysicalEntity[acc = '${interactor.acc}']`);
 
-      if (interactor.acc !== accToEntityNode.get(interactor.acc)?.data('graph').identifier) {
+      if (diagramNodes.length === 0) {
         dynamicInteractors.push(interactor);
-        currentSize++;
-        if (currentSize === numberToAdd) break;
       } else {
+        interactor.existingNodes = diagramNodes;
         existingInteractors.push(interactor);
       }
     }
-    return [dynamicInteractors, existingInteractors];
+
+    return [dynamicInteractors.slice(0, numberToAdd), existingInteractors];
   }
 
   public createInteractorNodes(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core, numberToAdd: number, resource: string) {
@@ -190,20 +201,20 @@ export class InteractorService {
       const position = interactorLayout.getPosition(targetNode, index, numberToAdd)
       const displayName = interactor.alias ? interactor.alias : interactor.acc;
       const defaultType = ['Protein', 'PhysicalEntity'] // Default interactor type for custom resource when there is no type data provided
-      const classes = resource === ResourceType.DISGENET ? ['PhysicalEntity', 'DiseaseInteractor'] : [...this.diagramService.nodeTypeMap.get(interactor.type) || defaultType, 'Interactor'];
+      const classes = resource === ResourceType.DISGENET ? ['PhysicalEntity', 'Interactor', 'disease'] : [...this.diagramService.nodeTypeMap.get(interactor.type) || defaultType, 'Interactor'];
       let width = resource === ResourceType.DISGENET ? this.DEFAULT_DISGENET_WIDTH : this.DEFAULT_INTERACTOR_WIDTH;
       let height = this.CHAR_HEIGHT + 2 * this.INTERACTOR_PADDING;
       if (interactor.type === 'Gene') height += this.GENE_DECORATION_HEIGHT;
 
-      const id = interactor.acc + '-' + targetNode.data('entity').id();
+      const id = 'interactor-' + interactor.acc;
       interactorNodes.push({
         data: {
+          ...targetNode.data(),
           id: id,
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
-          html: this.diagramService.getStructureVideoHtml({id, type:interactor.type},width, height, interactor.acc),
+          html: this.diagramService.getStructureVideoHtml({id, type: interactor.type}, width, height, interactor.acc),
           width: width,
           height: height,
-          source: targetNode.id(),
           accURL: interactor.accURL,
           score: interactor.score,
           evidences: interactor.evidences,
@@ -215,50 +226,46 @@ export class InteractorService {
         selectable: false
       })
     })
-    cy?.add(interactorNodes)
+    return cy?.add(interactorNodes)
   }
 
 
-  public createInteractorEdges(interactorsData: Interactor[], targetNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
+  public createInteractorEdges(interactorsData: Interactor[], occurrenceNode: NodeSingular, cy: cytoscape.Core | undefined, resource: string) {
+    if (!cy) return
 
-    const resourceClass = resource === ResourceType.DISGENET ? ['Interactor', 'DiseaseInteractor'] : ['Interactor'];
+    const resourceClass = resource === ResourceType.DISGENET ? ['Interactor', 'disease'] : ['Interactor'];
 
     const interactorEdges: cytoscape.EdgeDefinition[] = [];
     interactorsData.forEach((interactor: Interactor) => {
-      const diagramNodes = cy?.nodes(`[acc = '${interactor.acc}']`);
-      const accToEntityNode = new Map<string, NodeSingular>(diagramNodes?.map(node => [node.data('acc'), node]));
-      const targetNodeId = accToEntityNode.get(interactor.acc) ? accToEntityNode.get(interactor.acc)?.data('id') : interactor.acc + '-' + targetNode.data('entity').id();
-      interactorEdges.push({
-        data: {
-          id: interactor.acc + '---' + targetNode.data('entity').id(),
-          source: targetNode.data('entity').id(),
-          target: targetNodeId,
-          edgeToTarget: targetNode.id(),
-          evidenceURLs: interactor.evidencesURL,
-          resource: resource
-        },
-        classes: resourceClass,
-        selectable: false
+      const entity = occurrenceNode.data('entity');
+      const targetNodes = interactor.existingNodes ? interactor.existingNodes : [cy.getElementById('interactor-' + interactor.acc)];
+      targetNodes.forEach(targetNode => {
+        interactorEdges.push({
+          data: {
+            ...targetNode.data(),
+            id: interactor.acc + '---' + entity.id(),
+            source: entity.id(),
+            target: targetNode.id(),
+            edgeToTarget: occurrenceNode.id(),
+            evidenceURLs: interactor.evidencesURL,
+            resource: resource
+          },
+          classes: resourceClass,
+          selectable: false
+        })
       })
+
     })
     cy?.add(interactorEdges)
   }
 
-  public displayInteractors(interactorsToDisplay: NodeCollection, targetNode: NodeSingular, cy: cytoscape.Core) {
+  public displayInteractors(interactorsToDisplay: NodeCollection, cy: cytoscape.Core) {
 
     let layoutOptions: cytoscape.LayoutOptions = {
       name: 'preset',
       fit: false
     }
-    if (this.selectedNodes.includes(targetNode.data('id'))) {
-      interactorsToDisplay.remove();
-      this.removeInteractorEdges(targetNode, cy);
-      this.selectedNodes = this.selectedNodes.filter(item => item !== targetNode.data('id'))
-    } else {
-      interactorsToDisplay.layout(layoutOptions).run();
-      this.selectedNodes.push(targetNode.data('id'))
-    }
-
+    interactorsToDisplay.layout(layoutOptions).run();
   }
 
 
@@ -318,8 +325,8 @@ export class InteractorService {
     );
   }
 
-   public isCustomResource(resource: string, psiResource : PsicquicResource[]){
-    const isFromPSICQUIC =  psiResource.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === resource)
+  public isCustomResource(resource: string, psiResource: PsicquicResource[]) {
+    const isFromPSICQUIC = psiResource.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === resource)
     return resource != ResourceType.STATIC && resource != ResourceType.DISGENET && !isFromPSICQUIC;
-   }
+  }
 }

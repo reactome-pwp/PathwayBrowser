@@ -27,7 +27,7 @@ class InteractorsLayout {
 
   public static getNumberOfInteractorsToDraw(interactors: Interactor[]) {
     if (interactors == null) return 0;
-    return Math.min(Object.keys(interactors).length, InteractorsLayout.MAX_INTERACTORS);
+    return Math.min(interactors.length, InteractorsLayout.MAX_INTERACTORS);
   }
 
   public getSegmentOrigin(edgeIndex: number, center: Position, width: number, height: number): Position {

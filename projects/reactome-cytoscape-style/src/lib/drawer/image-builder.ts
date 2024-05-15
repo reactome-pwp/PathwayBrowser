@@ -124,7 +124,7 @@ const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Cell", memoize(cell, dim)],
   ["Interacting", memoize(interactingPathway, dim)],
   ["SUB", memoize(subPathway, dim)],
-  ["DiseaseInteractor", memoize(diseaseInteractor, dim)]
+  ["Interactor", memoize(diseaseInteractor, dim)]
 ]);
 
 export function clearDrawersCache() {

@@ -59,7 +59,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   reactomeStyleCompare!: Style;
   legend!: cytoscape.Core;
 
-  cys:cytoscape.Core[] = [];
+  cys: cytoscape.Core[] = [];
 
 
   @Input('id') diagramId: string = '';
@@ -134,6 +134,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       })
   }
 
+  private initialiseReplaceElements() {
+    this.cy.elements('[!isBackground]').style('visibility', 'hidden')
+    this.lastIndex = 0;
+    this.updateReplacementVisibility();
+    this.cy.elements('.Compartment').style('visibility', 'visible')
+  }
 
   private loadCompare(elements: cytoscape.ElementsDefinition, container: HTMLDivElement) {
     if (this.comparing) {
@@ -141,9 +147,34 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.replacedElements = this.cy!
         .elements('[?replacedBy]')
         .add('[?isCrossed]')
-        .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1);
-      this.replacedElementsLeft = this.replacedElements.map(ele => ele.boundingBox().x1);
-      this.cy!.elements('.Compartment').style('visibility', 'visible')
+        .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1)
+        .style('visibility', 'hidden')
+        .toArray();
+
+      this.replacedElementsLeftPosition = this.replacedElements.map(ele => ele.boundingBox().x1);
+
+
+      this.cy.on('add', e => {
+        const addedElement = e.target;
+        if (addedElement.data('replacedBy') || addedElement.data('isCrossed')) {
+          const x = addedElement.boundingBox().x1;
+          let index = this.replacedElementsLeftPosition.findIndex(x1 => x1 >= x);
+          if (index === -1) index = this.replacedElements.length;
+
+          this.replacedElements.splice(index, 0, addedElement);
+          this.replacedElementsLeftPosition.splice(index, 0, x);
+          addedElement.style('visibility', 'hidden');
+        }
+      })
+
+      this.cy.on('remove', e => {
+        const removedElement = e.target;
+        const index = this.replacedElements.indexOf(removedElement);
+        if (index > -1) {
+          this.replacedElements.splice(index, 1);
+          this.replacedElementsLeftPosition.splice(index, 1);
+        }
+      })
 
       const compareContainer = this.compareContainer!.nativeElement;
       this.cyCompare = cytoscape({
@@ -166,9 +197,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.reactomeStyleCompare?.bindToCytoscape(this.cyCompare);
       this.cyCompare.minZoom(this.cy!.minZoom())
       this.cyCompare.maxZoom(this.cy!.maxZoom())
-      this.updateReplacementVisibility()
 
       setTimeout(() => {
+        this.initialiseReplaceElements();
         this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
       })
     }
@@ -280,18 +311,18 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   ratio = 0.384;
 
-  replacedElements!: cytoscape.Collection;
-  replacedElementsLeft: number[] = [];
+  replacedElements!: cytoscape.SingularElementArgument[];
+  replacedElementsLeftPosition: number[] = [];
 
   lastIndex = 0;
 
   private updateReplacementVisibility() {
     const extent = this.cyCompare!.extent();
-    let limitIndex = this.replacedElementsLeft.findIndex(x1 => x1 >= extent.x1);
+    let limitIndex = this.replacedElementsLeftPosition.findIndex(x1 => x1 >= extent.x1);
     if (limitIndex === -1) limitIndex = this.replacedElements.length;
     if (this.lastIndex !== limitIndex) {
-      if (limitIndex < this.lastIndex) this.replacedElements.slice(limitIndex, this.lastIndex).style('visibility', 'hidden');
-      if (limitIndex > this.lastIndex) this.replacedElements.slice(this.lastIndex, limitIndex).style('visibility', 'visible');
+      if (limitIndex < this.lastIndex) this.replacedElements.slice(limitIndex, this.lastIndex).forEach(e => e.style('visibility', 'hidden'))
+      if (limitIndex > this.lastIndex) this.replacedElements.slice(this.lastIndex, limitIndex).forEach(e => e.style('visibility', 'visible'))
     }
     this.lastIndex = limitIndex
   }
@@ -326,7 +357,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       if (!isCustom) {
         this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-          console.log(resource, cy.container()?.id, interactors)
           this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
         });
       }
@@ -463,22 +493,31 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     this.applyEvent(event, replacements)
   });
 
-  interactorHandling = this.reactomeEvents$
+  interactorOpeningHandling = this.reactomeEvents$
     .pipe(
       filter((e) => e.detail.cy !== this.legend),
       filter(e => [ReactomeEventTypes.open, ReactomeEventTypes.close].includes(e.type as ReactomeEventTypes)),
       filter(e => e.detail.type === 'Interactor'),
     ).subscribe(e => {
         [this.reactomeStyle, this.reactomeStyleCompare]
-          .filter(e => e !== undefined)
+          .filter(s => s !== undefined && e.detail.cy === s.cy )
           .forEach(style => {
-            this.interactorsService.addInteractorNodes(e.detail.element.nodes(), style.cy!);
-            style.interactivity.updateProteins();
-            style.interactivity.triggerZoom();
-          }
-        )
+            const occurrenceNode = e.detail.element.nodes()[0];
+
+            if (e.type === ReactomeEventTypes.open)
+              this.interactorsService.addInteractorNodes(occurrenceNode, style.cy!);
+            else
+              this.interactorsService.removeInteractorNodes(occurrenceNode);
+
+              style.interactivity.updateProteins();
+              style.interactivity.triggerZoom();
+            }
+          )
+
+      this.initialiseReplaceElements();
       }
     );
+
 
   diagram2legend = this.reactomeEvents$.pipe(
     filter((e) => e.detail.cy !== this.legend),
