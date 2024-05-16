@@ -628,7 +628,7 @@ export class Style {
         style: {
           // @ts-ignore
           "underlay-color": "data(color)",
-          "underlay-padding": 20,
+          "underlay-padding": this.p('shadow', 'padding'),
           "underlay-opacity": this.pm('shadow', 'opacity', o => o[0][1] / 100),
         }
       }, {

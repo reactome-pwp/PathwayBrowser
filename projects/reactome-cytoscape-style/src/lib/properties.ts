@@ -24,6 +24,7 @@ export interface Properties extends PropertiesType {
     luminosity: Property<number>
     opacity: Property<[number, number][]>
     labelOpacity: Property<[number, number][]>
+    padding: Property<number>
   }
   protein: {
     fill: Property<string>
@@ -123,6 +124,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
 
   const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
     .setDefault('luminosity', () => Number.parseFloat(css.getPropertyValue('--shadow-luminosity')) || 40)
+    .setDefault('padding', () => Number.parseFloat(css.getPropertyValue('--shadow-padding')) || 20)
     .setDefault('opacity', () => {
       const p = css.getPropertyValue('--shadow-opacity');
       return p ? JSON.parse(p) : [[20, 20], [40, 0]];

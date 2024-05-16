@@ -27,6 +27,7 @@ import {
   CustomInteractorDialogComponent
 } from "../interactors/custom-interactor-dialog/custom-interactor-dialog.component";
 import {ResourceType} from "../interactors/common/overlay-resource";
+import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -84,6 +85,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     this.reactomeStyle = new Style(container);
 
+    this.underlayPadding = extract(this.reactomeStyle.properties.shadow.padding)
+
     this.diagram.getLegend()
       .subscribe(legend => {
         this.legend = cytoscape({
@@ -94,10 +97,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           boxSelectionEnabled: false
         });
         this.reactomeStyle?.bindToCytoscape(this.legend);
-        // this.legend.elements().on('click', (event) => {
-        //   event.target.toggleClass('flag')
-        //   this.legend.elements().not(event.target).removeClass('flag')
-        // })
+
         this.legend.zoomingEnabled(false);
         this.legend.panningEnabled(false);
         this.legend.minZoom(0)
@@ -323,6 +323,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   replacedElementsPosition: number[] = [];
 
   lastIndex = 0;
+  underlayPadding = 0;
 
   private updateReplacementVisibility() {
     const extent = this.cyCompare!.extent();
@@ -330,14 +331,16 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     if (limitIndex === -1) limitIndex = this.replacedElements.length;
 
     if (this.lastIndex !== limitIndex) {
+      // If at least one element is switched from left to right
       if (limitIndex < this.lastIndex) this.replacedElements.slice(limitIndex, this.lastIndex)
-        .map(e => e.style('visibility', 'hidden'))
-        .filter(e => e.is('.Shadow'))
-        .forEach(shadow => shadow.data('edges').style('underlay-padding', 0))
+        .map(e => e.style('visibility', 'hidden')) // Hide the range of elements
+        .filter(e => e.is('.Shadow')) // And if it is an shadow
+        .forEach(shadow => shadow.data('edges').style('underlay-padding', 0)) // Hide as well the associated reaction underlay
+      // If at least one element is switched from right to left
       if (limitIndex > this.lastIndex) this.replacedElements.slice(this.lastIndex, limitIndex)
-        .map(e => e.style('visibility', 'visible'))
-        .filter(e => e.is('.Shadow'))
-        .forEach(shadow => shadow.data('edges').style('underlay-padding', 20))
+        .map(e => e.style('visibility', 'visible')) // Show the range of elements
+        .filter(e => e.is('.Shadow')) // And if it is an shadow
+        .forEach(shadow => shadow.data('edges').style('underlay-padding', this.underlayPadding)) // Show as well the associated reaction underlay
     }
     this.lastIndex = limitIndex
   }
