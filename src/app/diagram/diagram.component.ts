@@ -324,9 +324,29 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   underlayPadding = 0;
 
   private updateReplacementVisibility() {
+
+    // // Calculate the position of the element that is to the right of the separation
+
     const extent = this.cyCompare!.extent();
     let limitIndex = this.replacedElementsPosition.findIndex(x1 => x1 >= extent.x1);
     if (limitIndex === -1) limitIndex = this.replacedElements.length;
+
+    /// Alternative calculation. In theory more optimised, but seems worse when console is opened for some reason
+
+    // const currentPos = this.cyCompare!.extent().x1;
+    // let limitIndex = this.lastIndex;
+    // let i = this.lastIndex;
+    // if (currentPos > this.lastPosition) { // Dragging to the right
+    //   while (i >= 0 && this.replacedElementsPosition[i] < currentPos) i++;
+    //   limitIndex = i;
+    // } else if (currentPos < this.lastPosition) { // Dragging to the left
+    //   do i--;
+    //   while (i < this.replacedElementsPosition.length  && this.replacedElementsPosition[i] >= currentPos)
+    //   limitIndex = i+1;
+    // }
+    //
+    // this.lastPosition = currentPos;
+    // ---------
 
     if (this.lastIndex !== limitIndex) {
       // If at least one element is switched from left to right
