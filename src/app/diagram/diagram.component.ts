@@ -500,21 +500,23 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       filter(e => e.detail.type === 'Interactor'),
     ).subscribe(e => {
         [this.reactomeStyle, this.reactomeStyleCompare]
-          .filter(s => s !== undefined && e.detail.cy === s.cy )
+          .filter(s => s !== undefined && e.detail.cy === s.cy)
           .forEach(style => {
-            const occurrenceNode = e.detail.element.nodes()[0];
+              const occurrenceNode = e.detail.element.nodes()[0];
 
-            if (e.type === ReactomeEventTypes.open)
-              this.interactorsService.addInteractorNodes(occurrenceNode, style.cy!);
-            else
-              this.interactorsService.removeInteractorNodes(occurrenceNode);
+              if (e.type === ReactomeEventTypes.open)
+                this.interactorsService.addInteractorNodes(occurrenceNode, style.cy!);
+              else
+                this.interactorsService.removeInteractorNodes(occurrenceNode);
 
               style.interactivity.updateProteins();
               style.interactivity.triggerZoom();
             }
           )
 
-      this.initialiseReplaceElements();
+        if (this.comparing) {
+          this.initialiseReplaceElements();
+        }
       }
     );
 
