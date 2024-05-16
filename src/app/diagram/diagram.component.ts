@@ -135,13 +135,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   private initialiseReplaceElements() {
-    this.cy.batch(() => {
-      this.cy.elements('[!isBackground]').style('visibility', 'hidden')
-      this.cy.edges('.shadow').style('underlay-padding', 0)
-      this.lastIndex = 0;
-      this.updateReplacementVisibility();
-      this.cy.elements('.Compartment').style('visibility', 'visible')
-    })
+    if (this.comparing)
+      this.cy.batch(() => {
+        this.cy.elements('[!isBackground]').style('visibility', 'hidden')
+        this.cy.edges('.shadow').style('underlay-padding', 0)
+        this.lastIndex = 0;
+        this.updateReplacementVisibility();
+        this.cy.elements('.Compartment').style('visibility', 'visible')
+      })
   }
 
   private loadCompare(elements: cytoscape.ElementsDefinition, container: HTMLDivElement) {
@@ -205,10 +206,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       setTimeout(() => {
         this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
-
-        setTimeout(() => {
-          this.initialiseReplaceElements();
-        })
+        this.initialiseReplaceElements();
       })
     }
   }
@@ -375,7 +373,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       if (!isCustom) {
         this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-          this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource)
+          this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
+          this.initialiseReplaceElements(); // Avoid floating occurrence nodes when in compare mode
         });
       }
       this.state.set('overlay', resource)
