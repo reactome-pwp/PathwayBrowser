@@ -36,37 +36,31 @@ export class InteractorService {
   private readonly GENE_DECORATION_HEIGHT = 20;
 
 
-  postContentCache: string = '';
+  identifiers: string = '';
   cyToSelectedResource = new Map<cytoscape.Core, string>();
 
 
   constructor(private http: HttpClient, private diagramService: DiagramService) {
   }
 
-  private updatePostContentCache(cy: cytoscape.Core): void {
-    this.postContentCache = this.getPostContent(cy);
+  private getAllIdentifiers(cy: cytoscape.Core): void {
+    this.identifiers = this.getIdentifiersFromGraph(cy);
   }
 
-  private updatePostContentCacheIfNeeded(cy: cytoscape.Core): void {
-    if (!this.postContentCache) {
-      this.updatePostContentCache(cy);
+  private updateIdentifiersIfNeeded(cy: cytoscape.Core): void {
+    if (!this.identifiers) {
+      this.getAllIdentifiers(cy);
     }
   }
 
-  public getPostContent(cy: cytoscape.Core) {
+  public getIdentifiersFromGraph(cy: cytoscape.Core) {
     const graphNodes = cy?.nodes(`[graph]`);
-    const idToIdentifier = new Map<number, string>(graphNodes?.map(node => [node.data('dbId'), node.data('acc')]));
     const result: string[] = [];
 
     graphNodes?.forEach(entity => {
       const schemaClass = entity.data("graph").schemaClass;
       if (schemaClass === "EntityWithAccessionedSequence" || schemaClass === "SimpleEntity") {
         result.push(entity.data("acc"));
-      }
-
-      if (schemaClass === "Complex" && entity.data("graph").children.length === 1) {
-        const identifiers: string[] = entity.data("graph").children.map((id: number) => idToIdentifier.get(id) || '');
-        result.push(...identifiers);
       }
     });
 
@@ -76,7 +70,7 @@ export class InteractorService {
   }
 
   public getInteractorData(cy: cytoscape.Core, resource: string): Observable<Interactors> {
-    this.updatePostContentCacheIfNeeded(cy);
+    this.updateIdentifiersIfNeeded(cy);
     let url;
     if (resource === ResourceType.STATIC) {
       url = this.STATIC_URL;
@@ -86,7 +80,7 @@ export class InteractorService {
       url = this.PSICQUIC_URL + resource.toLowerCase() + '/details'
     }
 
-    return this.http.post<Interactors>(url, this.postContentCache, {
+    return this.http.post<Interactors>(url, this.identifiers, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     });
   }
@@ -106,7 +100,6 @@ export class InteractorService {
 
   public createInteractorOccurrenceNode(interactors: Interactors, cy: cytoscape.Core, resource: string) {
     const classes = resource === ResourceType.DISGENET ? ['InteractorOccurrences', 'disease'] : ['InteractorOccurrences'];
-    const occurrenceNodes: cytoscape.NodeDefinition[] = [];
 
     if (interactors.entities === undefined) return;
 
@@ -131,12 +124,12 @@ export class InteractorService {
                 displayName: interactorEntity.count,
                 entity: entityNode,
                 interactors: interactorEntity.interactors,
-                resource: resource,
+                resource: resource
               },
               classes: classes,
               pannable: true,
               grabbable: false,
-              position: pos,
+              position: pos
             });
 
             entityNode.data('occurrence', occurrenceNode);
@@ -144,7 +137,6 @@ export class InteractorService {
 
         });
       });
-    // cy?.add(occurrenceNodes);
   }
 
   public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
@@ -182,7 +174,7 @@ export class InteractorService {
     for (const interactor of interactorsData) {
       const diagramNodes = cy?.nodes(`.PhysicalEntity[acc = '${interactor.acc}']`);
 
-      if (diagramNodes.length === 0) {
+      if (!diagramNodes || diagramNodes.length === 0) {
         dynamicInteractors.push(interactor);
       } else {
         interactor.existingNodes = diagramNodes;
@@ -243,7 +235,7 @@ export class InteractorService {
         interactorEdges.push({
           data: {
             ...targetNode.data(),
-            id: interactor.acc + '---' + entity.id(),
+            id: interactor.acc + '-' + entity.id(),
             source: entity.id(),
             target: targetNode.id(),
             edgeToTarget: occurrenceNode.id(),
@@ -291,10 +283,10 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updatePostContentCacheIfNeeded(cy);
+    this.updateIdentifiersIfNeeded(cy);
     return this.getInteractorToken(name, url, body).pipe(
       switchMap(token => {
-        return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.postContentCache, {
+        return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
           headers: new HttpHeaders({'Content-Type': 'text/plain'})
         }).pipe(
           map((interactors) => ({token: token, interactors: interactors}))
@@ -307,7 +299,7 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updatePostContentCacheIfNeeded(cy);
+    this.updateIdentifiersIfNeeded(cy);
     return this.getInteractorToken(name, url, body).pipe(
       switchMap(token => this.sendPostRequest(token, cy))
     );
@@ -317,8 +309,8 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updatePostContentCacheIfNeeded(cy);
-    return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.postContentCache, {
+    this.updateIdentifiersIfNeeded(cy);
+    return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     }).pipe(
       map((interactors) => ({token: token, interactors: interactors}))
