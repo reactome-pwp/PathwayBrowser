@@ -155,7 +155,7 @@
 
 .drag-container {
   position: absolute;
-  left: 10%;
+  left: 10%; // Important: Initial position of compare drag handle
   width: 100%;
   pointer-events: all;
   //position: relative;

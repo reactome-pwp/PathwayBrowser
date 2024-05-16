@@ -135,34 +135,39 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   private initialiseReplaceElements() {
-    this.cy.elements('[!isBackground]').style('visibility', 'hidden')
-    this.lastIndex = 0;
-    this.updateReplacementVisibility();
-    this.cy.elements('.Compartment').style('visibility', 'visible')
+    this.cy.batch(() => {
+      this.cy.elements('[!isBackground]').style('visibility', 'hidden')
+      this.cy.edges('.shadow').style('underlay-padding', 0)
+      this.lastIndex = 0;
+      this.updateReplacementVisibility();
+      this.cy.elements('.Compartment').style('visibility', 'visible')
+    })
   }
 
   private loadCompare(elements: cytoscape.ElementsDefinition, container: HTMLDivElement) {
+
+    const getPosition = (e: cytoscape.SingularElementArgument) => e.is('.Shadow') ? e.data('triggerPosition') : e.boundingBox().x1;
     if (this.comparing) {
       this.cy.elements('[!isBackground]').style('visibility', 'hidden')
       this.replacedElements = this.cy!
         .elements('[?replacedBy]')
         .add('[?isCrossed]')
-        .sort((a, b) => a.boundingBox().x1 - b.boundingBox().x1)
+        .sort((a, b) => getPosition(a) - getPosition(b))
         .style('visibility', 'hidden')
         .toArray();
 
-      this.replacedElementsLeftPosition = this.replacedElements.map(ele => ele.boundingBox().x1);
+      this.replacedElementsPosition = this.replacedElements.map(getPosition);
 
 
       this.cy.on('add', e => {
         const addedElement = e.target;
         if (addedElement.data('replacedBy') || addedElement.data('isCrossed')) {
-          const x = addedElement.boundingBox().x1;
-          let index = this.replacedElementsLeftPosition.findIndex(x1 => x1 >= x);
+          const x = getPosition(addedElement);
+          let index = this.replacedElementsPosition.findIndex(x1 => x1 >= x);
           if (index === -1) index = this.replacedElements.length;
 
           this.replacedElements.splice(index, 0, addedElement);
-          this.replacedElementsLeftPosition.splice(index, 0, x);
+          this.replacedElementsPosition.splice(index, 0, x);
           addedElement.style('visibility', 'hidden');
         }
       })
@@ -172,7 +177,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         const index = this.replacedElements.indexOf(removedElement);
         if (index > -1) {
           this.replacedElements.splice(index, 1);
-          this.replacedElementsLeftPosition.splice(index, 1);
+          this.replacedElementsPosition.splice(index, 1);
         }
       })
 
@@ -199,8 +204,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.cyCompare.maxZoom(this.cy!.maxZoom())
 
       setTimeout(() => {
-        this.initialiseReplaceElements();
         this.syncViewports(this.cy!, container, this.cyCompare, compareContainer)
+
+        setTimeout(() => {
+          this.initialiseReplaceElements();
+        })
       })
     }
   }
@@ -264,7 +272,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     if (toFlag.nonempty()) {
       this.cy.batch(() => {
-        shadowNodes.style({visibility: 'hidden'})
+        shadowNodes.style({opacity: 0})
         shadowEdges.removeClass('shadow')
         cy.off('zoom', this.reactomeStyle.interactivity.onZoom.shadow)
         trivials.style({opacity: 1})
@@ -277,7 +285,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       return toFlag
     } else {
       this.cy.batch(() => {
-        shadowNodes.style({visibility: 'visible'})
+        shadowNodes.style({opacity: 1})
         trivials.style({opacity: 1})
         shadowEdges.addClass('shadow')
 
@@ -312,17 +320,24 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   ratio = 0.384;
 
   replacedElements!: cytoscape.SingularElementArgument[];
-  replacedElementsLeftPosition: number[] = [];
+  replacedElementsPosition: number[] = [];
 
   lastIndex = 0;
 
   private updateReplacementVisibility() {
     const extent = this.cyCompare!.extent();
-    let limitIndex = this.replacedElementsLeftPosition.findIndex(x1 => x1 >= extent.x1);
+    let limitIndex = this.replacedElementsPosition.findIndex(x1 => x1 >= extent.x1);
     if (limitIndex === -1) limitIndex = this.replacedElements.length;
+
     if (this.lastIndex !== limitIndex) {
-      if (limitIndex < this.lastIndex) this.replacedElements.slice(limitIndex, this.lastIndex).forEach(e => e.style('visibility', 'hidden'))
-      if (limitIndex > this.lastIndex) this.replacedElements.slice(this.lastIndex, limitIndex).forEach(e => e.style('visibility', 'visible'))
+      if (limitIndex < this.lastIndex) this.replacedElements.slice(limitIndex, this.lastIndex)
+        .map(e => e.style('visibility', 'hidden'))
+        .filter(e => e.is('.Shadow'))
+        .forEach(shadow => shadow.data('edges').style('underlay-padding', 0))
+      if (limitIndex > this.lastIndex) this.replacedElements.slice(this.lastIndex, limitIndex)
+        .map(e => e.style('visibility', 'visible'))
+        .filter(e => e.is('.Shadow'))
+        .forEach(shadow => shadow.data('edges').style('underlay-padding', 20))
     }
     this.lastIndex = limitIndex
   }

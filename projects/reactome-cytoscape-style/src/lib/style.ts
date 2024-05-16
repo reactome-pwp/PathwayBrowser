@@ -35,15 +35,15 @@ export class Style {
     if (!subPathways) return;
     const dH = 360 / subPathways.length;
 
-    const subpathwayIdToColor = new Map<number, string>(subPathways.map((subPathway, i) => {
+    subPathways.forEach((subPathway, i) => {
+      const edges = this.cy!.edges(`[pathway=${subPathway.data('reactomeId')}]`);
+      subPathway.data('edges', edges);
+
       const hex = new HSL(dH * i, 100, extract(this.properties.shadow.luminosity)).toHex();
       subPathway.data('color', hex);
-      return [subPathway.data('reactomeId'), hex]
-    }))
-
-    this.cy?.edges('[?pathway]').forEach(edge => {
-      edge.data('color', subpathwayIdToColor.get(edge.data('pathway'))
-      )
+      edges.forEach(edge => {
+        edge.data('color', hex)
+      });
     })
   }
 

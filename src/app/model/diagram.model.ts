@@ -114,6 +114,11 @@ export interface Link {
 interface SubPathway extends Entity {
   prop: Prop;
   colour: string;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  isFadeOut?: boolean;
 }
 
 

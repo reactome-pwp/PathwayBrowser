@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {catchError, forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpClient} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Edge as GraphEdge, Graph, Node as GraphNode} from "../model/graph.model";
 // @ts-ignore
@@ -10,7 +10,6 @@ import {array} from "vectorious";
 
 import cytoscape from "cytoscape";
 import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
-import {Interactors} from "../interactors/model/interactor-entity.model";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
@@ -170,15 +169,26 @@ export class DiagramService {
       diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
       graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
     }).pipe(
+      tap(({diagram, graph}) => console.log('Normal diagram:', diagram, 'Normal graph', graph)),
       switchMap(({diagram, graph}) => {
         if (diagram.forNormalDraw !== undefined && !diagram.forNormalDraw) {
           return this.getNormalPathway(diagram.stableId).pipe(
-            switchMap(normalPathwayId => this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)),
-            tap(normalGraph => console.log('Normal graph:', normalGraph)),
-            map(normalGraph => {
+            switchMap(normalPathwayId => forkJoin({
+              normalDiagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.json`),
+              normalGraph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)
+            })),
+            tap(({
+                   normalGraph,
+                   normalDiagram
+                 }) => console.log('Normal diagram:', normalGraph, 'Normal graph', normalDiagram)),
+            map(({normalGraph, normalDiagram}) => {
               graph.nodes.push(...normalGraph.nodes);
               graph.edges.push(...normalGraph.edges);
-              if (normalGraph.subpathways) {
+              if (normalDiagram.shadows) {
+                normalDiagram.shadows.forEach(shadow => shadow.isFadeOut = true);
+                diagram.shadows = diagram.shadows || [];
+                diagram.shadows.push(...normalDiagram.shadows);
+
                 graph.subpathways = graph.subpathways || [];
                 graph.subpathways.push(...normalGraph.subpathways);
               }
@@ -423,6 +433,9 @@ export class DiagramService {
               height: scale(item.prop.height),
               width: scale(item.prop.width),
               reactomeId: item.reactomeId,
+              isFadeOut: item.isFadeOut,
+              replacedBy: item.isFadeOut,
+              triggerPosition: scale(item.maxX)
             },
             classes: ['Shadow'],
             position: closestToAverage(subpathwayIdToEventIds.get(item.reactomeId)!.map(reactionId => reactomeIdToEdge.get(reactionId)!).map(edge => scale(edge!.position)))
