@@ -8,6 +8,7 @@ import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../mod
 import InteractorsLayout from "../layout/interactors-layout";
 import {DiagramService} from "../../services/diagram.service";
 import {ResourceType} from "../common/overlay-resource";
+import {environment} from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root',
@@ -15,9 +16,8 @@ import {ResourceType} from "../common/overlay-resource";
 
 export class InteractorService {
 
-  private SERVER = "https://dev.reactome.org";
-  private PREFIX_INTERACTOR = this.SERVER + "/ContentService/interactors/";
-  private PREFIX_DISEASE = this.SERVER + "/overlays/disgenet/";
+  private PREFIX_INTERACTOR = `${environment.host}/ContentService/interactors/`;
+  private PREFIX_DISEASE = `${environment.host}/overlays/disgenet/`;
 
   private STATIC_URL = this.PREFIX_INTERACTOR + 'static/molecules/details';
   private PSICQUIC_RESOURCE_URL = this.PREFIX_INTERACTOR + 'psicquic/resources/'

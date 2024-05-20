@@ -13,6 +13,7 @@ import cytoscapeFcose, {FcoseLayoutOptions} from "cytoscape-fcose";
 import NodeDefinition = Reactome.Types.NodeDefinition;
 import ReactionDefinition = Reactome.Types.ReactionDefinition;
 import EdgeTypeDefinition = Reactome.Types.EdgeTypeDefinition;
+import {environment} from "../../environments/environment";
 
 cytoscape.use(cytoscapeFcose)
 
@@ -166,16 +167,16 @@ export class DiagramService {
 
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
-      diagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${id}.json`),
-      graph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${id}.graph.json`)
+      diagram: this.http.get<Diagram>(`${environment.host}/download/current/diagram/${id}.json`),
+      graph: this.http.get<Graph>(`${environment.host}/download/current/diagram/${id}.graph.json`)
     }).pipe(
       tap(({diagram, graph}) => console.log('Normal diagram:', diagram, 'Normal graph', graph)),
       switchMap(({diagram, graph}) => {
         if (diagram.forNormalDraw !== undefined && !diagram.forNormalDraw) {
           return this.getNormalPathway(diagram.stableId).pipe(
             switchMap(normalPathwayId => forkJoin({
-              normalDiagram: this.http.get<Diagram>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.json`),
-              normalGraph: this.http.get<Graph>(`https://dev.reactome.org/download/current/diagram/${normalPathwayId}.graph.json`)
+              normalDiagram: this.http.get<Diagram>(`${environment.host}download/current/diagram/${normalPathwayId}.json`),
+              normalGraph: this.http.get<Graph>(`${environment.host}/download/current/diagram/${normalPathwayId}.graph.json`)
             })),
             tap(({
                    normalGraph,
@@ -604,8 +605,8 @@ export class DiagramService {
   }, width: number, height: number, uniprotId: string | undefined) {
     if (item.type === 'Protein')
       return `<video loop id="video-${item.id}" width="${width + 10}" height="${height + 10}">
-                <source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.mov" type="video/quicktime">
-                <source src="https://s3.amazonaws.com/download.reactome.org/structures/${uniprotId}.webm" type="video/webm">
+                <source src="${environment.s3}/structures/${uniprotId}.mov" type="video/quicktime">
+                <source src="${environment.s3}/structures/${uniprotId}.webm" type="video/webm">
               </video>`;
     return undefined;
   }
