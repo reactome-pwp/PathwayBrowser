@@ -175,7 +175,7 @@ export class DiagramService {
         if (diagram.forNormalDraw !== undefined && !diagram.forNormalDraw) {
           return this.getNormalPathway(diagram.stableId).pipe(
             switchMap(normalPathwayId => forkJoin({
-              normalDiagram: this.http.get<Diagram>(`${environment.host}download/current/diagram/${normalPathwayId}.json`),
+              normalDiagram: this.http.get<Diagram>(`${environment.host}/download/current/diagram/${normalPathwayId}.json`),
               normalGraph: this.http.get<Graph>(`${environment.host}/download/current/diagram/${normalPathwayId}.graph.json`)
             })),
             tap(({
