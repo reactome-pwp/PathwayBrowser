@@ -10,7 +10,7 @@
     "deploy:reactome-cytoscape-style": "ng build reactome-cytoscape-style; cd dist reactome-cytoscape-style; npm publish",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "page": "ng deploy --base-href=/PathwayBrowser/",
+    "page": "ng deploy --base-href=/PathwayBrowser/ --configuration release",
     "test": "ng test"
   },
   "private": true,
