@@ -1,0 +1,86 @@
+
+#interactor-container {
+  width: 338px; //todo: not fixed value in future
+}
+
+.full-width-button {
+  width: 100%;
+  border-radius: 0;
+}
+
+::ng-deep .full-width-button .mdc-button__label {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.resource-name {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/** Divider */
+.divider-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.line {
+  flex: 1;
+}
+
+.text {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/** Scrollbar */
+.psicquicResources {
+  overflow: scroll;
+  height: 300px;
+}
+
+/** Spinner */
+.spinner-color::ng-deep circle {
+  stroke: var(--on-primary) !important;
+}
+
+/**
+   Highlight selection by giving a background color
+ */
+.active-button {
+  background-color: var(--primary);
+  color: var(--on-primary)
+}
+
+.active-button[aria-selected="true"] {
+  background-color: var(--primary) !important;
+  color: var(--on-primary) !important;
+}
+
+/* Change background color for mat list option by using attribute aria-selected */
+.active-button[aria-selected="true"] .resource-name,
+.active-button[aria-selected="true"] .resource-name div {
+  color: var(--on-primary) !important;
+}
+
+/* Remove selected color by overwriting default primary color when there is no active button class */
+mat-list-option[aria-selected="true"] .resource-name,
+mat-list-option[aria-selected="true"] .resource-name div {
+  color: #000
+}
+
+
+
+
+
+
+
+
+
