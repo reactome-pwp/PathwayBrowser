@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRoute, ParamMap, Router} from "@angular/router";
-import {BehaviorSubject, combineLatestAll, combineLatestWith, map, zip} from "rxjs";
-import {isArray, isBoolean, isString} from "lodash";
-import {routes} from "../app-routing.module";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BehaviorSubject} from "rxjs";
+import {isArray, isBoolean} from "lodash";
 
 
 export interface UrlParam<T> {
@@ -15,7 +14,7 @@ export type State = {
   select: UrlParam<(string | number)[]>
   flag: UrlParam<(string | number)[]>
   flagInteractors: UrlParam<boolean>
-  overlay: UrlParam<string>
+  overlay: UrlParam<string | null>
 };
 
 @Injectable({
