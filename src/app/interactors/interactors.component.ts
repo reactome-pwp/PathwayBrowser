@@ -41,7 +41,6 @@ export class InteractorsComponent implements AfterViewInit {
   }
 
   getInteractors(resource: string | null) {
-    console.log("re " , resource)
     if (!resource) return;
     this.setActiveButton(resource);
     const isCustom = this.interactorsService.isCustomResource(resource, this.psicquicResources)
@@ -59,7 +58,7 @@ export class InteractorsComponent implements AfterViewInit {
 
   getPsicquicResources() {
     this.interactorsService.getPsicquicResources().subscribe(resources => {
-      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC);
+      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
     });
   }
 
