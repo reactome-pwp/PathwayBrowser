@@ -139,17 +139,6 @@ export class InteractorService {
       });
   }
 
-  public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
-    const entityNode = occurrenceNode.data('entity');
-    const interactors = entityNode.closedNeighborhood('node.Interactor');
-
-    entityNode.connectedEdges('.Interactor').remove();
-    interactors.forEach((interactor: cytoscape.NodeSingular) => {
-      if (interactor.connectedEdges().empty()) {
-        interactor.remove()
-      }
-    })
-  }
 
   public addInteractorNodes(occurrenceNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
     const interactorsData = occurrenceNode.data('interactors');
@@ -260,6 +249,27 @@ export class InteractorService {
     interactorsToDisplay.layout(layoutOptions).run();
   }
 
+  public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
+    const entityNode = occurrenceNode.data('entity');
+    const interactors = entityNode.closedNeighborhood('node.Interactor');
+
+    entityNode.connectedEdges('.Interactor').remove();
+    interactors.forEach((interactor: cytoscape.NodeSingular) => {
+      if (interactor.connectedEdges().empty()) {
+        interactor.remove()
+      }
+    })
+  }
+
+  public clearAllInteractorNodes(cy: cytoscape.Core) {
+    this.cyToSelectedResource.clear();
+    const interactorOcc = cy.elements(`.InteractorOccurrences`).remove();
+    interactorOcc.forEach(node => {
+      if (node.hasClass('opened')) {
+        this.removeInteractorNodes(node)
+      }
+    })
+  }
 
   public removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
     const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
