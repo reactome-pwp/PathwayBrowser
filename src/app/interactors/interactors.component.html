@@ -51,7 +51,7 @@
 <!--      <div class="psicquicResources">-->
         <mat-grid-list cols="2" rowHeight="24px" [gutterSize]="'2px'">
           <mat-grid-tile *ngFor="let resource of psicquicResources">
-            <button class="full-width-button" mat-button
+            <button class="full-width-button psicquic-button" mat-button
                     (click)="onPsicquicResourceChange(resource.name)"
                     [ngClass]="{'active-button': activeButton === resource.name}" [disabled]="!resource.active">
               <div class="resource-name">
