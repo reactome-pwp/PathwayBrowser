@@ -2,7 +2,15 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const entitySet: DrawerProvider = (properties, {width, height, drug, disease, lossOfFunction, interactor}) => {
+export const entitySet: DrawerProvider = (properties, {
+  width,
+  height,
+  drug,
+  disease,
+  lossOfFunction,
+  interactor,
+  gradient
+}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -75,8 +83,10 @@ export const entitySet: DrawerProvider = (properties, {width, height, drug, dise
   return {
     background: {
       "background-image": `
-       ${defs}
+       ${defs}${gradient || ''}
        <use href="#curly" fill="${fill}" stroke="${fill}" stroke-width="${t2}" stroke-linejoin="round"/>
+       ${gradient ? `<!--<use href="#curly" fill="url(#gradient)" clip-path="url(#inside)" />-->` : ''}
+       ${gradient ? `<rect x="${r * 1.5}" y="${t}" width="${width - 2 * r * 1.5}" height="${height - t2}" rx="${r}" fill="url(#gradient)"/>` : ''}
        `,
       "background-position-x": -r,
       "background-width": width + 2 * r,
@@ -145,20 +155,30 @@ export const entitySet: DrawerProvider = (properties, {width, height, drug, dise
       {
         "background-image": `
        ${defs}
-       <use href="#curly" fill="none" stroke="${stroke}" stroke-width="${t2}" clip-path="url(#inside)"/>
-       <line x1="${bracesOffset}" x2="${width - bracesOffset}" y1="${t2}" y2="${t2}" stroke-width="${t2}" ${lossOfFunction ? `stroke-dasharray="${realDashLength}"` : ''}  stroke="${fill}"/>
-       <line x1="${bracesOffset}" x2="${width - bracesOffset}" y1="${height - t2}" y2="${height - t2}" stroke-width="${t2}" ${lossOfFunction ? `stroke-dasharray="${realDashLength}"` : ''}  stroke="${fill}"/>
-       `,
+       <mask id="myMask">
+         <rect fill="white" x="0" y="0" width="${width}" height="${height}"/>
+         <rect fill="black" x="${bracesOffset}" y="${0}" width="${width - 2 * bracesOffset}" height="${height}"/>
+       </mask>
+       <use href="#curly" fill="none" stroke="${stroke}" stroke-width="${t2}" clip-path="url(#inside)" mask="url(#myMask)"/>
+`,
         "background-position-x": -r,
         "bounds-expansion": r,
         "background-clip": "none",
         "background-width": width + 2 * r,
       },
-
-    ]
+    ],
+    // analysis: {
+    //   'background-image': `${defs}${gradient}
+    //   <use href="#curly" fill="url(#gradient)" clip-path="url(#inside)"/>
+    //   <mask id="myMask">
+    //      <rect fill="white" x="0" y="0" width="${width}" height="${height}"/>
+    //      <rect fill="black" x="${bracesOffset}" y="${0}" width="${width - 2 * bracesOffset}" height="${height}"/>
+    //    </mask>
+    //    <use href="#curly" fill="none" stroke="${stroke}" stroke-width="${t2}" clip-path="url(#inside)" mask="url(#myMask)"/>`,
+    //   "background-position-x": -r,
+    //   "bounds-expansion": r,
+    //   "background-clip": "none",
+    //   "background-width": width + 2 * r,
+    // }
   }
 }
-
-//
-//
-//

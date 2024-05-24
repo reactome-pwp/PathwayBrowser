@@ -1,4 +1,5 @@
 import {defaultable, extract, PropertiesType, Property} from "./properties-utils";
+import {ContinuousPalette} from "./color";
 
 export interface Properties extends PropertiesType {
   global: {
@@ -25,6 +26,8 @@ export interface Properties extends PropertiesType {
     opacity: Property<[number, number][]>
     labelOpacity: Property<[number, number][]>
     padding: Property<number>
+    fontSize: Property<number>
+    fontPadding: Property<number>
   }
   protein: {
     fill: Property<string>
@@ -94,6 +97,13 @@ export interface Properties extends PropertiesType {
   font: {
     size: Property<number>
   }
+  analysis :{
+    min: Property<number>
+    max: Property<number>
+    unidirectionalPalette: Property<[number, string][]>
+    bidirectionalPalette: Property<[number, string][]>
+    notFound: Property<string>
+  }
   features : {
     edit: Property<boolean>
     compare: Property<boolean>
@@ -125,6 +135,8 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const shadow: Properties['shadow'] = defaultable(properties.shadow || {})
     .setDefault('luminosity', () => Number.parseFloat(css.getPropertyValue('--shadow-luminosity')) || 40)
     .setDefault('padding', () => Number.parseFloat(css.getPropertyValue('--shadow-padding')) || 20)
+    .setDefault('fontSize', () => Number.parseFloat(css.getPropertyValue('--shadow-font-size')) || 80)
+    .setDefault('fontPadding', () => Number.parseFloat(css.getPropertyValue('--shadow-font-padding')) || 15)
     .setDefault('opacity', () => {
       const p = css.getPropertyValue('--shadow-opacity');
       return p ? JSON.parse(p) : [[20, 20], [40, 0]];
@@ -208,6 +220,39 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
   const font: Properties['font'] = defaultable(properties.font || {})
     .setDefault('size', 12)
 
+  const analysis: Properties['analysis'] = defaultable(properties.analysis || {})
+    .setDefault("min",Number.parseFloat(css.getPropertyValue('--analysis-min')) || 0)
+    .setDefault("max",Number.parseFloat(css.getPropertyValue('--analysis-max')) || 1)
+    .setDefault("notFound", css.getPropertyValue('--analysis-not-found') || extract(global.onSurface))
+    .setDefault("unidirectionalPalette", () => {
+      const p = css.getPropertyValue('--analysis-uni-palette');
+      return p ? JSON.parse(p) : [
+        [0.000, '#FFFFE0'],
+        [0.125, '#C5EDDF'],
+        [0.250, '#A5D5D8'],
+        [0.375, '#8ABCCF'],
+        [0.500, '#73A2C6'],
+        [0.625, '#5D8ABD'],
+        [0.750, '#4771B2'],
+        [0.875, '#2E59A8'],
+        [1.000, '#00429D'],
+      ];
+    })
+    .setDefault("bidirectionalPalette", () => {
+      const p = css.getPropertyValue('--analysis-bi-palette');
+      return p ? JSON.parse(p) : [
+        [0.000, '#93003A'],
+        [0.125, '#CF3759'],
+        [0.250, '#F4777F'],
+        [0.375, '#FFBCAF'],
+        [0.500, '#FFFFE0'],
+        [0.625, '#A5D5D8'],
+        [0.750, '#73A2C6'],
+        [0.875, '#4771B2'],
+        [1.000, '#00429D'],
+      ];
+    })
+
   const features: Properties['features'] = defaultable(properties.features || {})
     .setDefault("edit", false)
     .setDefault("compare", true)
@@ -232,6 +277,7 @@ export function setDefaults(properties: UserProperties = {}, css: CSSStyleDeclar
     trivial,
     structure,
     font,
+    analysis,
     features
   }
 }

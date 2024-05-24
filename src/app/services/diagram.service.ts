@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {catchError, forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
-import {Edge as GraphEdge, Graph, Node as GraphNode} from "../model/graph.model";
+import {Graph} from "../model/graph.model";
 // @ts-ignore
 import Reactome, {Style} from "reactome-cytoscape-style";
 import legend from "../../assets/json/legend.json"
@@ -168,7 +168,7 @@ export class DiagramService {
   public getDiagram(id: number | string): Observable<cytoscape.ElementsDefinition> {
     return forkJoin({
       diagram: this.http.get<Diagram>(`${environment.host}/download/current/diagram/${id}.json`),
-      graph: this.http.get<Graph>(`${environment.host}/download/current/diagram/${id}.graph.json`)
+      graph: this.http.get<Graph.Data>(`${environment.host}/download/current/diagram/${id}.graph.json`)
     }).pipe(
       tap(({diagram, graph}) => console.log('Normal diagram:', diagram, 'Normal graph', graph)),
       switchMap(({diagram, graph}) => {
@@ -176,7 +176,7 @@ export class DiagramService {
           return this.getNormalPathway(diagram.stableId).pipe(
             switchMap(normalPathwayId => forkJoin({
               normalDiagram: this.http.get<Diagram>(`${environment.host}/download/current/diagram/${normalPathwayId}.json`),
-              normalGraph: this.http.get<Graph>(`${environment.host}/download/current/diagram/${normalPathwayId}.graph.json`)
+              normalGraph: this.http.get<Graph.Data>(`${environment.host}/download/current/diagram/${normalPathwayId}.graph.json`)
             })),
             tap(({
                    normalGraph,
@@ -238,17 +238,37 @@ export class DiagramService {
         const subpathwayIdToEventIds = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]));
 
         // create a node id - graph node mapping
-        const dbIdToGraphNode = new Map<number, GraphNode>(graph.nodes.map(node => ([node.dbId, node]) || []))
-        const mappingList: [number, GraphNode][] = graph.nodes.flatMap(node => {
-          if (node.children && node.children.length === 1) {
-            return node.diagramIds?.map(id => [id, dbIdToGraphNode.get(node.children[0])]).filter(entry => entry[1] !== undefined) as [number, GraphNode][]
-          } else return node.diagramIds?.map(id => [id, node]) as [number, GraphNode][]
+        const dbIdToGraphNode = new Map<number, Graph.Node>(graph.nodes.map(node => ([node.dbId, node]) || []))
+        const mappingList: [number, Graph.Node][] = graph.nodes.flatMap(node => {
+          if (node.children && node.children.length === 1) { // Consider homomer complex like their constituents for interactors
+            return node.diagramIds?.map(id => [id, dbIdToGraphNode.get(node.children[0])])
+              .filter(entry => entry[1] !== undefined) as [number, Graph.Node][]
+          } else {
+            return node.diagramIds?.map(id => [id, node]) as [number, Graph.Node][]
+          }
         }).filter(entry => entry !== undefined);
 
         const idToGraphNodes = new Map([...mappingList]);
         const idToGraphEdges = new Map(graph.edges.map(edge => [edge.dbId, edge]));
 
-        const dbIdToGraphEdge = new Map<number, GraphEdge>(graph.edges.map(edge => ([edge.dbId, edge]) || []))
+        const getLeaves = (node: Graph.Node, leaves: Set<Graph.Node>) => {
+          if (node.leaves && node.leaves.length > 0) {
+            node.leaves.forEach(leave => leaves.add(leave));
+          } else {
+            if (node.children && node.children.length > 0)
+              node.children.forEach(child => getLeaves(dbIdToGraphNode.get(child)!, leaves))
+            else
+              leaves.add(node);
+          }
+        }
+
+        idToGraphNodes.forEach(node => {
+          let leaves = new Set<Graph.Node >();
+          getLeaves(node, leaves);
+          node.leaves = [...leaves];
+        })
+
+        const dbIdToGraphEdge = new Map<number, Graph.Edge>(graph.edges.map(edge => ([edge.dbId, edge]) || []))
 
         const hasFadeOut = diagram.nodes.some(node => node.isFadeOut);
         const normalNodes = diagram.nodes.filter(node => node.isFadeOut);

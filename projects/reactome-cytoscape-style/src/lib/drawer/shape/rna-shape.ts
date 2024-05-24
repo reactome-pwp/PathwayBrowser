@@ -2,14 +2,12 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const rna: DrawerProvider = (properties, {width, height}) => {
+export const rna: DrawerProvider = (properties, {width, height, gradient}) => {
   const thick = extract(properties.global.thickness);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
   const fill = extract(properties.rna.fill);
-
-  const halfWidth = width / 2;
 
   const r = extract(properties.rna.radius);
   const oR = r + thick;
@@ -68,6 +66,17 @@ export const rna: DrawerProvider = (properties, {width, height}) => {
       "background-image-containment": "over",
       "background-width": width + 4 * thick,
       "background-height": height + 2 * thick,
+    },
+    analysis: {
+      "background-image": `${gradient}
+       <path fill="url(#gradient)" d="
+       M 0 0
+       H ${width}
+       V ${height - r }
+       a ${r} ${r} 0 0 1 -${r} ${r}
+       H ${r}
+       a ${r} ${r} 0 0 1 -${r} -${r}
+       Z"/>`
     }
   }
 }

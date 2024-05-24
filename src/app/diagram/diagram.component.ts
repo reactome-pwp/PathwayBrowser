@@ -15,7 +15,7 @@ import cytoscape from "cytoscape";
 import {Interactivity, ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
-import {delay, distinctUntilChanged, filter, Observable, share, Subject} from "rxjs";
+import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {PsicquicResource, Resource} from "../interactors/model/interactor-entity.model";
 import {MatSelect} from "@angular/material/select";
@@ -28,6 +28,11 @@ import {
 } from "../interactors/custom-interactor-dialog/custom-interactor-dialog.component";
 import {ResourceType} from "../interactors/common/overlay-resource";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
+import {AnalysisService, Examples} from "../services/analysis.service";
+import {Graph} from "../model/graph.model";
+import {isDefined} from "../services/utils";
+import {Analysis} from "../model/analysis.model";
+import {Router} from "@angular/router";
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -51,7 +56,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   readonly ResourceType = ResourceType;
 
 
-  constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
+  constructor(private diagram: DiagramService,
+              public dark: DarkService,
+              private interactorsService: InteractorService,
+              private state: DiagramStateService,
+              public dialog: MatDialog,
+              private cdr: ChangeDetectorRef,
+              private analysis: AnalysisService,
+              private router: Router) {
   }
 
   cy!: cytoscape.Core;
@@ -127,6 +139,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.cys[0] = this.cy;
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
+        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([e.target.data('graph.stId')], {queryParamsHandling: "preserve"}))
 
         this.loadCompare(elements, container);
 
@@ -269,12 +282,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     const trivials = cy.elements('.trivial');
 
     if (toFlag.nonempty()) {
-      this.cy.batch(() => {
-        shadowNodes.style({opacity: 0})
-        shadowEdges.removeClass('shadow')
-        cy.off('zoom', this.reactomeStyle.interactivity.onZoom.shadow)
-        trivials.style({opacity: 1})
-        cy.edges().style({'underlay-opacity': 0})
+      cy.batch(() => {
+        this.setSubPathwayVisibility(false, cy);
         cy.elements().removeClass('flag')
         toFlag.addClass('flag')
           .edges().style({'underlay-opacity': 1})
@@ -282,17 +291,32 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       return toFlag
     } else {
-      this.cy.batch(() => {
-        shadowNodes.style({opacity: 1})
-        trivials.style({opacity: 1})
-        shadowEdges.addClass('shadow')
-
-        cy.elements().removeClass('flag')
-        cy.on('zoom', this.reactomeStyle.interactivity.onZoom.shadow)
-        this.reactomeStyle.interactivity.onZoom.shadow()
+      cy.batch(() => {
+        this.setSubPathwayVisibility(true, cy);
+        cy.elements().removeClass('flag');
       })
 
       return cy.collection()
+    }
+  }
+
+  setSubPathwayVisibility(visible: boolean, cy: cytoscape.Core) {
+    const shadowNodes = cy.nodes('.Shadow');
+    const shadowEdges = cy.edges('[?color]');
+    const trivials = cy.elements('.trivial');
+
+    if (visible) {
+      shadowNodes.style({opacity: 1})
+      trivials.style({opacity: 1})
+      shadowEdges.addClass('shadow')
+      cy.on('zoom', cy.data('reactome').interactivity.onZoom.shadow)
+      cy.data('reactome').interactivity.onZoom.shadow()
+    } else {
+      shadowNodes.style({opacity: 0})
+      shadowEdges.removeClass('shadow')
+      cy.off('zoom', cy.data('reactome').interactivity.onZoom.shadow)
+      trivials.style({opacity: 1})
+      cy.edges().style({'underlay-opacity': 0})
     }
   }
 
@@ -454,6 +478,93 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     return this.resourceTokens!.includes(resource);
   }
 
+  private loadAnalysis(token: string | null) {
+    console.log(token, this.diagramId)
+    if (!token || !this.diagramId) {
+      this.cys.forEach(cy => {
+        cy.batch(() => {
+          cy.nodes().removeData('exp');
+          cy.edges('[?color]').style({
+            'underlay-padding': extract(this.reactomeStyle.properties.shadow.padding)
+          });
+          cy.nodes('.Shadow').style({
+            'font-size': extract(this.reactomeStyle.properties.shadow.fontSize),
+            'text-outline-width': extract(this.reactomeStyle.properties.shadow.fontPadding)
+          })
+        })
+      });
+      return
+    }
+
+    forkJoin({
+      entities: this.analysis.foundEntities(this.diagramId, token),
+      pathways: this.analysis.pathwaysResults(this.cy.nodes('.Pathway').map(p => p.data('reactomeId')), token),
+      result: this.analysis.result$.pipe(filter(isDefined), filter(r => r.summary.token === token), take(1))
+    }).subscribe(({entities, result, pathways}) => {
+      // TODO Make switching profile work without reloading whole data
+      const analysisProfile = this.state.get('analysisProfile');
+      let analysisIndex = analysisProfile ? entities.expNames.indexOf(analysisProfile) : 0;
+      if (analysisIndex === -1) analysisIndex = 0;
+
+      let analysisEntityMap = new Map<string, number>(entities.entities.flatMap(entity =>
+        entity.mapsTo
+          .flatMap(diagramEntity => diagramEntity.ids)
+          .map(id => [id, entity.exp[analysisIndex] || 1]))
+      )
+      console.log(analysisEntityMap)
+
+      let analysisPathwayMap = new Map<number, Analysis.Pathway['entities']>(pathways.map(p => [p.dbId, p.entities]));
+
+      console.log(analysisPathwayMap)
+
+      const normalize = (x: number, min: number, max: number) => (x - min) / (max - min)
+
+      this.cys.forEach(cy => {
+        cy.batch(() => {
+          const style: Style = cy.data('reactome');
+          const min = style.properties.analysis.min = result.expression.min || 0;
+          const max = style.properties.analysis.max = result.expression.max || 1;
+
+          const hasExpression = result.summary.type !== 'OVERREPRESENTATION';
+
+
+          cy.nodes('.PhysicalEntity').forEach(node => {
+            const leaves: Graph.Node[] = node.data('graph.leaves');
+            let exp = leaves
+              .map(leaf => analysisEntityMap.get(leaf.identifier))
+              .sort((a, b) => a !== undefined ? (b !== undefined ? a - b : -1) : 1)
+              .map(exp => exp !== undefined ? normalize(exp, min, max) : undefined);
+
+            // if (hasExpression) exp = exp.map(e => e !== undefined ? 1 - e : undefined);
+            node.data('exp', exp);
+          })
+          cy.nodes('.Pathway').forEach(node => {
+            const dbId: number = node.data('reactomeId');
+            const pathwayData = analysisPathwayMap.get(dbId);
+            if (!pathwayData) {
+              node.data('exp', [undefined]);
+            }
+            else {
+              console.log(dbId, normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max))
+              node.data('exp', [
+                [normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max), pathwayData.found],
+                [undefined, pathwayData.total - pathwayData.found]
+              ])
+            }
+          })
+
+          cy.edges('[?color]').style({'underlay-padding': 8});
+          cy.nodes('.Shadow').style({
+            'font-size': extract(style.properties.shadow.fontSize) / 2,
+            'text-outline-width': extract(style.properties.shadow.fontPadding) / 2
+          })
+          this.reactomeStyle.loadAnalysis(cy, hasExpression ? 'bidirectional' : 'unidirectional');
+        })
+      })
+
+    })
+  }
+
   updateStyle() {
     this.cy ? setTimeout(() => this.reactomeStyle?.update(this.cy), 5) : null;
     this.cyCompare ? setTimeout(() => this.reactomeStyle?.update(this.cyCompare), 5) : null;
@@ -487,8 +598,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   // ----- Event Syncing -----
-
   private _reactomeEvents$: Subject<ReactomeEvent> = new Subject<ReactomeEvent>();
+
   private _ignore = false;
 
   @Output()
@@ -499,14 +610,21 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     share()
   );
 
-  stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram());
+  flagging = this.state.onChange.flag$.subscribe((value) => this.cys.forEach(cy => this.flag(value, cy)))
+  selecting = this.state.onChange.select$.subscribe((value) => this.cys.forEach(cy => this.select(value, cy)))
+  interactoring = this.state.onChange.overlay$.subscribe((value) => this.getInteractors(value));
+  analysing = this.state.onChange.analysis$.subscribe((value) => this.loadAnalysis(value));
+
+
+  // stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram());
 
   private stateToDiagram() {
-    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
+    for (let cy of this.cys) {
       this.flag(this.state.get('flag'), cy);
       this.select(this.state.get("select"), cy);
     }
-    this.getInteractors(this.state.get("overlay"))
+    this.getInteractors(this.state.get("overlay"));
+    this.loadAnalysis(this.state.get('analysis'))
   }
 
   compareBackgroundSync = this.reactomeEvents$.pipe(
@@ -529,6 +647,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     this.applyEvent(event, replacements)
   });
+
 
   interactorOpeningHandling = this.reactomeEvents$
     .pipe(
@@ -556,7 +675,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         }
       }
     );
-
 
   diagram2legend = this.reactomeEvents$.pipe(
     filter((e) => e.detail.cy !== this.legend),
@@ -598,7 +716,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   ).subscribe((e) => {
     const event = e as ReactomeEvent;
     const classes = event.detail.element.classes();
-    for (let cy of [this.cy, this.cyCompare].filter(cy => cy !== undefined)) {
+    for (let cy of [this.cy, this.cyCompare].filter(isDefined)) {
       let matchingElement: cytoscape.NodeCollection | cytoscape.EdgeCollection = cy.elements(`.${classes[0]}`);
 
       // TODO move everything to use state
@@ -614,12 +732,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       switch (event.type) {
         case ReactomeEventTypes.select:
-          this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))])
-          this.stateToDiagram();
+          this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))], true)
           break;
         case ReactomeEventTypes.unselect:
-          this.state.set('flag', [])
-          this.stateToDiagram();
+          this.state.set('flag', [], true);
           break;
         case ReactomeEventTypes.hover:
           matchingElement.addClass('hover')
@@ -633,5 +749,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   logProteins() {
     console.debug(new Set(this.cy.nodes(".Protein").map(node => node.data("acc") || node.data("iAcc"))))
+  }
+
+  analyse(example: Examples) {
+    this.analysis.example(example).subscribe();
   }
 }

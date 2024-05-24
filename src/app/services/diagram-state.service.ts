@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRoute, ParamMap, Router} from "@angular/router";
-import {BehaviorSubject, combineLatestAll, combineLatestWith, map, zip} from "rxjs";
-import {isArray, isBoolean, isString} from "lodash";
-import {routes} from "../app-routing.module";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BehaviorSubject, distinctUntilChanged, map, Observable, share, tap} from "rxjs";
+import {isArray, isBoolean} from "lodash";
 
 
 export interface UrlParam<T> {
@@ -16,7 +15,11 @@ export type State = {
   flag: UrlParam<(string | number)[]>
   flagInteractors: UrlParam<boolean>
   overlay: UrlParam<string>
+  analysis: UrlParam<string | null>
+  analysisProfile: UrlParam<string | null>
 };
+
+type ObservableState = { [K in keyof State  as `${K & string}$`]: Observable<State[K]['value']> };
 
 @Injectable({
   providedIn: 'root'
@@ -30,11 +33,23 @@ export class DiagramStateService {
     select: {otherTokens: ['SEL'], value: []},
     flag: {otherTokens: ['FLG'], value: []},
     flagInteractors: {otherTokens: ['FLGINT'], value: false},
-    overlay: {value: ''}
+    overlay: {value: ''},
+    analysis: {value: null, otherTokens: ['ANALYSIS']},
+    analysisProfile: {value: null},
   };
 
   private _state$ = new BehaviorSubject<State>(this.state);
-  public state$ = this._state$.asObservable()
+  public state$ = this._state$.asObservable();
+  public onChange: ObservableState = Object.keys(this.state)
+    .reduce((properties, prop: keyof State) => {
+      properties[`${prop}$`] = this.state$.pipe(
+        map(state => state[prop].value),
+        distinctUntilChanged((v1, v2) => v1?.toString() === v2?.toString()),
+        tap(v => console.log(`${prop} has been updated to ${v}`)),
+        // share()
+      )
+      return properties;
+    }, {} as ObservableState);
 
   constructor(route: ActivatedRoute, private router: Router) {
     route.queryParamMap.subscribe(params => {
@@ -66,9 +81,9 @@ export class DiagramStateService {
     return this.state[token].value
   }
 
-  set<T extends keyof State>(token: T, value: State[T]['value']): void {
+  set<T extends keyof State>(token: T, value: State[T]['value'], propagate = false): void {
     this.state[token].value = value;
-    this.ignore = false;
+    this.ignore = !propagate;
     this.onPropertyModified().then(() =>
       this.ignore = false
     );
@@ -76,6 +91,7 @@ export class DiagramStateService {
 
   onPropertyModified() {
     return this.router.navigate([], {
+      queryParamsHandling: "merge",
       queryParams: {
         ...Object.entries(this.state)
           .filter(([token, param]) => param.value && param.value.length !== 0)

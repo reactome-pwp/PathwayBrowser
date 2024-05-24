@@ -2,18 +2,11 @@ import {DrawerProvider} from "../types";
 import {extract} from "../../properties-utils";
 
 
-export const interactingPathway: DrawerProvider = (properties, {width, height, drug}) => {
+export const interactingPathway: DrawerProvider = (properties, {width, height, drug, gradient}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
   const thick = extract(properties.global.thickness);
-
-
-  const stroke = !drug ?
-    extract(properties.pathway.stroke) :
-    extract(properties.global.negativeContrast);
-  const fill = extract(properties.pathway.fill);
-
 
   let realWidth = width;
   const t = 3 * thick;
@@ -32,15 +25,18 @@ export const interactingPathway: DrawerProvider = (properties, {width, height, d
     flag: {
       "background-image": `
 <rect fill="${flag}" width="${t}" height="${height}"/>
-<rect fill="${flag}" width="${t}" height="${height}" x="${realWidth +t}"/>
+<rect fill="${flag}" width="${t}" height="${height}" x="${realWidth + t}"/>
 `,
       "background-width": realWidth + 4 * t,
-      "background-position-x": - t,
+      "background-position-x": -t,
       "background-height": height,
       "bounds-expansion": 2 * t,
       "background-clip": "none",
       "background-image-containment": "over",
     },
+    analysis: {
+      "background-image": `${gradient}<rect fill="url(#gradient)" x="${t}" y="${t}" width="${width - 2 * t}" height="${height - 2 * t}"/>`
+    }
   }
 }
 

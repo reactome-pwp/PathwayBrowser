@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const protein: DrawerProvider = (properties, {width, height, drug}) => {
+export const protein: DrawerProvider = (properties, {width, height, drug, gradient}) => {
   const fill = extract(properties.protein.fill);
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -61,6 +61,9 @@ export const protein: DrawerProvider = (properties, {width, height, drug}) => {
       "background-image-containment": "over",
       "background-width": width + 4 * thick,
       "background-height": height + 2 * thick,
+    },
+    analysis: {
+      "background-image": `${gradient}<rect width="${width}" height="${height}" fill="url(#gradient)" rx="${radius}"/>`
     }
   }
 }

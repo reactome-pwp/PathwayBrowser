@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const molecule: DrawerProvider = (properties, {width, height, drug, interactor}) => {
+export const molecule: DrawerProvider = (properties, {width, height, drug, interactor, gradient}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -71,6 +71,9 @@ export const molecule: DrawerProvider = (properties, {width, height, drug, inter
       "background-image-containment": "over",
       "background-width": width + 4 * thick,
       "background-height": height + 2 * thick,
+    },
+    analysis: {
+      "background-image": `${gradient}<rect width="${width}" height="${height}" rx="${halfHeight}" fill="url(#gradient)" stroke-width="${thick}" stroke="${stroke}"/>`
     }
   }
 }

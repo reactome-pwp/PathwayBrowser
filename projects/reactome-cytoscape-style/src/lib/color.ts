@@ -145,3 +145,71 @@ export class HSL {
     return "#" + rS + gS + bS;
   }
 }
+
+
+
+type RGB = [number, number, number];
+type PaletteEntry = [number, string];
+
+export class ContinuousPalette {
+
+  rgbPalette: [number, RGB][] = []
+
+  constructor(palette: PaletteEntry[]) {
+   this.rgbPalette = palette.map(([v, hex]) => [v, this.hexToRgb(hex)]);
+  }
+
+
+  // Helper function to convert hex color string to RGB tuple
+  private hexToRgb(hex: string): RGB {
+    hex = hex.replace(/^#/, '');
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return [r, g, b];
+  }
+
+// Helper function to convert RGB tuple to hex color string
+  private rgbToHex([r, g, b]: RGB): string {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+  }
+
+// Helper function to interpolate between two colors
+  private interpolate(
+    value: number, valueMin: number, valueMax: number,
+    colorMin: RGB, colorMax: RGB
+  ): RGB {
+    const ratio = (value - valueMin) / (valueMax - valueMin);
+    return [
+      Math.round(colorMin[0] + (colorMax[0] - colorMin[0]) * ratio),
+      Math.round(colorMin[1] + (colorMax[1] - colorMin[1]) * ratio),
+      Math.round(colorMin[2] + (colorMax[2] - colorMin[2]) * ratio)
+    ];
+  }
+
+// Main function to get the color for a given value from the palette
+  getColor(value: number): string {
+    // Handle edge cases
+    if (value <= this.rgbPalette[0][0]) {
+      return this.rgbToHex(this.rgbPalette[0][1]);
+    }
+    if (value >= this.rgbPalette[this.rgbPalette.length - 1][0]) {
+      return this.rgbToHex(this.rgbPalette[this.rgbPalette.length - 1][1]);
+    }
+
+    // Find the surrounding colors
+    for (let i = 0; i < this.rgbPalette.length - 1; i++) {
+      const [vMin, cMin] = this.rgbPalette[i];
+      const [vMax, cMax] = this.rgbPalette[i + 1];
+      if (vMin <= value && value <= vMax) {
+        const interpolatedColor = this.interpolate(value, vMin, vMax, cMin, cMax);
+        return this.rgbToHex(interpolatedColor);
+      }
+    }
+
+    // Fallback (should not be reached)
+    return this.rgbToHex(this.rgbPalette[0][1]);
+  }
+
+}
