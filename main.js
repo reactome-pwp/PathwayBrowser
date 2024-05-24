@@ -1016,7 +1016,7 @@ let DiagramComponent = class DiagramComponent {
     (0,rxjs__WEBPACK_IMPORTED_MODULE_19__.forkJoin)({
       entities: this.analysis.foundEntities(this.diagramId, token),
       pathways: this.analysis.pathwaysResults(this.cy.nodes('.Pathway').map(p => p.data('reactomeId')), token),
-      result: this.analysis.result$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_13__.filter)(_services_utils__WEBPACK_IMPORTED_MODULE_3__.isDefined), (0,rxjs__WEBPACK_IMPORTED_MODULE_13__.filter)(r => r.summary.token === token), (0,rxjs__WEBPACK_IMPORTED_MODULE_20__.take)(1))
+      result: this.analysis.result$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_13__.filter)(_services_utils__WEBPACK_IMPORTED_MODULE_3__.isDefined), (0,rxjs__WEBPACK_IMPORTED_MODULE_20__.take)(1))
     }).subscribe(({
       entities,
       result,
@@ -2067,12 +2067,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs */ 3317);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! rxjs */ 1891);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! rxjs */ 4980);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs */ 5584);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rxjs */ 3738);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! rxjs */ 2389);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs */ 3738);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rxjs */ 2389);
 /* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../environments/environment */ 553);
-/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @angular/core */ 1699);
-/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @angular/common/http */ 4860);
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @angular/core */ 1699);
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @angular/common/http */ 4860);
 /* harmony import */ var _diagram_state_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diagram-state.service */ 6742);
 
 
@@ -2087,25 +2086,26 @@ class AnalysisService {
     // Same token as cache => use cache
     this.loadAnalysis(token) // Different token than cache => load result
     : (0,rxjs__WEBPACK_IMPORTED_MODULE_5__.of)(undefined) // No tokens => No results
-    ), (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.share)());
+    ));
   }
+
   analyse(data, params) {
     return this.http.post(`${_environments_environment__WEBPACK_IMPORTED_MODULE_0__.environment.host}/AnalysisService/identifiers/projection`, data, {
       params
-    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_7__.tap)(result => this.result = result), (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.tap)(result => this.state.set('analysis', result.summary.token)));
+    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_6__.tap)(result => this.result = result), (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.tap)(result => this.state.set('analysis', result.summary.token)));
   }
   loadAnalysis(token, params) {
     console.log('load analysis');
     return this.http.get(`${_environments_environment__WEBPACK_IMPORTED_MODULE_0__.environment.host}/AnalysisService/token/${token || this.state.get('analysis')}`, {
       params
-    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_7__.tap)(result => this.result = result));
+    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_6__.tap)(result => this.result = result));
   }
   foundEntities(pathway, token, resource = 'TOTAL') {
     return this.http.get(`${_environments_environment__WEBPACK_IMPORTED_MODULE_0__.environment.host}/AnalysisService/token/${token || this.state.get('analysis')}/found/all/${pathway}`, {
       params: {
         resource
       }
-    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_8__.catchError)(() => (0,rxjs__WEBPACK_IMPORTED_MODULE_5__.of)({
+    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_7__.catchError)(() => (0,rxjs__WEBPACK_IMPORTED_MODULE_5__.of)({
       pathway,
       foundEntities: 0,
       foundInteractors: 0,
@@ -2121,7 +2121,7 @@ class AnalysisService {
       params: {
         resource
       }
-    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_8__.catchError)(() => (0,rxjs__WEBPACK_IMPORTED_MODULE_5__.of)([])));
+    }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_7__.catchError)(() => (0,rxjs__WEBPACK_IMPORTED_MODULE_5__.of)([])));
   }
   example(name) {
     return this.http.get(`assets/data/analysis-examples/${name}.tsv`, {
@@ -2129,9 +2129,9 @@ class AnalysisService {
     }).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_4__.switchMap)(example => this.analyse(example)));
   }
   static #_ = this.ɵfac = function AnalysisService_Factory(t) {
-    return new (t || AnalysisService)(_angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_10__.HttpClient), _angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵinject"](_diagram_state_service__WEBPACK_IMPORTED_MODULE_1__.DiagramStateService));
+    return new (t || AnalysisService)(_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_9__.HttpClient), _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵinject"](_diagram_state_service__WEBPACK_IMPORTED_MODULE_1__.DiagramStateService));
   };
-  static #_2 = this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵdefineInjectable"]({
+  static #_2 = this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵdefineInjectable"]({
     token: AnalysisService,
     factory: AnalysisService.ɵfac,
     providedIn: 'root'
