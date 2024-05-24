@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject, distinctUntilChanged, map, Observable, share, tap} from "rxjs";
+import {BehaviorSubject, distinctUntilChanged, map, Observable, tap} from "rxjs";
 import {isArray, isBoolean} from "lodash";
 
 
@@ -19,14 +19,14 @@ export type State = {
   analysisProfile: UrlParam<string | null>
 };
 
-type ObservableState = { [K in keyof State  as `${K & string}$`]: Observable<State[K]['value']> };
+type ObservableState = { [K in keyof State as `${K & string}$`]: Observable<State[K]['value']> };
 
 @Injectable({
   providedIn: 'root'
 })
 export class DiagramStateService {
 
-  private ignore = false;
+  private propagate = false;
 
 
   private state: State = {
@@ -53,8 +53,6 @@ export class DiagramStateService {
 
   constructor(route: ActivatedRoute, private router: Router) {
     route.queryParamMap.subscribe(params => {
-      if (this.ignore) return;
-      let change = false;
       for (const mainToken in this.state) {
         const param = this.state[mainToken];
         const tokens: string[] = [mainToken, ...param.otherTokens || []];
@@ -69,11 +67,9 @@ export class DiagramStateService {
           } else {
             param.value = params.get(token)!;
           }
-
-          change = change || formerValue == param.value;
         }
       }
-      if (change) this._state$.next(this.state);
+      if (this.propagate) this._state$.next(this.state);
     })
   }
 
@@ -81,17 +77,14 @@ export class DiagramStateService {
     return this.state[token].value
   }
 
-  set<T extends keyof State>(token: T, value: State[T]['value'], propagate = false): void {
+  set<T extends keyof State>(token: T, value: State[T]["value"], propagate = true): void {
     this.state[token].value = value;
-    this.ignore = !propagate;
-    this.onPropertyModified().then(() =>
-      this.ignore = false
-    );
+    this.propagate = propagate;
+    this.onPropertyModified();
   }
 
   onPropertyModified() {
     return this.router.navigate([], {
-      queryParamsHandling: "merge",
       queryParams: {
         ...Object.entries(this.state)
           .filter(([token, param]) => param.value && param.value.length !== 0)

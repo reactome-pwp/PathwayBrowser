@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {catchError, distinctUntilChanged, filter, map, Observable, of, share, switchMap, tap} from "rxjs";
+import {catchError, distinctUntilChanged, map, Observable, of, share, switchMap, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {Analysis} from "../model/analysis.model";
@@ -35,7 +35,7 @@ export class AnalysisService {
   analyse(data: string, params?: Partial<Analysis.Parameters>): Observable<Analysis.Result> {
     return this.http.post<Analysis.Result>(`${environment.host}/AnalysisService/identifiers/projection`, data, {params}).pipe(
       tap(result => this.result = result),
-      tap(result => this.state.set('analysis', result.summary.token, true)),
+      tap(result => this.state.set('analysis', result.summary.token)),
     )
   }
 
@@ -52,7 +52,7 @@ export class AnalysisService {
         resource
       }
     }).pipe(
-      catchError(e => of({
+      catchError(() => of({
         pathway,
         foundEntities: 0,
         foundInteractors:0,
@@ -69,7 +69,7 @@ export class AnalysisService {
     return this.http.post<Analysis.Pathway[]>(`${environment.host}/AnalysisService/token/${token || this.state.get('analysis')}/filter/pathways`, pathwayIds.join(','), {
       params:{resource}
     }).pipe(
-      catchError(e => of([]))
+      catchError(() => of([]))
     )
   }
 

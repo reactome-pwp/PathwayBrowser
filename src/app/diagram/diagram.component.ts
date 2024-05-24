@@ -732,10 +732,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
       switch (event.type) {
         case ReactomeEventTypes.select:
-          this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))], true)
+          this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : ((classes.includes('drug') ? '.' : '!') + 'drug'))])
           break;
         case ReactomeEventTypes.unselect:
-          this.state.set('flag', [], true);
+          this.state.set('flag', []);
           break;
         case ReactomeEventTypes.hover:
           matchingElement.addClass('hover')
