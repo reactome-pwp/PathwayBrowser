@@ -3,9 +3,11 @@ import {extract} from "./properties-utils";
 import {Properties} from "./properties";
 import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
 import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
+import * as _ from "lodash";
 
 
 cytoscape.use(Layers)
+type RenderableHTMLElement = HTMLElement & { render: _.DebouncedFunc<() => void> };
 
 export class Interactivity {
   constructor(private cy: cytoscape.Core, private properties: Properties) {
@@ -222,21 +224,31 @@ export class Interactivity {
     const layers: LayersPlugin = cy.layers();
 
     this.videoLayer = layers.append('html');
+    this.videoLayer.node.style.opacity = '0';
     layers.renderPerNode(
       this.videoLayer,
-      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-        elem.style.visibility = node.visible() ? 'visible' : 'hidden';
+      (elem: HTMLElement) => {
+        (elem as RenderableHTMLElement).render()
       },
       {
-        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+        init: (elem: RenderableHTMLElement, node: cytoscape.NodeSingular) => {
           elem.innerHTML = node.data('html') || '';
-          elem.style.display = "flex"
+          elem.style.display = "flex";
+          const video = elem.children[0] as HTMLVideoElement;
+          elem.render = _.throttle(() => {
+              if (this.videoLayer.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
+                video.load();
+              }
+              elem.style.visibility = node.visible() ? 'visible' : 'hidden';
+            }, 500
+          );
         },
         transform: `translate(-70%, -50%)`,
         position: 'center',
         uniqueElements: true,
-        checkBounds: false,
+        checkBounds: true,
         selector: '.Protein',
+        updateOn: "none",
         queryEachTime: false,
       }
     );
@@ -246,14 +258,14 @@ export class Interactivity {
       ?.on('mouseover', 'node.Protein', (event) => {
         const videoId = event.target.id();
         const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
+        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
           videoElement.play();
         }
       })
       .on('mouseout', 'node.Protein', (event) => {
         const videoId = event.target.id();
         const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
+        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
           videoElement.pause();
         }
       });

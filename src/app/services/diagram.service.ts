@@ -604,7 +604,7 @@ export class DiagramService {
     type: string
   }, width: number, height: number, uniprotId: string | undefined) {
     if (item.type === 'Protein')
-      return `<video loop id="video-${item.id}" width="${width + 10}" height="${height + 10}">
+      return `<video loop id="video-${item.id}" width="${width + 10}" height="${height + 10}"  preload="none">
                 <source src="${environment.s3}/structures/${uniprotId}.mov" type="video/quicktime">
                 <source src="${environment.s3}/structures/${uniprotId}.webm" type="video/webm">
               </video>`;
