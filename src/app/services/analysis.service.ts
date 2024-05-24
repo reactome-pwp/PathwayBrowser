@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {catchError, distinctUntilChanged, map, Observable, of, share, switchMap, tap} from "rxjs";
+import {catchError, distinctUntilChanged, map, Observable, of, switchMap, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {Analysis} from "../model/analysis.model";
@@ -25,8 +25,7 @@ export class AnalysisService {
             this.loadAnalysis(token) // Different token than cache => load result
         ) :
         of(undefined) // No tokens => No results
-    ),
-    share()
+    )
   )
 
   constructor(private http: HttpClient, private state: DiagramStateService) {

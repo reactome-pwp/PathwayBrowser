@@ -499,7 +499,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     forkJoin({
       entities: this.analysis.foundEntities(this.diagramId, token),
       pathways: this.analysis.pathwaysResults(this.cy.nodes('.Pathway').map(p => p.data('reactomeId')), token),
-      result: this.analysis.result$.pipe(filter(isDefined), filter(r => r.summary.token === token), take(1))
+      result: this.analysis.result$.pipe(filter(isDefined), take(1))
     }).subscribe(({entities, result, pathways}) => {
       // TODO Make switching profile work without reloading whole data
       const analysisProfile = this.state.get('analysisProfile');
