@@ -6,7 +6,7 @@ import {DarkService} from "../services/dark.service";
 import {InteractorService} from "./services/interactor.service";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
-import {PsicquicResource, Resource} from "./model/interactor-entity.model";
+import {InteractorToken, PsicquicResource} from "./model/interactor-entity.model";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
 
 @Component({
@@ -17,7 +17,7 @@ import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom
 export class InteractorsComponent implements AfterViewInit {
 
   isDataFromPsicquicLoading: boolean = false;
-  resourceTokens: Resource[] = [];
+  resourceTokens : InteractorToken[] = [];
   panelOpenState = false;
   psicquicResources: PsicquicResource[] = []
   selectedPsicquicResource: string | null = null
@@ -87,38 +87,39 @@ export class InteractorsComponent implements AfterViewInit {
       });
 
       dialogRef.afterClosed().subscribe(result => {
-        const resource = dialogRef.componentInstance.resource
-        if (resource.token) {
-          this.resourceTokens!.push(resource)
-          this.setActiveButton(resource.token!.summary.token)
-          this.state.set('overlay', resource.token.summary.token)
+        const resource = dialogRef.componentInstance.token;
+        if (resource) {
+          this.resourceTokens!.push(resource);
+          this.setActiveButton(resource.summary.token);
+          this.selectedResource.set(resource.summary.token, ResourceType.CUSTOM);
+          this.state.set('overlay', resource.summary.token);
         }
         this.cdr.detectChanges();
       })
     })
   }
 
-  isSelected(resource: Resource): boolean {
+  isSelected(resource: InteractorToken): boolean {
     return this.resourceTokens!.includes(resource);
   }
 
-  onCustomResourceChange(resource: Resource) {
-    this.interactorsService.sendPostRequest(resource.token!, this.cy).subscribe((result) => {
-      this.cys.forEach(cy => {
+  onCustomResourceChange(resource: InteractorToken) {
+    this.cys.forEach(cy => {
+    this.interactorsService.sendPostRequest(resource, cy).subscribe((result) => {
         this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
-        this.setActiveButton(resource.token!.summary.token)
-        this.state.set('overlay', resource.token!.summary.token);
+        this.setActiveButton(resource!.summary.token);
+        this.state.set('overlay', resource.summary.token);
       })
     })
   }
 
-  deleteResource(resource: Resource) {
+  deleteResource(resource: InteractorToken) {
     const index = this.resourceTokens!.indexOf(resource);
     if (index !== -1) {
       this.resourceTokens!.splice(index, 1);
       this.cys.forEach(cy => {
-        cy.elements(`[resource = '${resource.token?.summary.token}']`).remove();
-        this.state.set('overlay', null)
+        cy.elements(`[resource = '${resource}']`).remove();
+        this.state.set('overlay', null);
       })
 
     }

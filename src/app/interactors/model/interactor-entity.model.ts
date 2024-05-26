@@ -50,7 +50,4 @@ export class InputCategory {
   content: string | FormData | undefined
 }
 
-export class Resource {
-  token: InteractorToken | undefined;
-}
 
