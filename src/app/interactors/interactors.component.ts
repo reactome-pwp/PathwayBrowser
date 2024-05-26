@@ -20,8 +20,11 @@ export class InteractorsComponent implements AfterViewInit {
   resourceTokens : InteractorToken[] = [];
   panelOpenState = false;
   psicquicResources: PsicquicResource[] = []
-  selectedPsicquicResource: string | null = null
   activeButton: string | null = null;
+  resourceToType: Map<string, ResourceType> = new Map<string, ResourceType>;
+
+  DISEASE_RESOURCE = 'DisGeNet';
+  INTACT_RESOURCE = 'IntAct';
   protected readonly ResourceType = ResourceType;
 
   @Input('cy') cy!: cytoscape.Core;
@@ -40,13 +43,17 @@ export class InteractorsComponent implements AfterViewInit {
     this.getPsicquicResources()
   }
 
-  getInteractors(resource: string | null) {
-    if (!resource) return;
-    this.setActiveButton(resource);
-    const isCustom = this.interactorsService.isCustomResource(resource, this.psicquicResources)
-    const isPsicquic = this.psicquicResources.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === this.state.get('overlay'))
+  getInteractors(resource: string | null, resourceType: ResourceType | null) {
+
+    if (resource && resourceType) {
+      this.setActiveButton(resource);
+      this.resourceToType.set(resource, resourceType);
+    } else {
+      return;
+    }
+
     this.cys.forEach(cy => {
-      if (!isCustom && !isPsicquic) {
+      if (this.resourceToType.get(resource) != ResourceType.CUSTOM && this.resourceToType.get(resource) != ResourceType.PSICQUIC) {
         this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
           this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
           this.initialiseReplaceElements.emit();
@@ -62,9 +69,9 @@ export class InteractorsComponent implements AfterViewInit {
     });
   }
 
-  onPsicquicResourceChange(selectedResource: string) {
+  onPsicquicResourceChange(selectedResource: string, resourceType: ResourceType) {
     this.isDataFromPsicquicLoading = true;
-    this.selectedPsicquicResource = selectedResource;
+    this.resourceToType.set(selectedResource, resourceType);
     this.setActiveButton(selectedResource);
     this.cys.forEach(cy => {
       this.interactorsService.getInteractorData(cy, selectedResource).subscribe(interactors => {
@@ -91,7 +98,7 @@ export class InteractorsComponent implements AfterViewInit {
         if (resource) {
           this.resourceTokens!.push(resource);
           this.setActiveButton(resource.summary.token);
-          this.selectedResource.set(resource.summary.token, ResourceType.CUSTOM);
+          this.resourceToType.set(resource.summary.token, ResourceType.CUSTOM);
           this.state.set('overlay', resource.summary.token);
         }
         this.cdr.detectChanges();
@@ -129,8 +136,8 @@ export class InteractorsComponent implements AfterViewInit {
     this.cys.forEach(cy => {
       this.interactorsService.clearAllInteractorNodes(cy);
       this.setActiveButton('clear');
+      this.resourceToType.clear();
       this.state.set('overlay', null);
-      this.selectedPsicquicResource = null;
     })
   }
 

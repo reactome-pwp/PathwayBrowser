@@ -1,6 +1,6 @@
 <div id="interactor-container">
   <mat-accordion>
-    <mat-expansion-panel  hideToggle>
+    <mat-expansion-panel hideToggle>
       <mat-expansion-panel-header [@.disabled]="true">
         <mat-panel-title>
           Interactor overlays
@@ -25,12 +25,12 @@
 
       <mat-grid-list cols="2" rowHeight="4:1">
         <mat-grid-tile>
-          <button class="full-width-button" mat-button (click)="getInteractors(ResourceType.STATIC)"
+          <button class="full-width-button" mat-button (click)="getInteractors(INTACT_RESOURCE, ResourceType.STATIC)"
                   [ngClass]="{'active-button': activeButton === ResourceType.STATIC}">IntAct
           </button>
         </mat-grid-tile>
         <mat-grid-tile>
-          <button class="full-width-button" mat-button (click)="getInteractors(ResourceType.DISGENET)"
+          <button class="full-width-button" mat-button (click)="getInteractors(DISEASE_RESOURCE, ResourceType.DISGENET)"
                   [ngClass]="{'active-button': activeButton === ResourceType.DISGENET}">DisGeNet
           </button>
         </mat-grid-tile>
@@ -48,21 +48,21 @@
       </div>
 
 
-<!--      <div class="psicquicResources">-->
-        <mat-grid-list cols="2" rowHeight="24px" [gutterSize]="'2px'">
-          <mat-grid-tile *ngFor="let resource of psicquicResources">
-            <button class="full-width-button psicquic-button" mat-button
-                    (click)="onPsicquicResourceChange(resource.name)"
-                    [ngClass]="{'active-button': activeButton === resource.name}" [disabled]="!resource.active">
-              <div class="resource-name">
-                <span> {{ resource.name }}</span>
-                <mat-spinner class="spinner-color" diameter="20"
-                             *ngIf="isDataFromPsicquicLoading && selectedPsicquicResource === resource.name"></mat-spinner>
-              </div>
-            </button>
-          </mat-grid-tile>
-        </mat-grid-list>
-<!--      </div>-->
+      <!--      <div class="psicquicResources">-->
+      <mat-grid-list cols="2" rowHeight="24px" [gutterSize]="'2px'">
+        <mat-grid-tile *ngFor="let resource of psicquicResources">
+          <button class="full-width-button psicquic-button" mat-button
+                  (click)="onPsicquicResourceChange(resource.name, ResourceType.PSICQUIC)"
+                  [ngClass]="{'active-button': activeButton === resource.name}" [disabled]="!resource.active">
+            <div class="resource-name">
+              <span> {{ resource.name }}</span>
+              <mat-spinner class="spinner-color" diameter="20"
+                           *ngIf="isDataFromPsicquicLoading && resourceToType.has(resource.name)"></mat-spinner>
+            </div>
+          </button>
+        </mat-grid-tile>
+      </mat-grid-list>
+      <!--      </div>-->
 
 
       <div class="divider-container">
@@ -78,9 +78,9 @@
       <mat-selection-list *ngIf="resourceTokens?.length != 0" [multiple]="false" hideSingleSelectionIndicator=true>
         <mat-list-option *ngFor="let resourceToken of resourceTokens" [value]="resourceToken"
                          [selected]="isSelected(resourceToken)" (click)="onCustomResourceChange(resourceToken)"
-                         [ngClass]="{'active-button': activeButton === resourceToken.token?.summary?.token}">
+                         [ngClass]="{'active-button': activeButton === resourceToken.summary?.token}">
           <div class="resource-name">
-            <div>{{ resourceToken.token?.summary?.name }}</div>
+            <div>{{ resourceToken.summary?.name }}</div>
             <button mat-icon-button (click)="deleteResource(resourceToken)">
               <mat-icon>delete</mat-icon>
             </button>

@@ -360,7 +360,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   getInteractors(resource: string | null) {
-    this.InteractorsComponent!.getInteractors(resource);
+    if (resource) {
+      this.InteractorsComponent!.getInteractors(resource, this.InteractorsComponent?.resourceToType?.get(resource)!);
+    }
   }
 
   updateStyle() {
@@ -416,8 +418,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.select(this.state.get("select"), cy);
     }
 
-    if (this.state.get("overlay")) {
-      this.InteractorsComponent!.getInteractors(this.state.get("overlay"))
+    const resource = this.state.get('overlay');
+    if (resource) {
+      this.InteractorsComponent?.getInteractors(resource, this.InteractorsComponent?.resourceToType.get(resource)!)
     }
   }
 
