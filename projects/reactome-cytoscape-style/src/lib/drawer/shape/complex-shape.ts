@@ -2,7 +2,15 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const complex: DrawerProvider = (properties, {width, height, drug, disease, interactor, lossOfFunction}) => {
+export const complex: DrawerProvider = (properties, {
+  width,
+  height,
+  drug,
+  disease,
+  interactor,
+  lossOfFunction,
+  gradient
+}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -45,7 +53,7 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
     },
     hover: {
       "background-image": `
-      <path stroke="${hover}" stroke-width="${2 * t2}" stroke-linejoin="round" d="
+      <path stroke="${hover}" fill="none" stroke-width="${2 * t2}" stroke-linejoin="round" d="
       M ${t2} ${stateHeight}
       v -${v / 2}
       l ${cut} -${cut + t}
@@ -61,7 +69,7 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
     },
     select: {
       "background-image": `
-      <path stroke="${select}" stroke-width="${2 * t2}" stroke-linejoin="round" d="
+      <path stroke="${select}" fill="none" stroke-width="${2 * t2}" stroke-linejoin="round" d="
       M ${t2} ${0}
       v ${v / 2}
       l ${cut} ${cut + t}
@@ -101,12 +109,12 @@ export const complex: DrawerProvider = (properties, {width, height, drug, diseas
     decorators: [
       {
         "background-image": `
-         ${defs}
+         ${defs}${gradient || ''}
          <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round" ${lossOfFunction ? `stroke-dasharray="${t2}"` : ''} />
-         <use href="#octogon" fill="${fill}"/>
+         <use href="#octogon" fill="${gradient ? 'url(#gradient)' : fill}"/>
          `
       }
-    ]
+    ],
   }
 }
 

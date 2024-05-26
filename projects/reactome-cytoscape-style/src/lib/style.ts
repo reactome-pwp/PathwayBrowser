@@ -4,12 +4,13 @@ import {extract, propertyExtractor, propertyMapper} from "./properties-utils";
 
 import {Properties, setDefaults, UserProperties} from "./properties";
 import {Interactivity} from "./interactivity";
-import {HSL} from "./color";
+import {ContinuousPalette, HSL} from "./color";
 
 
 export class Style {
   public css: CSSStyleDeclaration;
   public properties: Properties;
+  public currentPalette!: ContinuousPalette;
   public cy?: cytoscape.Core;
   private readonly imageBuilder;
   private readonly p;
@@ -19,13 +20,14 @@ export class Style {
   constructor(container: HTMLElement, properties: UserProperties = {}) {
     this.css = getComputedStyle(container);
     this.properties = setDefaults(properties, this.css);
-    this.imageBuilder = imageBuilder(this.properties);
+    this.imageBuilder = imageBuilder(this.properties, this);
     this.p = propertyExtractor(this.properties);
     this.pm = propertyMapper(this.properties);
   }
 
   bindToCytoscape(cy: cytoscape.Core) {
     this.cy = cy;
+    cy.data('reactome', this);
     this.interactivity = new Interactivity(cy, this.properties);
     this.initSubPathwayColors()
   }
@@ -109,13 +111,13 @@ export class Style {
         selector: 'node.Shadow',
         style: {
           'label': 'data(displayName)',
-          "font-size": 80,
+          "font-size": this.p('shadow','fontSize'),
           "background-opacity": 0,
           "shape": "rectangle",
           "text-valign": "center",
           "text-halign": "center",
           "text-outline-color": this.p('global', 'surface'),
-          "text-outline-width": 15,
+          "text-outline-width": this.p('shadow','fontPadding'),
           "text-wrap": 'wrap',
           "text-max-width": "data(width)",
         }
@@ -136,8 +138,8 @@ export class Style {
       }, {
         selector: 'node.PhysicalEntity, node.Pathway, node.Modification, node.Interactor',
         style: {
-          'font-size': this.p('font','size'),
-          'text-margin-x' : 0,
+          'font-size': this.p('font', 'size'),
+          'text-margin-x': 0,
           'label': 'data(displayName)',
           'width': 'data(width)',
           'height': 'data(height)',
@@ -145,7 +147,7 @@ export class Style {
           "text-halign": 'center',
           "text-valign": 'center',
           "text-wrap": 'wrap',
-          "text-max-width": (node:cytoscape.NodeSingular) => node.data('width') + 'px',
+          "text-max-width": (node: cytoscape.NodeSingular) => node.data('width') + 'px',
           // @ts-ignore
           "background-image-smoothing": "no no no no no no no no",
 
@@ -211,7 +213,9 @@ export class Style {
           // "border-color": this.p('interactor', 'stroke'),
           "border-width": this.p('global', 'thickness'),
           "text-wrap": "ellipsis",
-          "border-color": this.p('interactor', 'fill')
+          "border-color": this.p('interactor', 'fill'),
+          //@ts-ignore
+          "border-position": 'inside'
         }
       },
 
@@ -368,16 +372,16 @@ export class Style {
         style: {
           "background-color": this.p('pathway', 'fill'),
           "text-margin-x": 18,
+          "border-color": this.p('pathway', 'stroke'),
+          // @ts-ignore
+          "border-position": "inside",
+          "border-width": this.pm('global', 'thickness', t => 3 * t),
         }
       },
       {
         selector: 'node.Interacting.Pathway',
         style: {
           "shape": "rectangle",
-          "border-color": this.p('pathway', 'stroke'),
-          "border-width": this.pm('global', 'thickness', t => 3 * t),
-          // @ts-ignore
-          "border-position": "inside",
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
             ),
@@ -386,7 +390,8 @@ export class Style {
       {
         selector: 'node.SUB.Pathway',
         style: {
-          "background-opacity": 0,
+          //@ts-ignore
+          "corner-radius": 99999,
           "shape": 'round-rectangle',
           "text-max-width": (node: cytoscape.NodeSingular) =>
             this.pm('global', 'thickness', t => `${node.width() - (6 * t + 36) * 2}px`
@@ -405,8 +410,6 @@ export class Style {
           "shape": 'round-rectangle'
         }
       },
-
-
 
 
       {
@@ -478,7 +481,7 @@ export class Style {
           "background-height": "100%",
           "background-width": "100%",
         }
-      },       {
+      }, {
         selector: 'node.loss-of-function',
         style: {
           "border-style": 'dashed',
@@ -720,6 +723,15 @@ export class Style {
           color: 'white'
         }
       },
+      {
+        selector: "[?exp]",
+        style: {
+          "color": this.p('global', 'surface'),
+          "text-outline-width": 2,
+          "text-outline-color": this.p('global', 'onSurface'),
+          "text-outline-opacity": 1,
+        }
+      },
 
       {
         selector: "node.Legend.Label",
@@ -769,5 +781,13 @@ export class Style {
     cy.style(this.getStyleSheet());
     this.initSubPathwayColors();
     this.interactivity.triggerZoom();
+  }
+
+  loadAnalysis(cy: cytoscape.Core, paletteType: 'unidirectional' | 'bidirectional') {
+    this.currentPalette = paletteType === 'unidirectional' ?
+      new ContinuousPalette(extract(this.properties.analysis.unidirectionalPalette)) :
+      new ContinuousPalette(extract(this.properties.analysis.bidirectionalPalette));
+    this.clearCache();
+    cy.style(this.getStyleSheet());
   }
 }

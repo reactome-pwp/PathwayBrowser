@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const subPathway: DrawerProvider = (properties, {width, height, disease}) => {
+export const subPathway: DrawerProvider = (properties, {width, height, disease, gradient}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -9,17 +9,12 @@ export const subPathway: DrawerProvider = (properties, {width, height, disease})
   const stroke = !disease ?
     extract(properties.pathway.stroke) :
     extract(properties.global.negativeContrast);
-  const fill = extract(properties.pathway.fill);
 
-  const ht = thick / 2;
   const halfHeight = height / 2;
   const oR = halfHeight;
   const iR = halfHeight - thick;
   const oRx = Math.min(oR, width / 2)
   return {
-    background: {
-      "background-image": `<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${stroke}" fill="${fill}" stroke-width="${thick}"/>`
-    },
     hover: {
       "background-image": `
           <path fill="${hover}" stroke-linejoin="round" stroke-linecap="round"  d="
@@ -55,13 +50,16 @@ export const subPathway: DrawerProvider = (properties, {width, height, disease})
     },
     flag: {
       "background-image": `
-<rect width="${width + 2 * thick}" height="${height}" rx="${oR +  thick}" ry="${oR}" fill="${flag}"/>
+<rect width="${width + 2 * thick}" height="${height}" rx="${oR + thick}" ry="${oR}" fill="${flag}"/>
 `,
       "background-position-x": -thick,
       "bounds-expansion": 2 * thick,
       "background-clip": "none",
       "background-image-containment": "over",
-      "background-width": width + 2* thick,
+      "background-width": width + 2 * thick,
+    },
+    analysis: {
+      "background-image": `${gradient}<rect x="${thick}" y="${thick}" width="${width - 2 * thick}" height="${height - 2 * thick}" rx="${(height - 2 * thick) / 2}" fill="url(#gradient)"/>`
     }
   }
 }

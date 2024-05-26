@@ -1,6 +1,6 @@
 import cytoscape from "cytoscape";
 import {gene} from "./shape/gene-shape";
-import {isNumber, memoize} from "lodash";
+import {isArray, isNumber, memoize} from "lodash";
 import {molecule} from "./shape/molecule-shape";
 import {protein} from "./shape/protein-shape";
 import {rna} from "./shape/rna-shape";
@@ -16,9 +16,12 @@ import {extract} from "../properties-utils";
 import {Node} from "../types";
 import {Aggregated, DrawerParameters, DrawerProvider, Image, Memo} from "./types";
 import {Properties} from "../properties";
+import {Style} from "../style";
+import {ContinuousPalette} from "../color";
+import {colors} from "ng-packagr/lib/utils/color";
 
 
-export const imageBuilder = (properties: Properties) => memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
+export const imageBuilder = (properties: Properties, style: Style) => memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
   let layers: Image[] = [];
   const clazz = node.classes().find(clazz => classToDrawers.has(clazz as Node)) as Node
   if (!clazz) return aggregate(layers, defaultBg);
@@ -31,7 +34,8 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
     disease: node.hasClass('disease'),
     interactor: node.hasClass('Interactor'),
     crossed: node.hasClass('crossed'),
-    lossOfFunction: node.hasClass('loss-of-function')
+    lossOfFunction: node.hasClass('loss-of-function'),
+    gradient: expToGradient(node.data('exp'), properties, style.currentPalette)
   };
 
   const drawer = provider(properties, drawerParams);
@@ -39,6 +43,8 @@ export const imageBuilder = (properties: Properties) => memoize((node: cytoscape
   if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
 
   if (drawer.background) layers.push(drawer.background);
+
+  if (drawer.analysis) layers.push(drawer.analysis);
 
   if (node.selected() && drawer.select) layers.push(drawer.select);
 
@@ -89,6 +95,40 @@ const defaultBg: Image = {
   "background-repeat": "no-repeat",
   "background-image-crossorigin": "anonymous",
   "bounds-expansion": 0
+}
+
+
+function expToGradient(exps: (number | [number, number] | undefined)[], properties: Properties, palette: ContinuousPalette): string | undefined {
+  if (!exps) return;
+  const stops: { start: number, stop: number, color: string, exp: number | undefined }[] = [];
+  const size = exps.reduce((l: number, e) => e !== undefined && isArray(e) ? l + e[1] : l + 1, 0);
+  const delta = 100 / size;
+  exps.forEach((exp, i) => {
+    if (stops.length !== 0 && stops[stops.length - 1].exp === exp) stops[stops.length - 1].stop += delta;
+    else {
+      if (isArray(exp)) {
+        stops.push({
+          start: i * delta,
+          stop: (i + 1) * delta * exp[1],
+          color: exp[0] !== undefined ? palette.getColor(exp[0]) : extract(properties.analysis.notFound),
+          exp: exp[0]
+        })
+      } else {
+        stops.push({
+          start: i * delta,
+          stop: (i + 1) * delta,
+          color: exp !== undefined ? palette.getColor(exp) : extract(properties.analysis.notFound),
+          exp: exp
+        })
+      }
+    }
+  })
+  // console.log(exps, stops)
+  return '<defs><linearGradient id="gradient">' +
+    stops
+      .map(stop => `<stop stop-color="${stop.color}" offset="${stop.start}%"/><stop stop-color="${stop.color}" offset="${stop.stop}%"/>`)
+      .join('') +
+    '</linearGradient></defs>'
 }
 
 function svg(svgStr: string, width = 100, height = 100) {

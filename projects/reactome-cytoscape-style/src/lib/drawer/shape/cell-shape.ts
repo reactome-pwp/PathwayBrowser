@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const cell: DrawerProvider = (properties, {width, height}) => {
+export const cell: DrawerProvider = (properties, {width, height, gradient}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -17,9 +17,9 @@ export const cell: DrawerProvider = (properties, {width, height}) => {
   const oRx = Math.min(oR, width / 2)
   return {
     background: {
-      "background-image": `
+      "background-image": `${gradient || ''}
 <rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
-<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${fill}" stroke-width="0"/>
+<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${gradient ? 'url(#gradient)' : fill}" stroke-width="0"/>
 `
     },
     hover: {
@@ -69,7 +69,10 @@ export const cell: DrawerProvider = (properties, {width, height}) => {
       "background-image-containment": "over",
       "background-width": width + 4 * thick,
       "background-height": height + 2 * thick,
-    }
+    },
+    // analysis: {
+    //   'background-image': `${gradient}<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="url(#gradient)" stroke-width="0"/>`
+    // }
   }
 }
 

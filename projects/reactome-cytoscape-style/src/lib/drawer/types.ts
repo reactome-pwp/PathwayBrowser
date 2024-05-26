@@ -13,6 +13,7 @@ export interface Drawer {
   hover?: Image;
   flag?: Image;
   decorators?: Image[];
+  analysis?: Image;
 }
 
 export interface DrawerParameters {
@@ -23,6 +24,7 @@ export interface DrawerParameters {
   crossed?: boolean,
   interactor?: boolean,
   lossOfFunction?: boolean,
+  gradient?: string
 }
 
 export interface DrawerProvider {

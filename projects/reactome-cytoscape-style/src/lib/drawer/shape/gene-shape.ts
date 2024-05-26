@@ -2,7 +2,15 @@ import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
 
-export const gene: DrawerProvider = (properties, {width, height, drug, interactor, disease, lossOfFunction}) => {
+export const gene: DrawerProvider = (properties, {
+  width,
+  height,
+  drug,
+  interactor,
+  disease,
+  lossOfFunction,
+  gradient
+}) => {
   const t = extract(properties.global.thickness);
   const dHeight = extract(properties.gene.decorationHeight);
   const dWidth = extract(properties.gene.decorationExtraWidth);
@@ -24,8 +32,8 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
   const t2 = t * 2;
   return {
     background: {
-      "background-image": `
-          <path fill="${fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      "background-image": `${gradient || ''}
+          <path fill="${gradient ? 'url(#gradient)' : fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
       ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t2}"` : ''}  d="
             M ${0} ${dHeight}
@@ -115,7 +123,27 @@ export const gene: DrawerProvider = (properties, {width, height, drug, interacto
       "background-image-containment": "over",
       "background-width": width + 4 * t,
       "background-height": height + 2 * t - dHeight,
-    }
+    },
+    // analysis: {
+    //   "background-image": `${gradient}
+    //       <path fill="url(#gradient)" transform="translate(${t_2} ${t_2})"
+    //       d="
+    //         M ${0} ${dHeight}
+    //         H ${width}
+    //         v ${height - dHeight - radius}
+    //         a ${radius} ${radius} 0 0 1 -${radius} ${radius}
+    //         H ${radius}
+    //         a ${radius} ${radius} 0 0 1 -${radius} -${radius}
+    //         Z
+    //       "/>`,
+    //   "bounds-expansion": t_2,
+    //   "background-clip": "none",
+    //   "background-image-containment": "over",
+    //   "background-position-x": -t / 2,
+    //   "background-position-y": -t / 2,
+    //   "background-width": width + t,
+    //   "background-height": height + t,
+    // }
   }
 }
 

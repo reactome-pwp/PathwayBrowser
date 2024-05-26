@@ -2,10 +2,12 @@ import cytoscape from "cytoscape";
 import {extract} from "./properties-utils";
 import {Properties} from "./properties";
 import {ReactomeEvent, ReactomeEventTypes} from "./model/reactome-event.model";
-import Layers, {IHTMLLayer, LayersPlugin} from 'cytoscape-layers';
+import Layers, {IHTMLLayer, layers, LayersPlugin} from 'cytoscape-layers';
+import * as _ from "lodash";
 
 
 cytoscape.use(Layers)
+type RenderableHTMLElement = HTMLElement & { render: _.DebouncedFunc<() => void> };
 
 export class Interactivity {
   constructor(private cy: cytoscape.Core, private properties: Properties) {
@@ -164,7 +166,7 @@ export class Interactivity {
       })))
 
       .on('select', 'edge', e => selectReaction(mapper(e.target).connectedNodes('.reaction')))
-      .on('unselect', 'edge', e => selectReaction(
+      .on('unselect', 'edge', () => selectReaction(
         mapper(cy.edges(':selected').connectedNodes('.reaction')
           .add(cy.nodes('.reaction:selected')))
       )) // Avoid single element selection when double-clicking
@@ -214,52 +216,68 @@ export class Interactivity {
     // });
   }
 
-  private videoLayer!: IHTMLLayer;
+  private videoLayer?: IHTMLLayer;
 
 
   initStructureVideo(cy: cytoscape.Core) {
-    // @ts-ignore
-    const layers: LayersPlugin = cy.layers();
-
-    this.videoLayer = layers.append('html');
-    layers.renderPerNode(
-      this.videoLayer,
-      (elem: HTMLElement, node: cytoscape.NodeSingular) => {
-        elem.style.visibility = node.visible() ? 'visible' : 'hidden';
+    const layersPlugin: LayersPlugin = layers(cy);
+    this.videoLayer = layersPlugin.append('html');
+    if (this.videoLayer) this.videoLayer.node.style.opacity = '0';
+    layersPlugin.renderPerNode(
+      this.videoLayer!,
+      (elem: HTMLElement) => {
+        (elem as RenderableHTMLElement).render()
       },
       {
-        init: (elem: HTMLElement, node: cytoscape.NodeSingular) => {
+        init: (elem: RenderableHTMLElement, node: cytoscape.NodeSingular) => {
+          const name = node.data('displayName');
+
           elem.innerHTML = node.data('html') || '';
-          elem.style.display = "flex"
+          elem.style.display = "flex";
+          const video = elem.children[0] as HTMLVideoElement;
+
+          elem.render = _.throttle(() => {
+              if (isElementInViewport(elem)) {
+                // console.log('rendering', name)
+                if (this.videoLayer?.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
+                  console.log('loading', name)
+                  video.load();
+                }
+                elem.style.visibility = node.visible() ? 'visible' : 'hidden';
+              }
+
+            }, 500
+          );
         },
         transform: `translate(-70%, -50%)`,
         position: 'center',
-        uniqueElements: true,
-        checkBounds: false,
+        uniqueElements: false,
+        checkBounds: false, // Need false otherwise destroy nodes when out of view
         selector: '.Protein',
+        updateOn: "render", // Need render to call display whenever we move
         queryEachTime: false,
       }
     );
 
-    this.videoLayer.node.classList.add('video')
+    this.videoLayer?.node.classList.add('video')
     this.cy
-      ?.on('mouseover', 'node.Protein', (event) => {
+      ?.on('mouseover', 'node.Protein', async (event) => {
         const videoId = event.target.id();
-        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
-          videoElement.play();
+        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
+          await videoElement.play();
         }
       })
       .on('mouseout', 'node.Protein', (event) => {
         const videoId = event.target.id();
-        const videoElement = this.videoLayer.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.networkState !== videoElement.NETWORK_NO_SOURCE) {
+        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
           videoElement.pause();
         }
       });
   }
 
-  private moleculeLayer!: IHTMLLayer;
+  private moleculeLayer?: IHTMLLayer;
 
   initStructureMolecule(cy: cytoscape.Core) {
     // @ts-ignore
@@ -323,7 +341,7 @@ export class Interactivity {
     const zoomEnd = structureOpacityArray[structureOpacityArray.length - 1][0]
 
 
-    this.onZoom.shadow = e => {
+    this.onZoom.shadow = () => {
       const zoomLevel = cy.zoom();
       const z = zoomLevel * 100;
       const shadowLabelOpacity = this.interpolate(z, extract(this.properties.shadow.labelOpacity).map(v => this.p(...v))) / 100;
@@ -356,8 +374,8 @@ export class Interactivity {
           'text-max-width': maxWidth + "%",
         })
 
-      this.videoLayer.node.style.opacity = videoOpacity + '';
-      this.moleculeLayer.node.style.opacity = videoOpacity + '';
+      if (this.videoLayer) this.videoLayer.node.style.opacity = videoOpacity + '';
+      if (this.moleculeLayer) this.moleculeLayer.node.style.opacity = videoOpacity + '';
     };
 
     cy.on('zoom', this.onZoom.shadow);
@@ -419,5 +437,15 @@ class P extends Array<number> {
   }
 }
 
+
+function isElementInViewport(el: HTMLElement) {
+  let rect = el.getBoundingClientRect();
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
+}
 
 
