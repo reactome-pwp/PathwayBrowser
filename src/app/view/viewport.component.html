@@ -1,0 +1,142 @@
+<!--
+<div class="variables">
+  <div class="container ">
+    <div class="search">
+      <p>search</p>
+    </div>
+    <div class="top"><p>top-panel</p></div>
+    <div #resizeSidebar class="sidebar">
+        <span #dragHandleRight cdkDragLockAxis="x" class="dragHandle right" cdkDrag
+              (cdkDragMoved)="dragMove(dragHandleRight, $event)"></span>
+      <span>sidebar</span>
+    </div>
+
+    <div #diagram class="diagram"><p>diagram</p></div>
+    <div #details class="details">
+      <p>details</p>
+    </div>
+  </div>
+</div>
+-->
+
+
+<!--<div class="variables">-->
+<!--  <div class="container">-->
+<!--    <div class="search"><p>search</p></div>-->
+<!--    <div class="top"><p>top</p></div>-->
+<!--    <div #resizeSidebar class="sidebar">-->
+<!--        <span #dragHandleRight cdkDragLockAxis="x" class="dragHandle right" cdkDrag-->
+<!--              (cdkDragMoved)="dragMove(dragHandleRight, $event)"></span>-->
+<!--      <span>sidebar</span>-->
+<!--    </div>-->
+<!--    <div #content class="content"><p>content</p>-->
+<!--      <as-split direction="vertical" gutterSize="3">-->
+<!--        <div *asSplitGutter="let isDragged = isDragged" class="custom-shade-gutter" [class.dragged]="isDragged">-->
+<!--          <div class="custom-shade-gutter-icon"></div>-->
+<!--        </div>-->
+<!--        <as-split-area [size]="60">-->
+<!--          <p>diagram</p>-->
+<!--        </as-split-area>-->
+<!--        <as-split-area [size]="40">-->
+<!--          <p>details</p>-->
+<!--        </as-split-area>-->
+<!--      </as-split>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+
+<!--      <as-split direction="horizontal">-->
+<!--        <as-split-area [size]="40">-->
+<!--          <as-split direction="vertical">-->
+<!--            <as-split-area>-->
+<!--              <p>Lorem ipsum dolor sit amet...</p>-->
+<!--            </as-split-area>-->
+<!--          </as-split>-->
+<!--        </as-split-area>-->
+<!--        <as-split-area [size]="60">-->
+<!--          <as-split direction="vertical">-->
+<!--            <as-split-area [size]="25">-->
+<!--              <p>Lorem ipsum dolor sit amet...</p>-->
+<!--            </as-split-area>-->
+<!--            <as-split-area [size]="75">-->
+<!--              <p>Sed ut perspiciatis unde omnis iste natus erro...</p>-->
+<!--            </as-split-area>-->
+<!--          </as-split>-->
+<!--        </as-split-area>-->
+<!--      </as-split>-->
+
+
+<!--<div class="variables">-->
+<!--<div class="container">-->
+<!--  <div class="search"><p>Search</p></div>-->
+<!--  <div class="top"><p>Top</p></div>-->
+<!--  <div class="content">-->
+<!--          <as-split direction="horizontal" gutterSize="3" >-->
+<!--            <div *asSplitGutter="let isDragged = isDragged" class="custom-shade-gutter" [class.dragged]="isDragged">-->
+<!--                        <div class="custom-shade-gutter-icon"></div>-->
+<!--                      </div>-->
+<!--            <as-split-area [size]="25">-->
+<!--              <as-split direction="vertical">-->
+<!--                <as-split-area>-->
+<!--                  <p>sidebar</p>-->
+<!--                </as-split-area>-->
+<!--              </as-split>-->
+<!--            </as-split-area>-->
+<!--            <as-split-area [size]="75">-->
+<!--              <as-split direction="vertical" gutterSize="3">-->
+<!--                <div *asSplitGutter="let isDragged = isDragged" class="custom-shade-gutter" [class.dragged]="isDragged">-->
+<!--                  <div class="custom-shade-gutter-icon"></div>-->
+<!--                </div>-->
+<!--                <as-split-area [size]="60">-->
+<!--                  <p>diagram</p>-->
+<!--                </as-split-area>-->
+<!--                <as-split-area [size]="40">-->
+<!--                  <p>detail</p>-->
+<!--                </as-split-area>-->
+<!--              </as-split>-->
+<!--            </as-split-area>-->
+<!--          </as-split>-->
+
+<!--  </div>-->
+<!--</div>-->
+<!--</div>-->
+
+
+<div class="variables">
+  <div class="container">
+    <as-split direction="horizontal" gutterSize="3">
+      <div *asSplitGutter="let isDragged = isDragged" class="custom-shade-gutter" [class.dragged]="isDragged">
+        <div class="custom-shade-gutter-icon"></div>
+      </div>
+      <as-split-area [size]="25">
+        <div class="left-container">
+          <div class="search"><p>search</p></div>
+          <div class="sidebar"><p>sidebar</p></div>
+        </div>
+      </as-split-area>
+      <as-split-area [size]="75">
+
+        <div class="right-container">
+          <div class="top">
+            <p>top</p>
+          </div>
+          <div class="content">
+            <as-split direction="vertical" gutterSize="3">
+              <div *asSplitGutter="let isDragged = isDragged" class="custom-shade-gutter" [class.dragged]="isDragged">
+                <div class="custom-shade-gutter-icon"></div>
+              </div>
+              <as-split-area [size]="60">
+                <p>diagram</p>
+              </as-split-area>
+              <as-split-area [size]="40">
+                <p>detail</p>
+              </as-split-area>
+            </as-split>
+          </div>
+        </div>
+      </as-split-area>
+    </as-split>
+  </div>
+
+</div>
