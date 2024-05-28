@@ -1,6 +1,6 @@
 
 import {NodeSingular} from "cytoscape";
-import {Interactor} from "../model/interactor-entity.model";
+import {Interactor} from "../model/interactor.model";
 
 export interface Position {
   x: number;

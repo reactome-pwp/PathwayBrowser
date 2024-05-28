@@ -9,7 +9,7 @@ import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subjec
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
-import {ResourceType} from "../interactors/common/overlay-resource";
+import {ResourceType} from "../interactors/model/interactor.model";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {AnalysisService, Examples} from "../services/analysis.service";
@@ -35,14 +35,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   fit = true;
   readonly ResourceType = ResourceType;
 
-  constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService) {
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
               private interactorsService: InteractorService,
               private state: DiagramStateService,
-              public dialog: MatDialog,
-              private cdr: ChangeDetectorRef,
               private analysis: AnalysisService,
               private router: Router) {
   }

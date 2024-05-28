@@ -15,7 +15,7 @@ import {MatRadioChange} from "@angular/material/radio";
 import {InteractorService} from "../services/interactor.service";
 import cytoscape from "cytoscape";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
-import {InputCategory, InteractorToken} from "../model/interactor-entity.model";
+import {InputCategory, InteractorToken} from "../model/interactor.model";
 
 
 @Component({

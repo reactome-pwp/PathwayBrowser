@@ -2,12 +2,12 @@ import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
 import {map, Observable, switchMap} from "rxjs";
-import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../model/interactor-entity.model";
+import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../model/interactor.model";
 
 
 import InteractorsLayout from "../layout/interactors-layout";
 import {DiagramService} from "../../services/diagram.service";
-import {ResourceType} from "../common/overlay-resource";
+import {ResourceType} from "../model/interactor.model";
 import {environment} from "../../../environments/environment";
 
 @Injectable({
@@ -160,7 +160,7 @@ export class InteractorService {
     const dynamicInteractors = [];
     const existingInteractors = [];
     // get interactors to draw with a provided a number, collect existing interactors for creating edge
-    for (const interactor of interactorsData) {
+    for (let interactor of interactorsData) {
       const diagramNodes = cy?.nodes(`.PhysicalEntity[acc = '${interactor.acc}']`);
 
       if (!diagramNodes || diagramNodes.length === 0) {

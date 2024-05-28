@@ -1,12 +1,12 @@
 import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
-import {ResourceType} from "./common/overlay-resource";
+import {ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "./services/interactor.service";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
-import {InteractorToken, PsicquicResource} from "./model/interactor-entity.model";
+import {InteractorToken, PsicquicResource} from "./model/interactor.model";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
 
 @Component({

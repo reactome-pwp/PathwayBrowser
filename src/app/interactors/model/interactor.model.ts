@@ -28,7 +28,7 @@ export interface PsicquicResource{
   name: string;
   soapURL: string;
   restURL: string;
-  active: boolean
+  active: boolean;
 }
 
 
@@ -42,12 +42,18 @@ interface Summary {
   interactors: number;
   interactions: number;
   fileName: string;
-  name: string
+  name: string;
 }
 
 export class InputCategory {
-  url: string | undefined
-  content: string | FormData | undefined
+  url: string | undefined;
+  content: string | FormData | undefined;
 }
 
+export enum ResourceType {
+  STATIC = 'IntAct',
+  DISGENET = 'DisGeNet',
+  PSICQUIC = 'PSICQUIC',
+  CUSTOM = 'custom'
+}
 
