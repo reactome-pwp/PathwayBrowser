@@ -1039,7 +1039,8 @@ let DiagramComponent = class DiagramComponent {
           const hasExpression = result.summary.type !== 'OVERREPRESENTATION';
           cy.nodes('.PhysicalEntity').forEach(node => {
             const leaves = node.data('graph.leaves');
-            let exp = leaves.map(leaf => analysisEntityMap.get(leaf.identifier)).sort((a, b) => a !== undefined ? b !== undefined ? a - b : -1 : 1).map(exp => exp !== undefined ? normalize(exp, min, max) : undefined);
+            const exp = leaves.map(leaf => analysisEntityMap.get(leaf.identifier)).sort((a, b) => a !== undefined ? b !== undefined ? a - b : -1 : 1).map(exp => exp !== undefined ? normalize(exp, min, max) : undefined);
+            console.log(node.data('reactomeId'), leaves, exp);
             // if (hasExpression) exp = exp.map(e => e !== undefined ? 1 - e : undefined);
             node.data('exp', exp);
           });
@@ -2274,6 +2275,7 @@ class DiagramStateService {
     this.propagate = propagate;
     this.onPropertyModified();
   }
+  // TODO make unselect remove select from state
   onPropertyModified() {
     return this.router.navigate([], {
       queryParams: {
@@ -34186,8 +34188,7 @@ const gene = (properties, {
   drug,
   interactor,
   disease,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const t = extract(properties.global.thickness);
   const dHeight = extract(properties.gene.decorationHeight);
@@ -34208,8 +34209,8 @@ const gene = (properties, {
   const t2 = t * 2;
   return {
     background: {
-      "background-image": `${gradient || ''}
-          <path fill="${gradient ? 'url(#gradient)' : fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      "background-image": `
+          <path fill="${fill}" class="gradient" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
       ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t2}"` : ''}  d="
             M ${0} ${dHeight}
@@ -34226,7 +34227,8 @@ const gene = (properties, {
       "background-position-x": -t / 2,
       "background-position-y": -t / 2,
       "background-width": width + t,
-      "background-height": height + t
+      "background-height": height + t,
+      requireGradient: true
     },
     decorators: [{
       "background-image": `
@@ -34324,8 +34326,7 @@ const molecule = (properties, {
   width,
   height,
   drug,
-  interactor,
-  gradient
+  interactor
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -34393,15 +34394,15 @@ const molecule = (properties, {
       "background-height": height + 2 * thick
     },
     analysis: {
-      "background-image": `${gradient}<rect width="${width}" height="${height}" rx="${halfHeight}" fill="url(#gradient)" stroke-width="${thick}" stroke="${stroke}"/>`
+      "background-image": `<rect class="gradient" width="${width}" height="${height}" rx="${halfHeight}" stroke-width="${thick}" stroke="${stroke}"/>`,
+      requireGradient: true
     }
   };
 };
 const protein = (properties, {
   width,
   height,
-  drug,
-  gradient
+  drug
 }) => {
   const fill = extract(properties.protein.fill);
   const select = extract(properties.global.selectNode);
@@ -34462,14 +34463,14 @@ const protein = (properties, {
       "background-height": height + 2 * thick
     },
     analysis: {
-      "background-image": `${gradient}<rect width="${width}" height="${height}" fill="url(#gradient)" rx="${radius}"/>`
+      "background-image": `<rect width="${width}" height="${height}" class="gradient" rx="${radius}"/>`,
+      requireGradient: true
     }
   };
 };
 const rna = (properties, {
   width,
-  height,
-  gradient
+  height
 }) => {
   const thick = extract(properties.global.thickness);
   const select = extract(properties.global.selectNode);
@@ -34535,15 +34536,16 @@ const rna = (properties, {
       "background-height": height + 2 * thick
     },
     analysis: {
-      "background-image": `${gradient}
-       <path fill="url(#gradient)" d="
+      "background-image": `
+       <path class="gradient" d="
        M 0 0
        H ${width}
        V ${height - r}
        a ${r} ${r} 0 0 1 -${r} ${r}
        H ${r}
        a ${r} ${r} 0 0 1 -${r} -${r}
-       Z"/>`
+       Z"/>`,
+      requireGradient: true
     }
   };
 };
@@ -34553,8 +34555,7 @@ const genomeEncodedEntity = (properties, {
   drug,
   disease,
   interactor,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const fill = !drug ? extract(properties.complex.fill) : extract(properties.genomeEncodedEntity.drug);
   const select = extract(properties.global.selectNode);
@@ -34572,8 +34573,8 @@ const genomeEncodedEntity = (properties, {
   const bottomIR = bottomR - t;
   return {
     background: {
-      "background-image": `${gradient || ''}
-      <path fill="${gradient ? 'url(#gradient)' : fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      "background-image": `
+      <path fill="${fill}" class="gradient" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
       ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t * 2}"` : ''}
       d="
@@ -34595,7 +34596,8 @@ const genomeEncodedEntity = (properties, {
       "background-position-x": -t_2,
       "background-position-y": -t_2,
       "background-width": width + t,
-      "background-height": height + t
+      "background-height": height + t,
+      requireGradient: true
     },
     hover: {
       "background-image": `
@@ -34664,8 +34666,7 @@ const complex = (properties, {
   drug,
   disease,
   interactor,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -34757,10 +34758,11 @@ const complex = (properties, {
     },
     decorators: [{
       "background-image": `
-         ${defs}${gradient || ''}
+         ${defs}
          <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round" ${lossOfFunction ? `stroke-dasharray="${t2}"` : ''} />
-         <use href="#octogon" fill="${gradient ? 'url(#gradient)' : fill}"/>
-         `
+         <use href="#octogon" fill="${fill}" class="gradient"/>
+         `,
+      requireGradient: true
     }]
   };
 };
@@ -34770,8 +34772,7 @@ const entitySet = (properties, {
   drug,
   disease,
   lossOfFunction,
-  interactor,
-  gradient
+  interactor
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -34827,15 +34828,15 @@ const entitySet = (properties, {
   return {
     background: {
       "background-image": `
-       ${defs}${gradient || ''}
+       ${defs}
        <use href="#curly" fill="${fill}" stroke="${fill}" stroke-width="${t2}" stroke-linejoin="round"/>
-       ${gradient ? `<!--<use href="#curly" fill="url(#gradient)" clip-path="url(#inside)" />-->` : ''}
-       ${gradient ? `<rect x="${r * 1.5}" y="${t}" width="${width - 2 * r * 1.5}" height="${height - t2}" rx="${r}" fill="url(#gradient)"/>` : ''}
+       <rect x="${r * 1.5}" y="${t}" width="${width - 2 * r * 1.5}" rx="${r}" height="${height - t2}" class="gradient"/>
        `,
       "background-position-x": -r,
       "background-width": width + 2 * r,
       "background-clip": "none",
-      "bounds-expansion": 2 * t
+      "bounds-expansion": 2 * t,
+      requireGradient: true
     },
     hover: {
       "background-image": `
@@ -34923,8 +34924,7 @@ const entitySet = (properties, {
 
 const cell = (properties, {
   width,
-  height,
-  gradient
+  height
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -34940,10 +34940,11 @@ const cell = (properties, {
   const oRx = Math.min(oR, width / 2);
   return {
     background: {
-      "background-image": `${gradient || ''}
-<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
-<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${gradient ? 'url(#gradient)' : fill}" stroke-width="0"/>
-`
+      "background-image": `
+      <rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
+      <rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${fill}" class="gradient" stroke-width="0"/>
+      `,
+      requireGradient: true
     },
     hover: {
       "background-image": `
@@ -35002,8 +35003,7 @@ const cell = (properties, {
 const interactingPathway = (properties, {
   width,
   height,
-  drug,
-  gradient
+  drug
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -35036,7 +35036,8 @@ const interactingPathway = (properties, {
       "background-image-containment": "over"
     },
     analysis: {
-      "background-image": `${gradient}<rect fill="url(#gradient)" x="${t}" y="${t}" width="${width - 2 * t}" height="${height - 2 * t}"/>`
+      "background-image": `<rect class="gradient" x="${t}" y="${t}" width="${width - 2 * t}" height="${height - 2 * t}"/>`,
+      requireGradient: true
     }
   };
 };
@@ -35107,8 +35108,7 @@ const diseaseInteractor = (properties, {
 const subPathway = (properties, {
   width,
   height,
-  disease,
-  gradient
+  disease
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -35164,7 +35164,8 @@ const subPathway = (properties, {
       "background-width": width + 2 * thick
     },
     analysis: {
-      "background-image": `${gradient}<rect x="${thick}" y="${thick}" width="${width - 2 * thick}" height="${height - 2 * thick}" rx="${(height - 2 * thick) / 2}" fill="url(#gradient)"/>`
+      "background-image": `<rect class="gradient" x="${thick}" y="${thick}" width="${width - 2 * thick}" height="${height - 2 * thick}" rx="${(height - 2 * thick) / 2}"/>`,
+      requireGradient: true
     }
   };
 };
@@ -35173,6 +35174,7 @@ const imageBuilder = (properties, style) => (0,lodash__WEBPACK_IMPORTED_MODULE_1
   const clazz = node.classes().find(clazz => classToDrawers.has(clazz));
   if (!clazz) return aggregate(layers, defaultBg);
   const provider = classToDrawers.get(clazz);
+  const exps = node.data('exp');
   const drawerParams = {
     width: node.data("width"),
     height: node.data("height"),
@@ -35180,13 +35182,12 @@ const imageBuilder = (properties, style) => (0,lodash__WEBPACK_IMPORTED_MODULE_1
     disease: node.hasClass('disease'),
     interactor: node.hasClass('Interactor'),
     crossed: node.hasClass('crossed'),
-    lossOfFunction: node.hasClass('loss-of-function'),
-    gradient: expToGradient(node.data('exp'), properties, style.currentPalette)
+    lossOfFunction: node.hasClass('loss-of-function')
   };
   const drawer = provider(properties, drawerParams);
   if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
   if (drawer.background) layers.push(drawer.background);
-  if (drawer.analysis) layers.push(drawer.analysis);
+  if (exps && drawer.analysis) layers.push(drawer.analysis);
   if (node.selected() && drawer.select) layers.push(drawer.select);
   if (node.hasClass('hover') && drawer.hover) layers.push(drawer.hover);
   if (drawer.decorators) layers.push(...drawer.decorators);
@@ -35197,8 +35198,12 @@ const imageBuilder = (properties, style) => (0,lodash__WEBPACK_IMPORTED_MODULE_1
     layers.push(Pathway(properties, drawerParams));
   }
   if (drawerParams.crossed) layers.push(CROSS(properties, drawerParams));
+  const gradient = expToGradient(exps, properties, style.currentPalette);
   // Convert raw HTML to string encoded images
-  layers = layers.map(l => ({
+  layers = layers.map(l => {
+    if (l.requireGradient && gradient) l["background-image"] = addGradient(l["background-image"], gradient);
+    return l;
+  }).map(l => ({
     ...l,
     "background-image": svgStr(l["background-image"], (0,lodash__WEBPACK_IMPORTED_MODULE_1__.isNumber)(l["background-width"]) ? l["background-width"] : drawerParams.width, (0,lodash__WEBPACK_IMPORTED_MODULE_1__.isNumber)(l["background-height"]) ? l["background-height"] : drawerParams.height)
   }));
@@ -35225,31 +35230,34 @@ const defaultBg = {
   "background-image-crossorigin": "anonymous",
   "bounds-expansion": 0
 };
+function addGradient(svgText, gradient) {
+  return `<style>.gradient{fill: url(#gradient)}</style>${gradient}${svgText}`;
+}
 function expToGradient(exps, properties, palette) {
   if (!exps) return;
   const stops = [];
   const size = exps.reduce((l, e) => e !== undefined && (0,lodash__WEBPACK_IMPORTED_MODULE_1__.isArray)(e) ? l + e[1] : l + 1, 0);
   const delta = 100 / size;
+  const notFoundColor = extract(properties.analysis.notFound);
   exps.forEach((exp, i) => {
     if (stops.length !== 0 && stops[stops.length - 1].exp === exp) stops[stops.length - 1].stop += delta;else {
       if ((0,lodash__WEBPACK_IMPORTED_MODULE_1__.isArray)(exp)) {
         stops.push({
           start: i * delta,
           stop: (i + 1) * delta * exp[1],
-          color: exp[0] !== undefined ? palette.getColor(exp[0]) : extract(properties.analysis.notFound),
+          color: exp[0] !== undefined ? palette.getColor(exp[0]) : notFoundColor,
           exp: exp[0]
         });
       } else {
         stops.push({
           start: i * delta,
           stop: (i + 1) * delta,
-          color: exp !== undefined ? palette.getColor(exp) : extract(properties.analysis.notFound),
+          color: exp !== undefined ? palette.getColor(exp) : notFoundColor,
           exp: exp
         });
       }
     }
   });
-  // console.log(exps, stops)
   return '<defs><linearGradient id="gradient">' + stops.map(stop => `<stop stop-color="${stop.color}" offset="${stop.start}%"/><stop stop-color="${stop.color}" offset="${stop.stop}%"/>`).join('') + '</linearGradient></defs>';
 }
 function svg(svgStr, width = 100, height = 100) {
@@ -36609,7 +36617,7 @@ class Style {
   }
   loadAnalysis(cy, paletteType) {
     this.currentPalette = paletteType === 'unidirectional' ? new ContinuousPalette(extract(this.properties.analysis.unidirectionalPalette)) : new ContinuousPalette(extract(this.properties.analysis.bidirectionalPalette));
-    this.clearCache();
+    this.imageBuilder.cache.clear();
     cy.style(this.getStyleSheet());
   }
 }
