@@ -27,6 +27,7 @@
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
     "@ngneat/until-destroy": "^10.0.0",
+    "angular-split": "^17.2.0",
     "cytoscape": "file:.yalc/cytoscape",
     "cytoscape-fcose": "^2.2.0",
     "cytoscape-layers": "^2.4.4",

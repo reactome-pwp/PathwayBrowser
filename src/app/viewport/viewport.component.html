@@ -1,0 +1,93 @@
+<div class="container">
+  <!--A third party library Angular split helps to build resize layout, more details are : https://angular-split.github.io/-->
+  <as-split direction="horizontal" gutterSize="4">
+    <div *asSplitGutter="let isDragged = isDragged" class="custom-left-gutter" [class.dragged]="isDragged"></div>
+    <as-split-area [size]="20">
+      <div class="left-panel">
+        <div class="search"><p>search-box</p></div>
+        <div class="sidebar">
+
+          <!--          <div class="species-interactor-container">-->
+          <!--            <div class="species">-->
+          <!--              <mat-accordion>-->
+          <!--                <mat-expansion-panel hideToggle>-->
+          <!--                  <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
+          <!--                    <mat-panel-title>-->
+          <!--                      Species-->
+          <!--                    </mat-panel-title>-->
+          <!--                  </mat-expansion-panel-header>-->
+          <!--                  <div class="custom-body">-->
+          <!--                    <p>This is the content for the species</p>-->
+          <!--                  </div>-->
+          <!--                </mat-expansion-panel>-->
+          <!--              </mat-accordion>-->
+
+          <!--            </div>-->
+          <!--            <div class="interactor">-->
+          <!--              <mat-accordion>-->
+          <!--                <mat-expansion-panel hideToggle>-->
+          <!--                  <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
+          <!--                    <mat-panel-title>-->
+          <!--                      Overlay-->
+          <!--                    </mat-panel-title>-->
+          <!--                  </mat-expansion-panel-header>-->
+          <!--                  <div class="custom-body">-->
+          <!--                    <p>This is the content for the overlay</p>-->
+          <!--                  </div>-->
+          <!--                </mat-expansion-panel>-->
+          <!--              </mat-accordion>-->
+
+          <!--&lt;!&ndash;              <cr-interactors #interactor [cy]="diagram.cy" [cys]="diagram.cys" (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>&ndash;&gt;-->
+          <!--            </div>-->
+          <!--          </div>-->
+
+
+          <div class="species-interactor-container">
+            <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
+              <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
+
+              <span>Species</span>
+              <mat-icon>arrow_drop_down</mat-icon>
+            </div>
+            <div class="interactor" (click)="toggleVisibility('interactor')" [ngClass]="{'selected': visibility.interactor}">
+              <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
+              Overlay
+              <mat-icon>arrow_drop_down</mat-icon>
+            </div>
+          </div>
+
+          <div *ngIf="visibility.species" style="background-color: var(--surface-variant)">This is species content</div>
+          <div *ngIf="visibility.interactor">
+            <cr-interactors #interactor [psicquicResources]="psicquicResources" [cy]="diagram.cy" [cys]="diagram.cys"
+                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
+          </div>
+
+
+          <mat-list *ngFor="let item of items">
+            <mat-list-item>{{ item }}</mat-list-item>
+          </mat-list>
+
+
+        </div>
+      </div>
+    </as-split-area>
+    <as-split-area [size]="80">
+      <div class="right-panel">
+        <div class="top">
+          <p>top-panel</p>
+        </div>
+        <div class="content">
+          <as-split direction="vertical" gutterSize="4">
+            <div *asSplitGutter="let isDragged = isDragged" class="custom-gutter" [class.dragged]="isDragged"></div>
+            <as-split-area [size]="80">
+              <cr-diagram #diagram [id]="diagramId"></cr-diagram>
+            </as-split-area>
+            <as-split-area [size]="20">
+              <p>detail</p>
+            </as-split-area>
+          </as-split>
+        </div>
+      </div>
+    </as-split-area>
+  </as-split>
+</div>
