@@ -1,17 +1,45 @@
+.variables {
+  --surface: #FAFDFF;
+  --surface-variant: #E9F2F6;
+  --on-surface-variant: #40484C;
+  --outline: #70787D;
+  --on-secondary-container: #001F29;
+}
 
 #interactor-container {
-  width: 338px; //todo: not fixed value in future
+  width: 100%;
+  background-color: var(--surface-variant);
+}
+
+.button-container {
+  padding: 4px 0;
+}
+
+.card {
+  background-color: var(--surface-variant);
 }
 
 .full-width-button {
   width: 100%;
-  border-radius: 0;
+  color: var(--on-surface-variant);
+  border-radius: 100px;
+  justify-content: flex-start;
+  height: 28px;
+}
+
+.raised-full-width-button {
+  width: 100%;
+  background-color: var(--surface);
+  color: var(--on-secondary-container);
+  border-radius: 100px;
 }
 
 ::ng-deep .psicquic-button .mdc-button__label {
   display: flex;
   justify-content: space-between;
   width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .resource-name {
@@ -31,6 +59,11 @@
   align-items: center;
 }
 
+.divider {
+  background-color: var(--outline);
+  --mat-divider-width: 2px;
+}
+
 .line {
   flex: 1;
 }
@@ -38,6 +71,7 @@
 .text {
   padding-left: 10px;
   padding-right: 10px;
+  color: var(--on-surface-variant);
 }
 
 /** Scrollbar */
@@ -76,11 +110,15 @@ mat-list-option[aria-selected="true"] .resource-name div {
   color: #000
 }
 
+.active-icon {
+  color: var(--on-primary)
+}
 
+.surface-variant,
+.surface-variant div {
+  color: var(--on-surface-variant) !important;
+}
 
-
-
-
-
-
-
+.rounded-corner {
+  border-radius: 100px;
+}
