@@ -53,8 +53,7 @@
       </div>
 
 
-      <!--      <div class="psicquicResources">-->
-      <mat-grid-list cols="2" rowHeight="24px" [gutterSize]="'2px'">
+      <mat-grid-list cols="2" rowHeight="28px" [gutterSize]="'2px'">
         <mat-grid-tile *ngFor="let resource of psicquicResources" class="rounded-corner">
           <button class="full-width-button psicquic-button" mat-button
                   (click)="onPsicquicResourceChange(resource.name, ResourceType.PSICQUIC)"
@@ -67,7 +66,6 @@
           </button>
         </mat-grid-tile>
       </mat-grid-list>
-      <!--      </div>-->
 
 
       <div class="divider-container">
