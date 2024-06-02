@@ -1,27 +1,28 @@
-import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
-import {ResourceType} from "./model/interactor.model";
+import {ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
+import {InteractorToken, PsicquicResource, ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "./services/interactor.service";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
-import {InteractorToken, PsicquicResource} from "./model/interactor.model";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
+
+
+type ResourceAndType = { name: string | null, type: ResourceType | null }
 
 @Component({
   selector: 'cr-interactors',
   templateUrl: './interactors.component.html',
   styleUrls: ['./interactors.component.scss']
 })
-export class InteractorsComponent implements AfterViewInit {
+export class InteractorsComponent {
 
   isDataFromPsicquicLoading: boolean = false;
-  resourceTokens : InteractorToken[] = [];
+  resourceTokens: InteractorToken[] = [];
   panelOpenState = false;
-  psicquicResources: PsicquicResource[] = []
-  activeButton: string | null = null;
-  resourceToType: Map<string, ResourceType> = new Map<string, ResourceType>;
+  clear = false;
+  currentResource: ResourceAndType = {name: null, type: null};
 
   DISEASE_RESOURCE = 'DisGeNet';
   INTACT_RESOURCE = 'IntAct';
@@ -29,31 +30,26 @@ export class InteractorsComponent implements AfterViewInit {
 
   @Input('cy') cy!: cytoscape.Core;
   @Input('cys') cys: cytoscape.Core[] = [];
+  @Input('psicquicResources') psicquicResources!: PsicquicResource[];
+
   @Output('initialiseReplaceElements') initialiseReplaceElements: EventEmitter<any> = new EventEmitter();
+  @Output('currentResourceChange') currentResourceChange: EventEmitter<ResourceAndType> = new EventEmitter<ResourceAndType>();
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
+
   }
 
-  setActiveButton(resource: string) {
-    this.activeButton = resource;
-  }
-
-
-  ngAfterViewInit(): void {
-    this.getPsicquicResources()
-  }
-
-  getInteractors(resource: string | null, resourceType: ResourceType | null) {
+  getInteractors(resource: string | null, resourceType: ResourceType | undefined) {
 
     if (resource && resourceType) {
-      this.setActiveButton(resource);
-      this.resourceToType.set(resource, resourceType);
+      this.clear = false
+      this.updateCurrentResource(resource, resourceType);
     } else {
       return;
     }
 
     this.cys.forEach(cy => {
-      if (this.resourceToType.get(resource) != ResourceType.CUSTOM && this.resourceToType.get(resource) != ResourceType.PSICQUIC) {
+      if (this.currentResource.type != ResourceType.CUSTOM && this.currentResource.type != ResourceType.PSICQUIC) {
         this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
           this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
           this.initialiseReplaceElements.emit();
@@ -63,16 +59,10 @@ export class InteractorsComponent implements AfterViewInit {
     })
   }
 
-  getPsicquicResources() {
-    this.interactorsService.getPsicquicResources().subscribe(resources => {
-      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
-    });
-  }
-
   onPsicquicResourceChange(selectedResource: string, resourceType: ResourceType) {
     this.isDataFromPsicquicLoading = true;
-    this.resourceToType.set(selectedResource, resourceType);
-    this.setActiveButton(selectedResource);
+    this.clear = false;
+    this.updateCurrentResource(selectedResource, resourceType);
     this.cys.forEach(cy => {
       this.interactorsService.getInteractorData(cy, selectedResource).subscribe(interactors => {
         this.interactorsService.addInteractorOccurrenceNode(interactors, cy, selectedResource);
@@ -97,8 +87,8 @@ export class InteractorsComponent implements AfterViewInit {
         const resource = dialogRef.componentInstance.token;
         if (resource) {
           this.resourceTokens!.push(resource);
-          this.setActiveButton(resource.summary.token);
-          this.resourceToType.set(resource.summary.token, ResourceType.CUSTOM);
+          this.clear = false;
+          this.updateCurrentResource(resource.summary.name, ResourceType.CUSTOM);
           this.state.set('overlay', resource.summary.token);
         }
         this.cdr.detectChanges();
@@ -112,9 +102,10 @@ export class InteractorsComponent implements AfterViewInit {
 
   onCustomResourceChange(resource: InteractorToken) {
     this.cys.forEach(cy => {
-    this.interactorsService.sendPostRequest(resource, cy).subscribe((result) => {
+      this.interactorsService.sendPostRequest(resource, cy).subscribe((result) => {
         this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
-        this.setActiveButton(resource!.summary.token);
+        this.clear = false;
+        this.updateCurrentResource(resource!.summary.name, ResourceType.CUSTOM);
         this.state.set('overlay', resource.summary.token);
       })
     })
@@ -135,10 +126,17 @@ export class InteractorsComponent implements AfterViewInit {
   clearInteractors() {
     this.cys.forEach(cy => {
       this.interactorsService.clearAllInteractorNodes(cy);
-      this.setActiveButton('clear');
-      this.resourceToType.clear();
+      this.clear = true;
+      this.updateCurrentResource(null, null);
       this.state.set('overlay', null);
     })
+  }
+
+  updateCurrentResource(name: string | null, type: ResourceType | null) {
+    this.currentResource.name = name;
+    this.currentResource.type = type;
+    this.currentResourceChange.emit(this.currentResource);
+
   }
 
 }

@@ -45,21 +45,25 @@
           <div class="species-interactor-container">
             <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
               <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
-
               <span>Species</span>
               <mat-icon>arrow_drop_down</mat-icon>
             </div>
-            <div class="interactor" (click)="toggleVisibility('interactor')" [ngClass]="{'selected': visibility.interactor}">
+            <div class="interactor" (click)="toggleVisibility('interactor')"
+                 [ngClass]="{'selected': visibility.interactor}">
               <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
-              Overlay
+              <div class="overlay-content">
+                <span> Overlay</span>
+                <span>{{ currentInteractorResource.name }}</span>
+              </div>
               <mat-icon>arrow_drop_down</mat-icon>
             </div>
           </div>
 
           <div *ngIf="visibility.species" style="background-color: var(--surface-variant)">This is species content</div>
           <div *ngIf="visibility.interactor">
-            <cr-interactors #interactor [psicquicResources]="psicquicResources" [cy]="diagram.cy" [cys]="diagram.cys"
-                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
+            <cr-interactors #interactors [psicquicResources]="psicquicResources" [cy]="diagram.cy" [cys]="diagram.cys"
+                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"
+                            (currentResourceChange)="updateCurrentInteractorResource($event)"></cr-interactors>
           </div>
 
 

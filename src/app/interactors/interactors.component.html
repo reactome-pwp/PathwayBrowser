@@ -12,8 +12,8 @@
 
       <div class="button-container">
         <button mat-raised-button class="raised-full-width-button" (click)="clearInteractors()"
-                [ngClass]="{'active-button': activeButton === 'clear'}">
-          <mat-icon [ngClass]="{'active-icon': activeButton === 'clear'}" color="primary">clear</mat-icon>
+                [ngClass]="{'active-button': clear}">
+          <mat-icon [ngClass]="{'active-icon': clear}" color="primary">clear</mat-icon>
           Clear overlays
         </button>
       </div>
@@ -31,12 +31,12 @@
       <mat-grid-list cols="2" rowHeight="4:1">
         <mat-grid-tile>
           <button class="full-width-button" mat-button (click)="getInteractors(INTACT_RESOURCE,ResourceType.STATIC)"
-                  [ngClass]="{'active-button': activeButton === ResourceType.STATIC}">IntAct
+                  [ngClass]="{'active-button': currentResource.type === ResourceType.STATIC}">IntAct
           </button>
         </mat-grid-tile>
         <mat-grid-tile>
           <button class="full-width-button" mat-button (click)="getInteractors(DISEASE_RESOURCE,ResourceType.DISGENET)"
-                  [ngClass]="{'active-button': activeButton === ResourceType.DISGENET}">DisGeNet
+                  [ngClass]="{'active-button': currentResource.type === ResourceType.DISGENET}">DisGeNet
           </button>
         </mat-grid-tile>
       </mat-grid-list>
@@ -57,11 +57,11 @@
         <mat-grid-tile *ngFor="let resource of psicquicResources" class="rounded-corner">
           <button class="full-width-button psicquic-button" mat-button
                   (click)="onPsicquicResourceChange(resource.name, ResourceType.PSICQUIC)"
-                  [ngClass]="{'active-button': activeButton === resource.name}" [disabled]="!resource.active">
+                  [ngClass]="{'active-button': currentResource.name === resource.name}" [disabled]="!resource.active">
             <div class="resource-name">
-              <span> {{ resource.name }}</span>
+              <span>{{ resource.name }}</span>
               <mat-spinner class="spinner-color" diameter="20"
-                           *ngIf="isDataFromPsicquicLoading && resourceToType.has(resource.name)"></mat-spinner>
+                           *ngIf="isDataFromPsicquicLoading && currentResource.name === resource.name"></mat-spinner>
             </div>
           </button>
         </mat-grid-tile>
@@ -81,7 +81,7 @@
       <mat-selection-list *ngIf="resourceTokens?.length != 0" [multiple]="false" hideSingleSelectionIndicator=true>
         <mat-list-option *ngFor="let resourceToken of resourceTokens" [value]="resourceToken"
                          [selected]="isSelected(resourceToken)" (click)="onCustomResourceChange(resourceToken)"
-                         [ngClass]="{'active-button': activeButton === resourceToken.summary?.token}"
+                         [ngClass]="{'active-button': currentResource.name === resourceToken.summary?.name}"
                          class="full-width-button">
           <div class="resource-name surface-variant">
             <div>{{ resourceToken.summary?.name }}</div>
@@ -94,7 +94,7 @@
 
       <div class="button-container">
         <button mat-raised-button class="raised-full-width-button" (click)="openCustomInteractorDialog()">
-          <mat-icon [ngClass]="{'active-icon': activeButton === 'clear'}" color="primary">add</mat-icon>
+          <mat-icon color="primary">add</mat-icon>
           Add overlay resource
         </button>
       </div>
