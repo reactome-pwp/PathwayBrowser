@@ -78,18 +78,25 @@
   justify-content: space-around;
 }
 
-.custom-icon{
+.custom-icon {
   height: 48px;
   width: 48px;
-
 }
 
-::ng-deep .custom-icon {
-  fill: yellowgreen !important;
+.selected .custom-icon::ng-deep svg path {
+  fill:  var(--primary);
 }
 
 .selected {
   background-color: #dff4ff ;
   border-bottom: 2px solid var(--primary) ;
-  color:  var(--primary)
+  color:  var(--primary);
+}
+
+.overlay-content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0px;
 }
