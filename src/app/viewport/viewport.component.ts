@@ -1,43 +1,44 @@
 import {AfterViewInit, Component, Input, ViewChild} from '@angular/core';
 import {DiagramComponent} from "../diagram/diagram.component";
-import {PsicquicResource, ResourceType} from "../interactors/model/interactor.model";
-import {InteractorService} from "../interactors/services/interactor.service";
+import {ResourceType} from "../interactors/model/interactor.model";
+import {InteractorsComponent} from "../interactors/interactors.component";
+import {Species} from "../model/species.model";
+
+
+type ResourceAndType = { name: string | null, type: ResourceType | null }
 
 @Component({
   selector: 'cr-viewport',
   templateUrl: './viewport.component.html',
   styleUrls: ['./viewport.component.scss']
 })
-export class ViewportComponent  implements  AfterViewInit{
+export class ViewportComponent implements AfterViewInit {
 
 
   @ViewChild('diagram') diagram!: DiagramComponent;
+  @ViewChild('interactors') interactors!: InteractorsComponent;
   @Input('id') diagramId: string = '';
-  psicquicResources: PsicquicResource[] = []
 
-  items = ['Autophagy','Cell Cycle','Cell-Cell communication','Developmental Biology','Digestion and absorption','Disease','DNA Repair','DNA Replication','Drug ADME','Extracellular matrix organization',
-  'Gene expression (Transcription)','Hemostasis','Immune System','Metabolism', 'Metabolism of proteins','Metabolism of RNA','Muscle contraction','Neuronal System']
+  currentInteractorResource: ResourceAndType = {name: null, type: null};
+  currentSpeciesName = "H.sapiens"
+
+
+  species: Species[] = [];
+
+
+  items = ['Autophagy', 'Cell Cycle', 'Cell-Cell communication', 'Developmental Biology', 'Digestion and absorption', 'Disease', 'DNA Repair', 'DNA Replication', 'Drug ADME', 'Extracellular matrix organization',
+    'Gene expression (Transcription)', 'Hemostasis', 'Immune System', 'Metabolism', 'Metabolism of proteins', 'Metabolism of RNA', 'Muscle contraction', 'Neuronal System']
 
 
   visibility = {
-    species : false,
-    interactor : false
+    species: false,
+    interactor: false
   }
 
-
-  constructor(private interactorsService: InteractorService) {
+  constructor() {
   }
 
   ngAfterViewInit(): void {
-    this.getPsicquicResources();
-
-  }
-
-
-  getPsicquicResources() {
-    this.interactorsService.getPsicquicResources().subscribe(resources => {
-      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
-    });
   }
 
   toggleVisibility(type: string) {
@@ -50,6 +51,11 @@ export class ViewportComponent  implements  AfterViewInit{
     }
   }
 
+  updateCurrentInteractorResource(resource: ResourceAndType) {
+    this.currentInteractorResource = resource;
+  }
 
-
+  updateCurrentSpecies(species: string) {
+    this.currentSpeciesName = species;
+  }
 }

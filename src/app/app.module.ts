@@ -16,7 +16,9 @@ import {DiagramIteratorComponent} from './diagram-iterator/diagram-iterator.comp
 import {MatInputModule} from "@angular/material/input";
 import {MatSelectModule} from "@angular/material/select";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
-import {CustomInteractorDialogComponent} from './interactors/custom-interactor-dialog/custom-interactor-dialog.component';
+import {
+  CustomInteractorDialogComponent
+} from './interactors/custom-interactor-dialog/custom-interactor-dialog.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatTabsModule} from "@angular/material/tabs";
 import {MatCheckboxModule} from "@angular/material/checkbox";
@@ -27,6 +29,11 @@ import {MatListModule} from "@angular/material/list";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatGridListModule} from "@angular/material/grid-list";
 import {InteractorsComponent} from './interactors/interactors.component';
+import {ViewportComponent} from './viewport/viewport.component';
+import {AngularSplitModule} from "angular-split";
+import {MatCardModule} from "@angular/material/card";
+import {SpeciesComponent} from './species/species.component';
+import {MatRippleModule} from "@angular/material/core";
 
 @NgModule({
   declarations: [
@@ -34,7 +41,9 @@ import {InteractorsComponent} from './interactors/interactors.component';
     DiagramComponent,
     DiagramIteratorComponent,
     CustomInteractorDialogComponent,
-    InteractorsComponent
+    InteractorsComponent,
+    ViewportComponent,
+    SpeciesComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +70,11 @@ import {InteractorsComponent} from './interactors/interactors.component';
     MatIconModule,
     MatListModule,
     MatExpansionModule,
-    MatGridListModule
+    MatGridListModule,
+    AngularSplitModule,
+    MatCardModule,
+    MatIconModule,
+    MatRippleModule
   ],
   providers: [],
   bootstrap: [AppComponent]

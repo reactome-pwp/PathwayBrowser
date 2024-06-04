@@ -1,4 +1,13 @@
-.container {
+.variables {
+  --surface: #FAFDFF;
+  --surface-variant: #E9F2F6;
+  --on-surface-variant: #40484C;
+  --outline: #70787D;
+  --on-secondary-container: #001F29;
+}
+
+
+#container {
   position: absolute;
   inset: 0 0 0 0;
   height: 100%;
@@ -18,7 +27,6 @@
 
 .sidebar {
   height: 90%;
-  // border: 1px solid #4c8c37;
 }
 
 
@@ -83,20 +91,29 @@
   width: 48px;
 }
 
-.selected .custom-icon::ng-deep svg path {
+.selected .custom-icon::ng-deep svg * {
   fill:  var(--primary);
 }
 
 .selected {
-  background-color: #dff4ff ;
+  background: var(--surface5) ;
   border-bottom: 2px solid var(--primary) ;
   color:  var(--primary);
 }
 
-.overlay-content{
+.species-content,
+.overlay-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   padding: 0px;
+
+  span:first-child {
+    font-size: 10px;
+  }
+
+  span:last-child {
+    font-size: 14px;
+  }
 }

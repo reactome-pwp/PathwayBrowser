@@ -1,0 +1,15 @@
+#species-container {
+  width: 100%;
+  background: var(--surface-variant);
+
+}
+
+.species {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 2px;
+  gap: 8px;
+  border-radius: 10px;
+ // color: var(--on-surface-variant);
+}

@@ -1,4 +1,4 @@
-<div class="container">
+<div id="container" class="variables">
   <!--A third party library Angular split helps to build resize layout, more details are : https://angular-split.github.io/-->
   <as-split direction="horizontal" gutterSize="4">
     <div *asSplitGutter="let isDragged = isDragged" class="custom-left-gutter" [class.dragged]="isDragged"></div>
@@ -7,61 +7,65 @@
         <div class="search"><p>search-box</p></div>
         <div class="sidebar">
 
-          <!--          <div class="species-interactor-container">-->
-          <!--            <div class="species">-->
-          <!--              <mat-accordion>-->
-          <!--                <mat-expansion-panel hideToggle>-->
-          <!--                  <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
-          <!--                    <mat-panel-title>-->
-          <!--                      Species-->
-          <!--                    </mat-panel-title>-->
-          <!--                  </mat-expansion-panel-header>-->
-          <!--                  <div class="custom-body">-->
-          <!--                    <p>This is the content for the species</p>-->
-          <!--                  </div>-->
-          <!--                </mat-expansion-panel>-->
-          <!--              </mat-accordion>-->
+          <!--                    <div class="species-interactor-container">-->
+          <!--                      <div class="species">-->
+          <!--                        <mat-accordion>-->
+          <!--                          <mat-expansion-panel hideToggle>-->
+          <!--                            <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
+          <!--                              <mat-panel-title>-->
+          <!--                                Species-->
+          <!--                              </mat-panel-title>-->
+          <!--                            </mat-expansion-panel-header>-->
+          <!--                            <div class="custom-body">-->
+          <!--                              <p>This is the content for the species</p>-->
+          <!--                            </div>-->
+          <!--                          </mat-expansion-panel>-->
+          <!--                        </mat-accordion>-->
 
-          <!--            </div>-->
-          <!--            <div class="interactor">-->
-          <!--              <mat-accordion>-->
-          <!--                <mat-expansion-panel hideToggle>-->
-          <!--                  <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
-          <!--                    <mat-panel-title>-->
-          <!--                      Overlay-->
-          <!--                    </mat-panel-title>-->
-          <!--                  </mat-expansion-panel-header>-->
-          <!--                  <div class="custom-body">-->
-          <!--                    <p>This is the content for the overlay</p>-->
-          <!--                  </div>-->
-          <!--                </mat-expansion-panel>-->
-          <!--              </mat-accordion>-->
-
-          <!--&lt;!&ndash;              <cr-interactors #interactor [cy]="diagram.cy" [cys]="diagram.cys" (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>&ndash;&gt;-->
-          <!--            </div>-->
-          <!--          </div>-->
+          <!--                      </div>-->
+          <!--                      <div class="interactor">-->
+          <!--                        <mat-accordion>-->
+          <!--                          <mat-expansion-panel hideToggle>-->
+          <!--                            <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
+          <!--                              <mat-panel-title>-->
+          <!--                                Overlay-->
+          <!--                              </mat-panel-title>-->
+          <!--                            </mat-expansion-panel-header>-->
+          <!--                            <div class="custom-body">-->
+          <!--                              <p>This is the content for the overlay</p>-->
+          <!--                            </div>-->
+          <!--                          </mat-expansion-panel>-->
+          <!--                        </mat-accordion>-->
+          <!--                      </div>-->
+          <!--                    </div>-->
 
 
           <div class="species-interactor-container">
             <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
               <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
-              <span>Species</span>
+              <div class="species-content">
+                <span>Species</span>
+                <span *ngIf="currentSpeciesName">{{ currentSpeciesName }}</span>
+              </div>
               <mat-icon>arrow_drop_down</mat-icon>
             </div>
             <div class="interactor" (click)="toggleVisibility('interactor')"
                  [ngClass]="{'selected': visibility.interactor}">
               <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
               <div class="overlay-content">
-                <span> Overlay</span>
-                <span>{{ currentInteractorResource.name }}</span>
+                <span>Overlay</span>
+                <span *ngIf="currentInteractorResource.name">{{ currentInteractorResource.name }}</span>
               </div>
               <mat-icon>arrow_drop_down</mat-icon>
             </div>
           </div>
 
-          <div *ngIf="visibility.species" style="background-color: var(--surface-variant)">This is species content</div>
-          <div *ngIf="visibility.interactor">
-            <cr-interactors #interactors [psicquicResources]="psicquicResources" [cy]="diagram.cy" [cys]="diagram.cys"
+          <div [style.display]="visibility.species ? 'block':'none'">
+            <cr-species (currentSpeciesChange)="updateCurrentSpecies($event)"></cr-species>
+
+          </div>
+          <div [style.display]="visibility.interactor ? 'block':'none'">
+            <cr-interactors #interactors [cy]="diagram.cy" [cys]="diagram.cys"
                             (initialiseReplaceElements)="diagram.initialiseReplaceElements()"
                             (currentResourceChange)="updateCurrentInteractorResource($event)"></cr-interactors>
           </div>
