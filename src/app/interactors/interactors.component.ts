@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
 import {InteractorToken, PsicquicResource, ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
@@ -16,13 +16,14 @@ type ResourceAndType = { name: string | null, type: ResourceType | null }
   templateUrl: './interactors.component.html',
   styleUrls: ['./interactors.component.scss']
 })
-export class InteractorsComponent {
+export class InteractorsComponent implements AfterViewInit{
 
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: InteractorToken[] = [];
   panelOpenState = false;
   clear = false;
   currentResource: ResourceAndType = {name: null, type: null};
+  psicquicResources: PsicquicResource[] = [];
 
   DISEASE_RESOURCE = 'DisGeNet';
   INTACT_RESOURCE = 'IntAct';
@@ -30,13 +31,17 @@ export class InteractorsComponent {
 
   @Input('cy') cy!: cytoscape.Core;
   @Input('cys') cys: cytoscape.Core[] = [];
-  @Input('psicquicResources') psicquicResources!: PsicquicResource[];
+ // @Input('psicquicResources') psicquicResources!: PsicquicResource[];
 
   @Output('initialiseReplaceElements') initialiseReplaceElements: EventEmitter<any> = new EventEmitter();
   @Output('currentResourceChange') currentResourceChange: EventEmitter<ResourceAndType> = new EventEmitter<ResourceAndType>();
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
 
+  }
+
+  ngAfterViewInit(): void {
+    this.getPsicquicResources();
   }
 
   getInteractors(resource: string | null, resourceType: ResourceType | undefined) {
@@ -138,5 +143,12 @@ export class InteractorsComponent {
     this.currentResourceChange.emit(this.currentResource);
 
   }
+
+  getPsicquicResources() {
+    this.interactorsService.getPsicquicResources().subscribe(resources => {
+      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
+    });
+  }
+
 
 }

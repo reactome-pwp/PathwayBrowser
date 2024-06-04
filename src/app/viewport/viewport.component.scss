@@ -6,7 +6,6 @@
   --on-secondary-container: #001F29;
 }
 
-
 #container {
   position: absolute;
   inset: 0 0 0 0;
@@ -21,7 +20,7 @@
 
 .search {
   height: 60px;
-  background-color: var(--primary);
+  background: var(--primary);
 }
 
 
@@ -38,7 +37,7 @@
 
 .top {
   height: 60px;
-  background-color: var(--primary);
+  background: var(--primary);
 }
 
 .content {
@@ -47,7 +46,7 @@
 
 
 .custom-gutter {
-  background-color: var(--primary);
+  background: var(--primary);
   width: 100%;
   height: 100%;
 }
@@ -76,7 +75,7 @@
 .species,
 .interactor {
   width: 100%;
-  background-color: var(--surface-variant);
+  background: var(--surface-variant);
   color: var(--on-surface-variant);
   border-bottom: 1px solid var(--on-surface-variant);
 
@@ -92,13 +91,13 @@
 }
 
 .selected .custom-icon::ng-deep svg * {
-  fill:  var(--primary);
+  fill: var(--primary);
 }
 
 .selected {
-  background: var(--surface5) ;
-  border-bottom: 2px solid var(--primary) ;
-  color:  var(--primary);
+  background: var(--surface5);
+  border-bottom: 2px solid var(--primary);
+  color: var(--primary);
 }
 
 .species-content,
@@ -107,7 +106,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 0px;
+  padding: 0;
 
   span:first-child {
     font-size: 10px;
