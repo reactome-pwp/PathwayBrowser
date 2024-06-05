@@ -11,5 +11,23 @@
   padding: 2px;
   gap: 8px;
   border-radius: 10px;
- // color: var(--on-surface-variant);
+  color: var(--on-surface-variant);
+}
+
+
+.selection-list {
+  padding: 10px;
+}
+
+mat-list-option[aria-selected="false"] {
+  border-radius: 10px;
+}
+
+mat-list-option[aria-selected="true"],
+mat-list-option[aria-selected="true"] .species,
+mat-list-option[aria-selected="true"] .species::ng-deep svg * {
+  background: var(--primary);
+  border-radius: 10px;
+  color: var(--on-primary);
+  fill: var(--on-primary);
 }

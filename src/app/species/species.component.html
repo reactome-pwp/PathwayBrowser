@@ -1,6 +1,6 @@
 <div id="species-container" class="variables">
-  <mat-selection-list [multiple]=false hideSingleSelectionIndicator=true>
-    <mat-list-option *ngFor="let s of species" matRipple [matRippleColor]="color" [value]="s"
+  <mat-selection-list [multiple]=false hideSingleSelectionIndicator=true class="selection-list">
+    <mat-list-option *ngFor="let s of species" [value]="s"
                      (click)="onSpeciesChange(s)" [selected]="s.taxId === '9606'">
       <div class="species">
         <mat-icon class="custom-icon" svgIcon="{{ s.taxId }}"></mat-icon>
