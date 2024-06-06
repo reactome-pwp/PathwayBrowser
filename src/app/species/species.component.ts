@@ -10,9 +10,9 @@ import {SpeciesService} from "../services/species.service";
 export class SpeciesComponent implements AfterViewInit {
 
 
-  species: Species[] = [];
+  allSpecies: Species[] = [];
 
-  @Output('currentSpeciesChange') currentSpeciesChange: EventEmitter<string> = new EventEmitter<string>();
+  @Output('currentSpeciesChange') currentSpeciesChange: EventEmitter<Species> = new EventEmitter<Species>();
 
   constructor(private speciesService: SpeciesService) {
 
@@ -26,26 +26,13 @@ export class SpeciesComponent implements AfterViewInit {
     this.speciesService.getSpecies().subscribe(species => {
       // Alphabetical order
       const sortedSpecies = [...species].sort((a, b) => a.displayName.localeCompare(b.displayName))
-      this.species = sortedSpecies;
+      sortedSpecies.forEach(s => this.speciesService.setShortName(s))
+      this.allSpecies = sortedSpecies;
     })
   }
 
   onSpeciesChange(s: Species) {
-    const label = this.beautifySpeciesName(s.displayName)
-    this.currentSpeciesChange.emit(label);
-  }
-
-  beautifySpeciesName(name: string): string {
-    const parts = name.split(' ');
-
-    // If there are not exactly two parts, return the original string
-    if (parts.length !== 2) {
-      throw new Error('Invalid species name format. Expected "Genus species".');
-    }
-
-    const genus = parts[0];
-    const species = parts[1];
-    return `${genus.charAt(0)}.${species}`;
+    this.currentSpeciesChange.emit(s);
   }
 
 
