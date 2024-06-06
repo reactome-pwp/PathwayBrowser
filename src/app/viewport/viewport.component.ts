@@ -20,10 +20,7 @@ export class ViewportComponent implements AfterViewInit {
   @Input('id') diagramId: string = '';
 
   currentInteractorResource: ResourceAndType = {name: null, type: null};
-  currentSpeciesName = "H.sapiens"
-
-
-  species: Species[] = [];
+  currentSpecies: Species | undefined = undefined;
 
 
   items = ['Autophagy', 'Cell Cycle', 'Cell-Cell communication', 'Developmental Biology', 'Digestion and absorption', 'Disease', 'DNA Repair', 'DNA Replication', 'Drug ADME', 'Extracellular matrix organization',
@@ -55,7 +52,10 @@ export class ViewportComponent implements AfterViewInit {
     this.currentInteractorResource = resource;
   }
 
-  updateCurrentSpecies(species: string) {
-    this.currentSpeciesName = species;
+  updateCurrentSpecies(species: Species) {
+
+    let newSubTerm = species.abbreviation;
+    this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${newSubTerm}-`);
+    this.currentSpecies = species;
   }
 }
