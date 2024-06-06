@@ -47,7 +47,7 @@
                 <span>Species</span>
                 <span>{{ currentSpecies?.shortName || 'H.sapiens' }}</span>
               </div>
-              <mat-icon>arrow_drop_down</mat-icon>
+              <mat-icon class="custom-icon" >arrow_drop_down</mat-icon>
             </div>
             <div class="interactor" (click)="toggleVisibility('interactor')"
                  [ngClass]="{'selected': visibility.interactor}">
@@ -56,7 +56,7 @@
                 <span>Overlay</span>
                 <span *ngIf="currentInteractorResource.name">{{ currentInteractorResource.name }}</span>
               </div>
-              <mat-icon>arrow_drop_down</mat-icon>
+              <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
             </div>
           </div>
 
