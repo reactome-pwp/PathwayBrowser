@@ -1,6 +1,6 @@
 .variables {
-  position: absolute;
-  inset: 0 0 40px 0;
+  position: relative;
+  height: 100%;
   --opacity: 0.08;
   --structure-opacity: [[130,0], [150,100]];
   --shadow-padding: 20;

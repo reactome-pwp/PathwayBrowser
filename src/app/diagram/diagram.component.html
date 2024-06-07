@@ -18,11 +18,7 @@
     </div>
   </div>
 
-  <cr-interactors #interactor [cy]="cy" [cys]="cys" (initialiseReplaceElements)="initialiseReplaceElements()"></cr-interactors>
-
   <form id="controls">
-    <button mat-raised-button (click)="getInteractors(ResourceType.STATIC)">IntAct</button>
-    <button mat-raised-button (click)="getInteractors(ResourceType.DISGENET)">DisGeNet</button>
     <button mat-raised-button (click)="updateStyle()">Update Style</button>
     <button mat-raised-button (click)="logProteins()">Log Proteins</button>
     <button mat-raised-button (click)="analyse('uniprot')">Uniprot</button>
