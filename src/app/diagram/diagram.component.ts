@@ -9,14 +9,13 @@ import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subjec
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
-import {ResourceType} from "../interactors/model/interactor.model";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
-import {InteractorsComponent} from "../interactors/interactors.component";
 import {AnalysisService, Examples} from "../services/analysis.service";
 import {Graph} from "../model/graph.model";
 import {isDefined} from "../services/utils";
 import {Analysis} from "../model/analysis.model";
 import {Router} from "@angular/router";
+import {InteractorsComponent} from "../interactors/interactors.component";
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -29,11 +28,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
-  @ViewChild('interactor') InteractorsComponent?: InteractorsComponent;
+  @Input('interactor') interactorsComponent?: InteractorsComponent;
 
   comparing: boolean = false;
   fit = true;
-  readonly ResourceType = ResourceType;
+
 
 
   constructor(private diagram: DiagramService,
@@ -382,12 +381,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   };
 
 
-  getInteractors(resource: string | null) {
-    if (resource) {
-      this.InteractorsComponent!.getInteractors(resource, this.InteractorsComponent?.resourceToType?.get(resource)!);
-    }
-  }
-
   private loadAnalysis(token: string | null) {
     console.log(token, this.diagramId)
     if (!token || !this.diagramId) {
@@ -522,7 +515,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   flagging = this.state.onChange.flag$.subscribe((value) => this.cys.forEach(cy => this.flag(value, cy)))
   selecting = this.state.onChange.select$.subscribe((value) => this.cys.forEach(cy => this.select(value, cy)))
-  interactoring = this.state.onChange.overlay$.subscribe((value) => this.getInteractors(value));
+  interactoring = this.state.onChange.overlay$.subscribe((value) => this.interactorsComponent?.getInteractors(value));
   analysing = this.state.onChange.analysis$.subscribe((value) => this.loadAnalysis(value));
 
 
@@ -536,8 +529,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     const resource = this.state.get('overlay');
     if (resource) {
-      this.InteractorsComponent?.getInteractors(resource, this.InteractorsComponent?.resourceToType.get(resource)!)
+      this.interactorsComponent?.getInteractors(resource)
     }
+
     this.loadAnalysis(this.state.get('analysis'))
   }
 

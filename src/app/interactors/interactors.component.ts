@@ -16,7 +16,7 @@ type ResourceAndType = { name: string | null, type: ResourceType | null }
   templateUrl: './interactors.component.html',
   styleUrls: ['./interactors.component.scss']
 })
-export class InteractorsComponent implements AfterViewInit{
+export class InteractorsComponent implements AfterViewInit {
 
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: InteractorToken[] = [];
@@ -31,7 +31,7 @@ export class InteractorsComponent implements AfterViewInit{
 
   @Input('cy') cy!: cytoscape.Core;
   @Input('cys') cys: cytoscape.Core[] = [];
- // @Input('psicquicResources') psicquicResources!: PsicquicResource[];
+
 
   @Output('initialiseReplaceElements') initialiseReplaceElements: EventEmitter<any> = new EventEmitter();
   @Output('currentResourceChange') currentResourceChange: EventEmitter<ResourceAndType> = new EventEmitter<ResourceAndType>();
@@ -44,30 +44,45 @@ export class InteractorsComponent implements AfterViewInit{
     this.getPsicquicResources();
   }
 
-  getInteractors(resource: string | null, resourceType: ResourceType | undefined) {
-
-    if (resource && resourceType) {
+  getStaticInteractors(resource: string | null) {
+    if (resource) {
       this.clear = false
-      this.updateCurrentResource(resource, resourceType);
+      this.updateCurrentResource(resource);
     } else {
       return;
     }
-
     this.cys.forEach(cy => {
-      if (this.currentResource.type != ResourceType.CUSTOM && this.currentResource.type != ResourceType.PSICQUIC) {
-        this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-          this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
-          this.initialiseReplaceElements.emit();
-        });
-      }
+      this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
+        this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
+        this.initialiseReplaceElements.emit();
+      });
       this.state.set('overlay', resource)
     })
   }
 
-  onPsicquicResourceChange(selectedResource: string, resourceType: ResourceType) {
+  getInteractors(resource: string | null | InteractorToken) {
+    if (!resource) return;
+    const resourceType = this.interactorsService.getResourceType(resource as string);
+    switch (resourceType) {
+      case ResourceType.STATIC:
+      case ResourceType.DISGENET:
+        this.getStaticInteractors(resource as string);
+        break;
+      case ResourceType.PSICQUIC:
+        this.getPsicquicResourceInteractors(resource as string);
+        break;
+      case ResourceType.CUSTOM:
+        this.getCustomResourceInteractors(resource as InteractorToken);
+        break;
+      default:
+        throw new Error("Unknown resource type encountered: " + resourceType);
+    }
+  }
+
+  getPsicquicResourceInteractors(selectedResource: string) {
     this.isDataFromPsicquicLoading = true;
     this.clear = false;
-    this.updateCurrentResource(selectedResource, resourceType);
+    this.updateCurrentResource(selectedResource);
     this.cys.forEach(cy => {
       this.interactorsService.getInteractorData(cy, selectedResource).subscribe(interactors => {
         this.interactorsService.addInteractorOccurrenceNode(interactors, cy, selectedResource);
@@ -93,7 +108,7 @@ export class InteractorsComponent implements AfterViewInit{
         if (resource) {
           this.resourceTokens!.push(resource);
           this.clear = false;
-          this.updateCurrentResource(resource.summary.name, ResourceType.CUSTOM);
+          this.updateCurrentResource(resource.summary.name);
           this.state.set('overlay', resource.summary.token);
         }
         this.cdr.detectChanges();
@@ -105,18 +120,18 @@ export class InteractorsComponent implements AfterViewInit{
     return this.resourceTokens!.includes(resource);
   }
 
-  onCustomResourceChange(resource: InteractorToken) {
+  getCustomResourceInteractors(resource: InteractorToken) {
     this.cys.forEach(cy => {
       this.interactorsService.sendPostRequest(resource, cy).subscribe((result) => {
         this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
         this.clear = false;
-        this.updateCurrentResource(resource!.summary.name, ResourceType.CUSTOM);
+        this.updateCurrentResource(resource!.summary.name);
         this.state.set('overlay', resource.summary.token);
       })
     })
   }
 
-  deleteResource(resource: InteractorToken) {
+  deleteCustomResource(resource: InteractorToken) {
     const index = this.resourceTokens!.indexOf(resource);
     if (index !== -1) {
       this.resourceTokens!.splice(index, 1);
@@ -124,7 +139,6 @@ export class InteractorsComponent implements AfterViewInit{
         cy.elements(`[resource = '${resource}']`).remove();
         this.state.set('overlay', null);
       })
-
     }
   }
 
@@ -132,16 +146,20 @@ export class InteractorsComponent implements AfterViewInit{
     this.cys.forEach(cy => {
       this.interactorsService.clearAllInteractorNodes(cy);
       this.clear = true;
-      this.updateCurrentResource(null, null);
+      this.updateCurrentResource(null);
       this.state.set('overlay', null);
     })
   }
 
-  updateCurrentResource(name: string | null, type: ResourceType | null) {
-    this.currentResource.name = name;
-    this.currentResource.type = type;
+  updateCurrentResource(name: string | null) {
+    if (name) {
+      this.currentResource.name = name;
+      this.currentResource.type = this.interactorsService.getResourceType(name)
+    } else {
+      this.currentResource.name = null;
+      this.currentResource.type = null
+    }
     this.currentResourceChange.emit(this.currentResource);
-
   }
 
   getPsicquicResources() {
@@ -149,6 +167,4 @@ export class InteractorsComponent implements AfterViewInit{
       this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
     });
   }
-
-
 }

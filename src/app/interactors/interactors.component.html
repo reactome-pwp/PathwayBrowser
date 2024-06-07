@@ -35,11 +35,11 @@
       <ng-container *ngTemplateOutlet="dividerTemplate; context: { $implicit: 'Main' }"></ng-container>
 
       <div class="main-resource">
-        <button class="full-width" mat-button (click)="getInteractors(INTACT_RESOURCE,ResourceType.STATIC)"
+        <button class="full-width" mat-button (click)="getInteractors(INTACT_RESOURCE)"
                 [ngClass]="{'active-button': currentResource.type === ResourceType.STATIC}">IntAct
         </button>
 
-        <button class="full-width" mat-button (click)="getInteractors(DISEASE_RESOURCE,ResourceType.DISGENET)"
+        <button class="full-width" mat-button (click)="getInteractors(DISEASE_RESOURCE)"
                 [ngClass]="{'active-button': currentResource.type === ResourceType.DISGENET}">DisGeNet
         </button>
       </div>
@@ -49,7 +49,7 @@
       <mat-grid-list cols="2" rowHeight="28px" [gutterSize]="'5px'">
         <mat-grid-tile *ngFor="let resource of psicquicResources" class="rounded-corner">
           <button class="full-width psicquic-button" mat-button
-                  (click)="onPsicquicResourceChange(resource.name, ResourceType.PSICQUIC)"
+                  (click)="getInteractors(resource.name)"
                   [ngClass]="{'active-button': currentResource.name === resource.name}" [disabled]="!resource.active">
             <div class="resource-name">
               <span>{{ resource.name }}</span>
@@ -64,12 +64,12 @@
 
       <mat-selection-list *ngIf="resourceTokens?.length != 0" [multiple]=false hideSingleSelectionIndicator=true>
         <mat-list-option *ngFor="let resourceToken of resourceTokens" [value]="resourceToken"
-                         [selected]="isSelected(resourceToken)" (click)="onCustomResourceChange(resourceToken)"
+                         [selected]="isSelected(resourceToken)" (click)="getInteractors(resourceToken)"
                          [ngClass]="{'active-button': currentResource.name === resourceToken.summary.name}"
                          class="full-width">
           <div class="resource-name surface-variant">
             <div>{{ resourceToken.summary.name }}</div>
-            <button mat-icon-button (click)="deleteResource(resourceToken)">
+            <button mat-icon-button (click)="deleteCustomResource(resourceToken)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
