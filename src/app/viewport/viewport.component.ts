@@ -1,11 +1,10 @@
 import {AfterViewInit, Component, Input, ViewChild} from '@angular/core';
 import {DiagramComponent} from "../diagram/diagram.component";
-import {ResourceType} from "../interactors/model/interactor.model";
+import {ResourceAndType} from "../interactors/model/interactor.model";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {Species} from "../model/species.model";
+import {Router} from "@angular/router";
 
-
-type ResourceAndType = { name: string | null, type: ResourceType | null }
 
 @Component({
   selector: 'cr-viewport',
@@ -32,7 +31,7 @@ export class ViewportComponent implements AfterViewInit {
     interactor: false
   }
 
-  constructor() {
+  constructor(private router: Router) {
   }
 
   ngAfterViewInit(): void {
@@ -53,9 +52,14 @@ export class ViewportComponent implements AfterViewInit {
   }
 
   updateCurrentSpecies(species: Species) {
-
-    let newSubTerm = species.abbreviation;
-    this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${newSubTerm}-`);
+    // abbreviation = HSA, DEL,...
+    let abbreviation = species.abbreviation;
+    this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${abbreviation}-`);
     this.currentSpecies = species;
+    // Navigate to the new URL with the updated diagramId
+    return this.router.navigate(['PathwayBrowser', this.diagramId], {
+    queryParamsHandling: "preserve" // Keep existing query params
+    });
   }
+
 }
