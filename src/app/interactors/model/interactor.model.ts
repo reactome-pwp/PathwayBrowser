@@ -57,3 +57,4 @@ export enum ResourceType {
   CUSTOM = 'custom'
 }
 
+export type ResourceAndType = { name: string | null, type: ResourceType | null }

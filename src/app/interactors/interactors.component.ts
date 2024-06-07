@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
-import {InteractorToken, PsicquicResource, ResourceType} from "./model/interactor.model";
+import {InteractorToken, PsicquicResource, ResourceAndType, ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
 import {DarkService} from "../services/dark.service";
@@ -9,7 +9,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
 
 
-type ResourceAndType = { name: string | null, type: ResourceType | null }
 
 @Component({
   selector: 'cr-interactors',
