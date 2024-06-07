@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
-import {map, Observable, switchMap} from "rxjs";
+import {map, Observable, switchMap, tap} from "rxjs";
 import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../model/interactor.model";
 
 
@@ -38,20 +38,31 @@ export class InteractorService {
 
   identifiers: string = '';
   cyToSelectedResource = new Map<cytoscape.Core, string>();
+  psicquicResources: PsicquicResource[] = [];
 
 
   constructor(private http: HttpClient, private diagramService: DiagramService) {
   }
 
-  private getAllIdentifiers(cy: cytoscape.Core): void {
+  private getIdentifiers(cy: cytoscape.Core): void {
     this.identifiers = this.getIdentifiersFromGraph(cy);
   }
 
-  private updateIdentifiersIfNeeded(cy: cytoscape.Core): void {
-    if (!this.identifiers) {
-      this.getAllIdentifiers(cy);
+  private updateIdentifiers(cy: cytoscape.Core): void {
+    const currentIdentifiers = this.getIdentifiersFromGraph(cy);
+
+    if (!this.identifiers || !this.areSame(this.identifiers, currentIdentifiers)) {
+      this.identifiers = currentIdentifiers;
+    } else {
+      this.getIdentifiers(cy);
     }
   }
+
+  areSame(idsA: string, idsB: string): boolean {
+    const normalize = (str: string): string => str.split(',').sort().join(',');
+    return normalize(idsA) === normalize(idsB);
+  }
+
 
   public getIdentifiersFromGraph(cy: cytoscape.Core) {
     const graphNodes = cy?.nodes(`[graph]`);
@@ -70,7 +81,7 @@ export class InteractorService {
   }
 
   public getInteractorData(cy: cytoscape.Core, resource: string): Observable<Interactors> {
-    this.updateIdentifiersIfNeeded(cy);
+    this.updateIdentifiers(cy);
     let url;
     if (resource === ResourceType.STATIC) {
       url = this.STATIC_URL;
@@ -282,6 +293,14 @@ export class InteractorService {
     });
   }
 
+  public getPsicquicResourcesTest(): Observable<PsicquicResource[]> {
+    return this.http.get<PsicquicResource[]>(this.PSICQUIC_RESOURCE_URL, {
+      headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
+    }).pipe(
+      tap(psicquicResources => this.psicquicResources = psicquicResources.filter(r => r.name !== ResourceType.STATIC && r.active))
+    );
+  }
+
   public getInteractorToken(name: string, url: string, body: string | FormData) {
     return this.http.post<InteractorToken>(url, body, {
       params: new HttpParams().set('name', name),
@@ -293,7 +312,7 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updateIdentifiersIfNeeded(cy);
+    this.updateIdentifiers(cy);
     return this.getInteractorToken(name, url, body).pipe(
       switchMap(token => {
         return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
@@ -309,7 +328,7 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updateIdentifiersIfNeeded(cy);
+    this.updateIdentifiers(cy);
     return this.getInteractorToken(name, url, body).pipe(
       switchMap(token => this.sendPostRequest(token, cy))
     );
@@ -319,7 +338,7 @@ export class InteractorService {
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updateIdentifiersIfNeeded(cy);
+    this.updateIdentifiers(cy);
     return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     }).pipe(
@@ -327,8 +346,43 @@ export class InteractorService {
     );
   }
 
-  public isCustomResource(resource: string, psiResource: PsicquicResource[]) {
-    const isFromPSICQUIC = psiResource.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === resource)
-    return resource != ResourceType.STATIC && resource != ResourceType.DISGENET && !isFromPSICQUIC;
+
+  public getResourceType(resource: string): ResourceType | null {
+
+    if (resource === ResourceType.STATIC) {
+      return ResourceType.STATIC;
+    }
+    if (resource === ResourceType.DISGENET) {
+      return ResourceType.DISGENET;
+    }
+    // if (this.isCustomResource(resource)) {
+    //   return ResourceType.CUSTOM;
+    // }
+    //
+    // if (this.psicquicResources.some(pr => pr.name === resource && pr.name !== ResourceType.STATIC)) {
+    //   return ResourceType.PSICQUIC;
+    // }
+
+    // The method above will cause async issue,psicquicResource is an empty list
+    if (!this.isToken(resource)) {
+      return ResourceType.PSICQUIC;
+    }
+    if (this.isToken(resource)) {
+      return ResourceType.CUSTOM;
+    }
+    return null;
+  }
+
+  private isCustomResource(resource: string): boolean {
+    return resource !== ResourceType.STATIC &&
+      resource !== ResourceType.DISGENET &&
+      !this.psicquicResources.some(pr => pr.name === resource && pr.name !== ResourceType.STATIC);
+  }
+
+  isToken(input: string) {
+    // Token: bacce4a97e4be3b344d31015f944c014, f5c4234ffec30ecbed609296cceb40ec
+    // Check if the string contains numbers and has a length greater than 15
+    const regex = /\d/;
+    return regex.test(input) && input.length > 20;
   }
 }
