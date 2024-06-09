@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {environment} from "../../environments/environment";
 import {Species} from "../model/species.model";
 
@@ -8,6 +8,9 @@ import {Species} from "../model/species.model";
   providedIn: 'root'
 })
 export class SpeciesService {
+
+  private currentSpeciesSubject = new BehaviorSubject<Species | undefined>(undefined);
+  public currentSpecies$ = this.currentSpeciesSubject.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -26,5 +29,8 @@ export class SpeciesService {
     const genus = parts[0];
     const species = parts[1];
     s.shortName = `${genus.charAt(0)}.${species}`;
+  }
+  setCurrentSpecies(species: Species) {
+    this.currentSpeciesSubject.next(species);
   }
 }

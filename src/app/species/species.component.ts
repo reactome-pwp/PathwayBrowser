@@ -1,6 +1,7 @@
-import {AfterViewInit, Component, EventEmitter, Output} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, Output} from '@angular/core';
 import {Species} from "../model/species.model";
 import {SpeciesService} from "../services/species.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'cr-species',
@@ -8,13 +9,12 @@ import {SpeciesService} from "../services/species.service";
   styleUrls: ['./species.component.scss']
 })
 export class SpeciesComponent implements AfterViewInit {
-
-
   allSpecies: Species[] = [];
+  currentSpecies!: Species;
 
-  @Output('currentSpeciesChange') currentSpeciesChange: EventEmitter<Species> = new EventEmitter<Species>();
+  @Input('id') diagramId: string = '';
 
-  constructor(private speciesService: SpeciesService) {
+  constructor(private speciesService: SpeciesService,private router: Router) {
 
   }
 
@@ -31,8 +31,19 @@ export class SpeciesComponent implements AfterViewInit {
     })
   }
 
-  onSpeciesChange(s: Species) {
-    this.currentSpeciesChange.emit(s);
+  onSpeciesChange(species: Species) {
+   // this.currentSpeciesChange.emit(s);
+    this.currentSpecies = species;
+    this.speciesService.setCurrentSpecies(species);
+
+    // abbreviation = HSA, DEL,...
+    let abbreviation = species.abbreviation;
+    this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${abbreviation}-`);
+    // this.currentSpecies = species;
+    // Navigate to the new URL with the updated diagramId
+    return this.router.navigate(['PathwayBrowser', this.diagramId], {
+      queryParamsHandling: "preserve" // Keep existing query params
+    });
   }
 
 

@@ -3,7 +3,9 @@ import {DiagramComponent} from "../diagram/diagram.component";
 import {ResourceAndType} from "../interactors/model/interactor.model";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {Species} from "../model/species.model";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
+import {SpeciesService} from "../services/species.service";
+import {InteractorService} from "../interactors/services/interactor.service";
 
 
 @Component({
@@ -22,19 +24,23 @@ export class ViewportComponent implements AfterViewInit {
   currentSpecies: Species | undefined = undefined;
 
 
-  items = ['Autophagy', 'Cell Cycle', 'Cell-Cell communication', 'Developmental Biology', 'Digestion and absorption', 'Disease', 'DNA Repair', 'DNA Replication', 'Drug ADME', 'Extracellular matrix organization',
-    'Gene expression (Transcription)', 'Hemostasis', 'Immune System', 'Metabolism', 'Metabolism of proteins', 'Metabolism of RNA', 'Muscle contraction', 'Neuronal System']
-
-
   visibility = {
     species: false,
     interactor: false
   }
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private route: ActivatedRoute, private speciesService: SpeciesService, private interactorService: InteractorService) {
   }
 
   ngAfterViewInit(): void {
+
+    this.speciesService.currentSpecies$.subscribe(species => {
+      this.currentSpecies = species;
+    });
+
+    this.interactorService.currentInteractorResource$.subscribe(resource => {
+      this.currentInteractorResource = resource;
+    });
   }
 
   toggleVisibility(type: string) {
@@ -46,20 +52,4 @@ export class ViewportComponent implements AfterViewInit {
       this.visibility.species = false;
     }
   }
-
-  updateCurrentInteractorResource(resource: ResourceAndType) {
-    this.currentInteractorResource = resource;
-  }
-
-  updateCurrentSpecies(species: Species) {
-    // abbreviation = HSA, DEL,...
-    let abbreviation = species.abbreviation;
-    this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${abbreviation}-`);
-    this.currentSpecies = species;
-    // Navigate to the new URL with the updated diagramId
-    return this.router.navigate(['PathwayBrowser', this.diagramId], {
-    queryParamsHandling: "preserve" // Keep existing query params
-    });
-  }
-
 }

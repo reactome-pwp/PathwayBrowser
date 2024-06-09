@@ -1,13 +1,19 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
-import {map, Observable, switchMap, tap} from "rxjs";
-import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../model/interactor.model";
+import {BehaviorSubject, map, Observable, Subject, switchMap, tap} from "rxjs";
+import {
+  Interactor,
+  Interactors,
+  InteractorToken,
+  PsicquicResource,
+  ResourceAndType,
+  ResourceType
+} from "../model/interactor.model";
 
 
 import InteractorsLayout from "../layout/interactors-layout";
 import {DiagramService} from "../../services/diagram.service";
-import {ResourceType} from "../model/interactor.model";
 import {environment} from "../../../environments/environment";
 
 @Injectable({
@@ -41,7 +47,19 @@ export class InteractorService {
   psicquicResources: PsicquicResource[] = [];
 
 
+  private currentInteractorResourceSubject = new Subject<ResourceAndType>();
+  public currentInteractorResource$ = this.currentInteractorResourceSubject.asObservable();
+
+  private psicquicResourcesSubject: BehaviorSubject<PsicquicResource[]> = new BehaviorSubject<PsicquicResource[]>([]);
+  public psicquicResources$: Observable<PsicquicResource[]> = this.psicquicResourcesSubject.asObservable();
+
+
+
   constructor(private http: HttpClient, private diagramService: DiagramService) {
+  }
+
+  setCurrentResource(r: ResourceAndType) {
+    this.currentInteractorResourceSubject.next(r);
   }
 
   private getIdentifiers(cy: cytoscape.Core): void {

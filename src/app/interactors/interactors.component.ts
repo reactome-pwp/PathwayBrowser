@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {InteractorToken, PsicquicResource, ResourceAndType, ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
@@ -7,7 +7,6 @@ import {InteractorService} from "./services/interactor.service";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
-
 
 
 @Component({
@@ -19,9 +18,8 @@ export class InteractorsComponent implements AfterViewInit {
 
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: InteractorToken[] = [];
-  panelOpenState = false;
   clear = false;
-  currentResource: ResourceAndType = {name: null, type: null};
+  currentResource: ResourceAndType | undefined = {name: null, type: null};
   psicquicResources: PsicquicResource[] = [];
 
   DISEASE_RESOURCE = 'DisGeNet';
@@ -30,10 +28,7 @@ export class InteractorsComponent implements AfterViewInit {
 
   @Input('cy') cy!: cytoscape.Core;
   @Input('cys') cys: cytoscape.Core[] = [];
-
-
   @Output('initialiseReplaceElements') initialiseReplaceElements: EventEmitter<any> = new EventEmitter();
-  @Output('currentResourceChange') currentResourceChange: EventEmitter<ResourceAndType> = new EventEmitter<ResourceAndType>();
 
   constructor(private diagram: DiagramService, public dark: DarkService, private interactorsService: InteractorService, private state: DiagramStateService, public dialog: MatDialog, private cdr: ChangeDetectorRef) {
 
@@ -41,6 +36,9 @@ export class InteractorsComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.getPsicquicResources();
+    this.interactorsService.currentInteractorResource$.subscribe(resource => {
+      this.currentResource = resource;
+    });
   }
 
   getStaticInteractors(resource: string | null) {
@@ -152,13 +150,12 @@ export class InteractorsComponent implements AfterViewInit {
 
   updateCurrentResource(name: string | null) {
     if (name) {
-      this.currentResource.name = name;
-      this.currentResource.type = this.interactorsService.getResourceType(name)
+      const type = this.interactorsService.getResourceType(name);
+      const resource: ResourceAndType = {name, type};
+      this.interactorsService.setCurrentResource(resource);
     } else {
-      this.currentResource.name = null;
-      this.currentResource.type = null
+      this.interactorsService.setCurrentResource({name: null, type: null});
     }
-    this.currentResourceChange.emit(this.currentResource);
   }
 
   getPsicquicResources() {

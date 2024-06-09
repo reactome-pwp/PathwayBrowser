@@ -7,39 +7,6 @@
         <div class="search"><p>search-box</p></div>
         <div class="sidebar">
 
-          <!--                    <div class="species-interactor-container">-->
-          <!--                      <div class="species">-->
-          <!--                        <mat-accordion>-->
-          <!--                          <mat-expansion-panel hideToggle>-->
-          <!--                            <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
-          <!--                              <mat-panel-title>-->
-          <!--                                Species-->
-          <!--                              </mat-panel-title>-->
-          <!--                            </mat-expansion-panel-header>-->
-          <!--                            <div class="custom-body">-->
-          <!--                              <p>This is the content for the species</p>-->
-          <!--                            </div>-->
-          <!--                          </mat-expansion-panel>-->
-          <!--                        </mat-accordion>-->
-
-          <!--                      </div>-->
-          <!--                      <div class="interactor">-->
-          <!--                        <mat-accordion>-->
-          <!--                          <mat-expansion-panel hideToggle>-->
-          <!--                            <mat-expansion-panel-header [@.disabled]="true" style="width: 100%;padding: 0">-->
-          <!--                              <mat-panel-title>-->
-          <!--                                Overlay-->
-          <!--                              </mat-panel-title>-->
-          <!--                            </mat-expansion-panel-header>-->
-          <!--                            <div class="custom-body">-->
-          <!--                              <p>This is the content for the overlay</p>-->
-          <!--                            </div>-->
-          <!--                          </mat-expansion-panel>-->
-          <!--                        </mat-accordion>-->
-          <!--                      </div>-->
-          <!--                    </div>-->
-
-
           <div class="species-interactor-container">
             <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
               <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
@@ -47,38 +14,35 @@
                 <span>Species</span>
                 <span>{{ currentSpecies?.shortName || 'H.sapiens' }}</span>
               </div>
-              <mat-icon class="custom-icon" >arrow_drop_down</mat-icon>
+              <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
             </div>
             <div class="interactor" (click)="toggleVisibility('interactor')"
                  [ngClass]="{'selected': visibility.interactor}">
               <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
               <div class="overlay-content">
                 <span>Overlay</span>
-                <span *ngIf="currentInteractorResource.name">{{ currentInteractorResource.name }}</span>
+                <!--todo: fix the space for long name-->
+                <span *ngIf="currentInteractorResource?.name">{{ currentInteractorResource?.name }}</span>
               </div>
               <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
             </div>
           </div>
 
           <div [style.display]="visibility.species ? 'block':'none'">
-            <cr-species (currentSpeciesChange)="updateCurrentSpecies($event)"></cr-species>
-
+            <cr-species [id]="diagramId"></cr-species>
           </div>
           <div [style.display]="visibility.interactor ? 'block':'none'">
             <cr-interactors #interactors [cy]="diagram.cy" [cys]="diagram.cys"
-                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"
-                            (currentResourceChange)="updateCurrentInteractorResource($event)"></cr-interactors>
+                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
           </div>
 
 
-          <mat-list *ngFor="let item of items">
-            <mat-list-item>{{ item }}</mat-list-item>
-          </mat-list>
-
+          <cr-event-hierarchy></cr-event-hierarchy>
 
         </div>
       </div>
     </as-split-area>
+
     <as-split-area [size]="80">
       <div class="right-panel">
         <div class="top">
