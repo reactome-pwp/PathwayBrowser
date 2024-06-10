@@ -34,6 +34,7 @@ import {AngularSplitModule} from "angular-split";
 import {MatCardModule} from "@angular/material/card";
 import {SpeciesComponent} from './species/species.component';
 import {MatRippleModule} from "@angular/material/core";
+import {EventHierarchyComponent } from './event-hierarchy/event-hierarchy.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import {MatRippleModule} from "@angular/material/core";
     CustomInteractorDialogComponent,
     InteractorsComponent,
     ViewportComponent,
-    SpeciesComponent
+    SpeciesComponent,
+    EventHierarchyComponent
   ],
   imports: [
     BrowserModule,
