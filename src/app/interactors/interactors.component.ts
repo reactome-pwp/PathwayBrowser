@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {InteractorToken, PsicquicResource, ResourceAndType, ResourceType} from "./model/interactor.model";
 import cytoscape from "cytoscape";
 import {DiagramService} from "../services/diagram.service";
@@ -7,6 +7,7 @@ import {InteractorService} from "./services/interactor.service";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {MatDialog} from "@angular/material/dialog";
 import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom-interactor-dialog.component";
+import {Subscription} from "rxjs";
 
 
 @Component({
@@ -14,13 +15,14 @@ import {CustomInteractorDialogComponent} from "./custom-interactor-dialog/custom
   templateUrl: './interactors.component.html',
   styleUrls: ['./interactors.component.scss']
 })
-export class InteractorsComponent implements AfterViewInit {
+export class InteractorsComponent implements AfterViewInit, OnDestroy {
 
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: InteractorToken[] = [];
   clear = false;
   currentResource: ResourceAndType | undefined = {name: null, type: null};
   psicquicResources: PsicquicResource[] = [];
+  currentResourceSubscription!: Subscription;
 
   DISEASE_RESOURCE = 'DisGeNet';
   INTACT_RESOURCE = 'IntAct';
@@ -36,9 +38,13 @@ export class InteractorsComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.getPsicquicResources();
-    this.interactorsService.currentInteractorResource$.subscribe(resource => {
+    this.currentResourceSubscription = this.interactorsService.currentInteractorResource$.subscribe(resource => {
       this.currentResource = resource;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.currentResourceSubscription.unsubscribe()
   }
 
   getStaticInteractors(resource: string | null) {

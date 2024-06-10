@@ -1,9 +1,10 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import {TopLevelPathway} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {Species} from "../model/species.model";
 import {result} from "lodash";
 import {SpeciesService} from "../services/species.service";
+import {Subscription} from "rxjs";
 
 
 @Component({
@@ -11,16 +12,17 @@ import {SpeciesService} from "../services/species.service";
   templateUrl: './event-hierarchy.component.html',
   styleUrls: ['./event-hierarchy.component.scss']
 })
-export class EventHierarchyComponent implements AfterViewInit {
+export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   topLevelPathways: TopLevelPathway[] = []
   currentSpecies!: Species;
+  speciesSubscription!: Subscription;
 
   constructor(private eventService: EventService, private speciesService: SpeciesService) {
   }
 
   ngAfterViewInit(): void {
-    this.speciesService.currentSpecies$.subscribe(species => {
+    this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       if (species) {
         this.currentSpecies = species;
         this.getTopLevelPathway(species.taxId);
@@ -35,6 +37,10 @@ export class EventHierarchyComponent implements AfterViewInit {
         this.topLevelPathways = result;
       }
     )
+  }
+
+  ngOnDestroy(): void {
+    this.speciesSubscription.unsubscribe();
   }
 
 }

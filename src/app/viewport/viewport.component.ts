@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
 import {DiagramComponent} from "../diagram/diagram.component";
 import {ResourceAndType} from "../interactors/model/interactor.model";
 import {InteractorsComponent} from "../interactors/interactors.component";
@@ -6,6 +6,7 @@ import {Species} from "../model/species.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {SpeciesService} from "../services/species.service";
 import {InteractorService} from "../interactors/services/interactor.service";
+import {Subscription} from "rxjs";
 
 
 @Component({
@@ -13,7 +14,7 @@ import {InteractorService} from "../interactors/services/interactor.service";
   templateUrl: './viewport.component.html',
   styleUrls: ['./viewport.component.scss']
 })
-export class ViewportComponent implements AfterViewInit {
+export class ViewportComponent implements AfterViewInit, OnDestroy {
 
 
   @ViewChild('diagram') diagram!: DiagramComponent;
@@ -22,6 +23,9 @@ export class ViewportComponent implements AfterViewInit {
 
   currentInteractorResource: ResourceAndType = {name: null, type: null};
   currentSpecies: Species | undefined = undefined;
+
+  currentResourceSubscription!: Subscription;
+  speciesSubscription!: Subscription;
 
 
   visibility = {
@@ -34,13 +38,18 @@ export class ViewportComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
 
-    this.speciesService.currentSpecies$.subscribe(species => {
+    this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       this.currentSpecies = species;
     });
 
-    this.interactorService.currentInteractorResource$.subscribe(resource => {
+    this.currentResourceSubscription = this.interactorService.currentInteractorResource$.subscribe(resource => {
       this.currentInteractorResource = resource;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.speciesSubscription.unsubscribe();
+    this.currentResourceSubscription.unsubscribe();
   }
 
   toggleVisibility(type: string) {
@@ -52,4 +61,6 @@ export class ViewportComponent implements AfterViewInit {
       this.visibility.species = false;
     }
   }
+
+
 }
