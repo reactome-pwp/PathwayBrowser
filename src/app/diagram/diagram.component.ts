@@ -515,7 +515,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   flagging = this.state.onChange.flag$.subscribe((value) => this.cys.forEach(cy => this.flag(value, cy)))
   selecting = this.state.onChange.select$.subscribe((value) => this.cys.forEach(cy => this.select(value, cy)))
-  interactoring = this.state.onChange.overlay$.subscribe((value) => this.interactorsComponent?.getInteractors(value));
+  //interactoring = this.state.onChange.overlay$.subscribe((value) => this.interactorsComponent?.getInteractors(value));
   analysing = this.state.onChange.analysis$.subscribe((value) => this.loadAnalysis(value));
 
 

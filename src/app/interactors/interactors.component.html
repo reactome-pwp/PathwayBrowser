@@ -41,7 +41,7 @@
         <mat-grid-tile *ngFor="let resource of psicquicResources" class="rounded-corner">
           <button class="full-width psicquic-button" mat-button
                   (click)="getInteractors(resource.name)"
-                  [ngClass]="{'active-button': currentResource?.name === resource.name}" [disabled]="!resource.active">
+                  [ngClass]="{'active-button': currentResource?.name === resource.name}">
             <div class="resource-name">
               <span>{{ resource.name }}</span>
               <mat-spinner class="spinner-color" diameter="20"

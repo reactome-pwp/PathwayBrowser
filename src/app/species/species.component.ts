@@ -32,7 +32,6 @@ export class SpeciesComponent implements AfterViewInit {
   }
 
   onSpeciesChange(species: Species) {
-   // this.currentSpeciesChange.emit(s);
     this.currentSpecies = species;
     this.speciesService.setCurrentSpecies(species);
 

@@ -21,11 +21,11 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
   @ViewChild('interactors') interactors!: InteractorsComponent;
   @Input('id') diagramId: string = '';
 
-  currentInteractorResource: ResourceAndType = {name: null, type: null};
+  currentInteractorResource: ResourceAndType | undefined = {name: null, type: null};
   currentSpecies: Species | undefined = undefined;
 
   currentResourceSubscription!: Subscription;
-  speciesSubscription!: Subscription;
+  currentSpeciesSubscription!: Subscription;
 
 
   visibility = {
@@ -38,7 +38,7 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
 
-    this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
+    this.currentSpeciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       this.currentSpecies = species;
     });
 
@@ -48,7 +48,7 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.speciesSubscription.unsubscribe();
+    this.currentSpeciesSubscription.unsubscribe();
     this.currentResourceSubscription.unsubscribe();
   }
 

@@ -47,10 +47,40 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
     this.currentResourceSubscription.unsubscribe()
   }
 
+  getInteractors(resource: string | null | InteractorToken) {
+    if (!resource) return;
+
+    this.interactorsService.getResourceType(resource as string).subscribe({
+      next: (resourceType) => {
+        console.log('Resource Type', resourceType);
+        switch (resourceType) {
+          case ResourceType.STATIC:
+          case ResourceType.DISGENET:
+            this.getStaticInteractors(resource as string);
+            break;
+          case ResourceType.PSICQUIC:
+            this.getPsicquicResourceInteractors(resource as string);
+            break;
+          case ResourceType.CUSTOM:
+            this.getCustomResourceInteractors(resource as InteractorToken);
+            break;
+          default:
+            throw new Error("Unknown resource type encountered: " + resourceType);
+        }
+      },
+
+      error: (error) => {
+        console.error("Error determining resource type:", error);
+        throw new Error("Error determining resource type: " + error);
+      },
+    })
+  }
+
   getStaticInteractors(resource: string | null) {
     if (resource) {
       this.clear = false
-      this.updateCurrentResource(resource);
+      let type = resource === ResourceType.STATIC ? ResourceType.STATIC : ResourceType.DISGENET;
+      this.updateCurrentResource(resource, type);
     } else {
       return;
     }
@@ -63,29 +93,10 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  getInteractors(resource: string | null | InteractorToken) {
-    if (!resource) return;
-    const resourceType = this.interactorsService.getResourceType(resource as string);
-    switch (resourceType) {
-      case ResourceType.STATIC:
-      case ResourceType.DISGENET:
-        this.getStaticInteractors(resource as string);
-        break;
-      case ResourceType.PSICQUIC:
-        this.getPsicquicResourceInteractors(resource as string);
-        break;
-      case ResourceType.CUSTOM:
-        this.getCustomResourceInteractors(resource as InteractorToken);
-        break;
-      default:
-        throw new Error("Unknown resource type encountered: " + resourceType);
-    }
-  }
-
   getPsicquicResourceInteractors(selectedResource: string) {
     this.isDataFromPsicquicLoading = true;
     this.clear = false;
-    this.updateCurrentResource(selectedResource);
+    this.updateCurrentResource(selectedResource, ResourceType.PSICQUIC);
     this.cys.forEach(cy => {
       this.interactorsService.getInteractorData(cy, selectedResource).subscribe(interactors => {
         this.interactorsService.addInteractorOccurrenceNode(interactors, cy, selectedResource);
@@ -111,7 +122,7 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
         if (resource) {
           this.resourceTokens!.push(resource);
           this.clear = false;
-          this.updateCurrentResource(resource.summary.name);
+          this.updateCurrentResource(resource.summary.name, ResourceType.CUSTOM);
           this.state.set('overlay', resource.summary.token);
         }
         this.cdr.detectChanges();
@@ -124,11 +135,14 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
   }
 
   getCustomResourceInteractors(resource: InteractorToken) {
+
+    if (!resource.summary) return
+
     this.cys.forEach(cy => {
-      this.interactorsService.sendPostRequest(resource, cy).subscribe((result) => {
+      this.interactorsService.fetchCustomInteractors(resource, cy).subscribe((result) => {
         this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
         this.clear = false;
-        this.updateCurrentResource(resource!.summary.name);
+        this.updateCurrentResource(resource!.summary.name, ResourceType.CUSTOM);
         this.state.set('overlay', resource.summary.token);
       })
     })
@@ -149,14 +163,13 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
     this.cys.forEach(cy => {
       this.interactorsService.clearAllInteractorNodes(cy);
       this.clear = true;
-      this.updateCurrentResource(null);
+      this.updateCurrentResource(null, null);
       this.state.set('overlay', null);
     })
   }
 
-  updateCurrentResource(name: string | null) {
-    if (name) {
-      const type = this.interactorsService.getResourceType(name);
+  updateCurrentResource(name: string | null, type: ResourceType | null) {
+    if (name && type) {
       const resource: ResourceAndType = {name, type};
       this.interactorsService.setCurrentResource(resource);
     } else {
@@ -166,7 +179,7 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
 
   getPsicquicResources() {
     this.interactorsService.getPsicquicResources().subscribe(resources => {
-      this.psicquicResources = resources.filter(r => r.name !== ResourceType.STATIC && r.active);
-    });
+      this.psicquicResources = resources;
+    })
   }
 }
