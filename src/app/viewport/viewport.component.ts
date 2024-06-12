@@ -22,7 +22,7 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
   @Input('id') diagramId: string = '';
 
   currentInteractorResource: ResourceAndType | undefined = {name: null, type: null};
-  currentSpecies!: Species
+  currentSpecies: Species | undefined = undefined;
 
   currentResourceSubscription!: Subscription;
   currentSpeciesSubscription!: Subscription;
