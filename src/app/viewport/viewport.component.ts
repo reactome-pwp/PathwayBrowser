@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, ViewChild} from '@angular/core';
 import {DiagramComponent} from "../diagram/diagram.component";
 import {ResourceAndType} from "../interactors/model/interactor.model";
 import {InteractorsComponent} from "../interactors/interactors.component";
@@ -22,7 +22,7 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
   @Input('id') diagramId: string = '';
 
   currentInteractorResource: ResourceAndType | undefined = {name: null, type: null};
-  currentSpecies: Species | undefined = undefined;
+  currentSpecies!: Species
 
   currentResourceSubscription!: Subscription;
   currentSpeciesSubscription!: Subscription;
@@ -33,13 +33,15 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
     interactor: false
   }
 
-  constructor(private router: Router, private route: ActivatedRoute, private speciesService: SpeciesService, private interactorService: InteractorService) {
+  constructor(private router: Router, private route: ActivatedRoute, private speciesService: SpeciesService, private interactorService: InteractorService, private cdRef: ChangeDetectorRef) {
   }
 
   ngAfterViewInit(): void {
 
     this.currentSpeciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       this.currentSpecies = species;
+      // Updated the content after ngAfterContentChecked to avoid ExpressionChangedAfterItHasBeenCheckedError
+      this.cdRef.detectChanges();
     });
 
     this.currentResourceSubscription = this.interactorService.currentInteractorResource$.subscribe(resource => {

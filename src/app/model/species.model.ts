@@ -1,10 +1,10 @@
 export interface Species {
-  dbId: number;
+  dbId?: number;
   displayName: string;
-  name: string[];
-  schemaClass: string;
-  taxId: string;
-  abbreviation: string
-  className: string;
   shortName: string;
+  taxId: string;
+  name?: string[];
+  schemaClass?: string;
+  abbreviation?: string
+  className?: string;
 }

@@ -20,8 +20,8 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
   isDataFromPsicquicLoading: boolean = false;
   resourceTokens: InteractorToken[] = [];
   clear = false;
-  currentResource: ResourceAndType | undefined = {name: null, type: null};
   psicquicResources: PsicquicResource[] = [];
+  currentResource: ResourceAndType | undefined = {name: null, type: null};
   currentResourceSubscription!: Subscription;
 
   DISEASE_RESOURCE = 'DisGeNet';
