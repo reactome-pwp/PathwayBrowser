@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import {EventObject} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {Species} from "../model/species.model";
@@ -18,23 +18,20 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   currentSpecies!: Species;
   speciesSubscription!: Subscription;
+  dataSubscription!: Subscription;
 
 
-  dataSource$: BehaviorSubject<EventObject[]>;
+  data$: BehaviorSubject<EventObject[]> = new BehaviorSubject<EventObject[]>([]);
   treeControl = new NestedTreeControl<EventObject>(node => node.hasEvent);
   dataSource = new MatTreeNestedDataSource<EventObject>();
 
 
-  constructor(private eventService: EventService, private speciesService: SpeciesService, private cdr: ChangeDetectorRef) {
+  constructor(private eventService: EventService, private speciesService: SpeciesService) {
 
-    this.dataSource$ = new BehaviorSubject<EventObject[]>([]);
-    this.dataSource$.subscribe(items => {
-      // @ts-ignore
-      this.dataSource.data = null; //todo: check performance issue
-      this.dataSource.data = items;
-    });
+  }
 
-
+  setCurrentData(data: EventObject[]) {
+    this.data$.next(data);
   }
 
   ngAfterViewInit(): void {
@@ -43,15 +40,23 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       const taxId = species ? species.taxId : '9606';
       this.getTopLevelPathways(taxId);
     });
+
+    this.dataSubscription = this.data$.subscribe(items => {
+      // @ts-ignore
+      // Mat tree has a bug causing children to not be rendered in the UI without first setting the data to null
+      // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
+      this.dataSource.data = null; //todo: check performance issue
+      this.dataSource.data = items;
+    });
   }
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).subscribe(result => {
-      this.dataSource$.next(result)
+      this.setCurrentData(result);
     });
   }
 
-  hasChild = (_: number, node: EventObject) => !!node.hasEvent && node.hasEvent.length > 0 || node.schemaClass === 'TopLevelPathway' || node.schemaClass === 'Pathway';
+  hasChild = (_: number, node: EventObject) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway'].includes(node.schemaClass);
 
   loadChildNodes(node: EventObject) {
     // Check if children are already loaded
@@ -62,18 +67,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.fetchChildEvents(node.stId).subscribe(children => {
       if (children.hasEvent) {
         node.hasEvent = children.hasEvent;
-
-
+        this.setCurrentData(this.data$.value);
         //this.dataSource.data = [...this.dataSource.data];  // doesn't work
-        //this.dataSource.data = JSON.parse(JSON.stringify(this.dataSource.data)) // fake a change by duplicating the data in another structure with the same content.
-        // this.dataSource.data =  null;
         if (!this.treeControl.isExpanded(node)) {
           this.treeControl.expand(node);
         }
 
-        this.dataSource$.next(this.dataSource$.value);
-
-        //this.cdr.detectChanges();
         console.log('final data', this.dataSource.data)
       } else {
         console.log('No children found');
@@ -81,15 +80,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-
-  /** toggle node */
-  // toggleNode(node: TreeItem) {
-  //   this.treeControl.toggle(node);
-  //
-
-
   ngOnDestroy(): void {
     this.speciesSubscription.unsubscribe();
-    this.dataSource$.complete();
+    this.dataSubscription.unsubscribe();
   }
 }
