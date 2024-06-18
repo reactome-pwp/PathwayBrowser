@@ -24,6 +24,10 @@ export class SpeciesComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.getSpecies();
 
+    if(this.diagramId){
+      this.speciesService.setSpeciesFromDiagramId(this.diagramId);
+    }
+
     this.currentSpeciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       this. currentSpecies = species;
     });

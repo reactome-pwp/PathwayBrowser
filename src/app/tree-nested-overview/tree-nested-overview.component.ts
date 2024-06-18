@@ -1,5 +1,5 @@
 import {AfterViewInit, Component} from '@angular/core';
-import {EventObject} from "../model/event.model";
+import {Event} from "../model/event.model";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {TreeDataSource} from "./tree-datassource";
 import {EventService} from "../services/event.service";
@@ -19,7 +19,7 @@ export class TreeNestedOverviewComponent implements AfterViewInit {
   speciesSubscription!: Subscription;
 
 
-  treeControl = new NestedTreeControl<EventObject>(node => node.hasEvent);
+  treeControl = new NestedTreeControl<Event>(node => node.hasEvent);
   dataSource = new TreeDataSource(this.treeControl, []);
 
   constructor(private eventService: EventService, private speciesService: SpeciesService) {
@@ -40,9 +40,9 @@ export class TreeNestedOverviewComponent implements AfterViewInit {
     });
   }
 
-  hasChild = (_: number, node: EventObject) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway'].includes(node.schemaClass);
+  hasChild = (_: number, node: Event) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway'].includes(node.schemaClass);
 
-  addChild(node: EventObject) {
+  addChild(node: Event) {
     if (!node.stId) return
     this.eventService.fetchChildEvents(node.stId).subscribe(children => {
       if (children.hasEvent) {

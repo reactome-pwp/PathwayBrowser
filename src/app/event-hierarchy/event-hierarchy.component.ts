@@ -1,8 +1,8 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {EventObject} from "../model/event.model";
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {BehaviorSubject, forkJoin, map, mergeMap, of, Subscription, switchMap, take, tap} from "rxjs";
+import {BehaviorSubject, forkJoin, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 
@@ -12,7 +12,7 @@ import {MatTreeNestedDataSource} from "@angular/material/tree";
   templateUrl: './event-hierarchy.component.html',
   styleUrls: ['./event-hierarchy.component.scss']
 })
-export class EventHierarchyComponent implements AfterViewInit, OnInit, OnDestroy {
+export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
 
@@ -20,22 +20,21 @@ export class EventHierarchyComponent implements AfterViewInit, OnInit, OnDestroy
   dataSubscription!: Subscription;
 
 
-  data$: BehaviorSubject<EventObject[]> = new BehaviorSubject<EventObject[]>([]);
-  treeControl = new NestedTreeControl<EventObject, string>(node => node.hasEvent, {trackBy: node => node.stId});
-  dataSource = new MatTreeNestedDataSource<EventObject>();
+  data$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
+  treeControl = new NestedTreeControl<Event, string>(node => node.hasEvent, {trackBy: node => node.stId});
+  dataSource = new MatTreeNestedDataSource<Event>();
 
 
   constructor(private eventService: EventService, private speciesService: SpeciesService, private cdRef: ChangeDetectorRef) {
 
   }
 
-  setCurrentData(data: EventObject[]) {
+  setCurrentData(data: Event[]) {
     this.data$.next(data);
   }
 
   ngAfterViewInit(): void {
     this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
-      this.currentSpecies = species;
       const taxId = species ? species.taxId : '9606';
       this.getTopLevelPathways(taxId);
     });
@@ -58,9 +57,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnInit, OnDestroy
     });
   }
 
-  hasChild = (_: number, node: EventObject) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(node.schemaClass);
+  hasChild = (_: number, node: Event) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(node.schemaClass);
 
-  loadChildNodes(node: EventObject) {
+  loadChildNodes(node: Event) {
     // Check if children are already loaded
     if (node.hasEvent && node.hasEvent.length > 0) {
       return;
@@ -93,7 +92,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnInit, OnDestroy
     })
   }
 
-  expandAllAncestors(ancestors: EventObject[][]) {
+  expandAllAncestors(ancestors: Event[][]) {
     ancestors[0].reverse().forEach(ancestor => this.treeControl.expand(ancestor))
   }
 
@@ -114,7 +113,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnInit, OnDestroy
    *                  The ancestors is a list of events from child to parent in the API calls,
    *                  But here is from parent to child,no need to use reverse() with ancestors[0]
    */
-  buildNestedTree(roots: EventObject[], ancestors: EventObject[][]) {
+  buildNestedTree(roots: Event[], ancestors: Event[][]) {
     console.log('Executing buildNestedTree with data:', roots, 'and ancestors:', ancestors);
     const tree = [...roots];
     const nestedTree = ancestors[0].reduce((acc, event) => {

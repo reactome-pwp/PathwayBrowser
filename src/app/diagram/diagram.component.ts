@@ -97,7 +97,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         // this.ratio = bb.w / bb.h;
       });
 
-    this.speciesService.setSpeciesFromDiagramId(this.diagramId);
     this.loadDiagram();
 
   }

@@ -1,29 +1,29 @@
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
-import {EventObject} from "../model/event.model";
+import {Event} from "../model/event.model";
 import {BehaviorSubject} from "rxjs";
 
 
-export class TreeDataSource extends MatTreeNestedDataSource<EventObject> {
+export class TreeDataSource extends MatTreeNestedDataSource<Event> {
 
-  dataChange = new BehaviorSubject<EventObject[]>([]);
+  dataChange = new BehaviorSubject<Event[]>([]);
 
-  constructor(private treeControl: NestedTreeControl<EventObject>, initialData: EventObject[]) {
+  constructor(private treeControl: NestedTreeControl<Event>, initialData: Event[]) {
     super();
     this.dataChange.next(initialData);
   }
 
-  override get data(): EventObject[] {
+  override get data(): Event[] {
     return this.dataChange.value;
   }
 
-  override set data(value: EventObject[]) {
+  override set data(value: Event[]) {
     this.treeControl.dataNodes = value;
     this.dataChange.next(value);
   }
 
   /** Add node as child of parent */
-  public add(node: EventObject[], parent: EventObject) {
+  public add(node: Event[], parent: Event) {
     // add dummy root so we only have to deal with `FoodNode`s
     const newTreeData = {stId: 'Dummy', displayName: "Dummy Root", hasEvent: this.data, schemaClass: 'Dummy root'};
     this._add(node, parent, newTreeData);
@@ -36,7 +36,7 @@ export class TreeDataSource extends MatTreeNestedDataSource<EventObject> {
    */
 
   // @ts-ignore
-  protected _add(newNodes: EventObject[], parent: EventObject, tree: EventObject) {
+  protected _add(newNodes: Event[], parent: Event, tree: Event) {
     if (tree === parent) {
       console.log('tree is ', tree.displayName, 'parent is ', parent.displayName)
       console.log(
@@ -55,8 +55,8 @@ export class TreeDataSource extends MatTreeNestedDataSource<EventObject> {
     return this.update(tree, this._add.bind(this, newNodes, parent));
   }
 
-  protected update(tree: EventObject, predicate: (n: EventObject) => boolean) {
-    let updatedTree: EventObject, updatedIndex: number;
+  protected update(tree: Event, predicate: (n: Event) => boolean) {
+    let updatedTree: Event, updatedIndex: number;
 
     tree.hasEvent!.find((node, i) => {
       if (predicate(node)) {
@@ -77,7 +77,7 @@ export class TreeDataSource extends MatTreeNestedDataSource<EventObject> {
     return false;
   }
 
-  moveExpansionState(from: EventObject, to: EventObject) {
+  moveExpansionState(from: Event, to: Event) {
     if (this.treeControl.isExpanded(from)) {
       console.log(`'${from.displayName}' was expanded, setting expanded on new node`);
       this.treeControl.collapse(from);
