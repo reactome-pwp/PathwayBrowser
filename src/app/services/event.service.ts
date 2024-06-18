@@ -27,6 +27,12 @@ export class EventService {
     return this.http.get<EventObject>(url)
   }
 
+  fetchEventAncestors(stId: string): Observable<EventObject[][]> {
+    let url = this.ANCESTORS + stId + '/ancestors';
+    return this.http.get<EventObject[][]>(url)
+
+  }
+
   getEventsHierarchy(taxId: string): Observable<EventObject[]> {
     let url = `${environment.host}/ContentService/data/eventsHierarchy/`
     return this.http.get<EventObject[]>(url + taxId + `?pathwaysOnly=false&resource=TOTAL&interactors=false`)
