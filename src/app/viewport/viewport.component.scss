@@ -21,6 +21,11 @@
 .search {
   height: 60px;
   background: var(--primary);
+
+  /* sticky div */
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 
@@ -64,6 +69,11 @@
   width: 100%;
   gap: 2px;
   height: 56px;
+
+  /* sticky div */
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .species,
@@ -104,15 +114,33 @@
   justify-content: center;
   align-items: flex-start;
   padding: 0;
-  width:72px;
+  width: 72px;
 
   span:first-child {
     font-size: 10px;
-    height:16px
+    height: 16px
   }
 
   span:last-child {
     font-size: 14px;
-    height:20px
+    height: 20px
   }
+}
+
+.breadcrumb {
+  background: var(--primary);
+  height: 34px;
+
+  /* sticky div */
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+}
+
+.event-hierarchy {
+  height: 100%;
+
+  /* sticky div helper */
+  overflow-y: auto; //Ensure the sidebar can scroll if content overflows
+  //flex: 1; //Allow the sidebar to take the remaining space
 }

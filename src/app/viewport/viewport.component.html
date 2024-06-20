@@ -12,7 +12,7 @@
               <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
               <div class="species-content">
                 <span>Species</span>
-                <span>{{ currentSpecies?.shortName}}</span>
+                <span>{{ currentSpecies?.shortName }}</span>
               </div>
               <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
             </div>
@@ -36,9 +36,12 @@
                             (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
           </div>
 
-
-          <cr-event-hierarchy></cr-event-hierarchy>
-
+          <div class="breadcrumb" [style.display]="diagramId ? 'block':'none'">
+            breadcrumb
+          </div>
+          <div class="event-hierarchy">
+            <cr-event-hierarchy [id]="diagramId"></cr-event-hierarchy>
+          </div>
         </div>
       </div>
     </as-split-area>
