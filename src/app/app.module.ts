@@ -34,7 +34,10 @@ import {AngularSplitModule} from "angular-split";
 import {MatCardModule} from "@angular/material/card";
 import {SpeciesComponent} from './species/species.component';
 import {MatRippleModule} from "@angular/material/core";
-import {EventHierarchyComponent } from './event-hierarchy/event-hierarchy.component';
+import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.component';
+import {MatTreeModule} from "@angular/material/tree";
+import {TreeNestedOverviewComponent} from './tree-nested-overview/tree-nested-overview.component';
+
 
 @NgModule({
   declarations: [
@@ -45,7 +48,8 @@ import {EventHierarchyComponent } from './event-hierarchy/event-hierarchy.compon
     InteractorsComponent,
     ViewportComponent,
     SpeciesComponent,
-    EventHierarchyComponent
+    EventHierarchyComponent,
+    TreeNestedOverviewComponent
   ],
   imports: [
     BrowserModule,
@@ -76,7 +80,8 @@ import {EventHierarchyComponent } from './event-hierarchy/event-hierarchy.compon
     AngularSplitModule,
     MatCardModule,
     MatIconModule,
-    MatRippleModule
+    MatRippleModule,
+    MatTreeModule
   ],
   providers: [],
   bootstrap: [AppComponent]

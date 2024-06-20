@@ -16,7 +16,7 @@ import {isDefined} from "../services/utils";
 import {Analysis} from "../model/analysis.model";
 import {Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
-import {SpeciesService} from "../services/species.service";
+
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -41,7 +41,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               private interactorsService: InteractorService,
               private state: DiagramStateService,
               private analysis: AnalysisService,
-              private speciesService : SpeciesService,
               private router: Router
               ) {
   }

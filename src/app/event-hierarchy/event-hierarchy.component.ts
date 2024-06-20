@@ -5,6 +5,7 @@ import {SpeciesService} from "../services/species.service";
 import {BehaviorSubject, forkJoin, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
+import {DiagramStateService} from "../services/diagram-state.service";
 
 
 @Component({
@@ -24,8 +25,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeControl = new NestedTreeControl<Event, string>(node => node.hasEvent, {trackBy: node => node.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
 
+  selectedStId = this.state.get('select') || null;
+  selectedParent: Event | null = null
+  activeNode: Event | null = null
 
-  constructor(private eventService: EventService, private speciesService: SpeciesService, private cdRef: ChangeDetectorRef) {
+  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService) {
 
   }
 
@@ -124,6 +128,15 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
             return this.eventService.fetchChildEvents(event.stId).pipe(
               map(children => {
                 existingEvent!.hasEvent = children.hasEvent;
+                //highlight selected events
+                if (this.selectedStId) {
+                  existingEvent!.hasEvent?.forEach(node => {
+                    if (this.selectedStId.includes(node.stId)) {
+                      node.isSelected = true;
+                    }
+                  })
+                }
+
                 //  existingEvent!.isSelected = true;
                 return existingEvent!.hasEvent!;
               })
@@ -140,6 +153,33 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         return tree;
       })
     );
+  }
+
+  selectNode(selectedNode: Event) {
+    this.deselectAllNodes(this.data$.value);
+    selectedNode.isSelected = true;
+    console.log("selectedId ", selectedNode)
+    this.state.set('select', [selectedNode.stId])
+  }
+
+  deselectAllNodes(nodes: Event[]) {
+    nodes.forEach(node => {
+      node.isSelected = false;
+      if (node.hasEvent) {
+        this.deselectAllNodes(node.hasEvent);
+      }
+    });
+  }
+
+
+  trackById(index: number, event: Event): string {
+    console.log( 'trackBy ' , event.stId)
+    return event.stId;
+  }
+
+  getExpandedNodes() {
+    const expandedNodes = this.treeControl.expansionModel.selected;
+    console.log('expanded Nodes ', expandedNodes);
   }
 
 }
