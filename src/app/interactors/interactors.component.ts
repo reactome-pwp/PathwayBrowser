@@ -52,7 +52,6 @@ export class InteractorsComponent implements AfterViewInit, OnDestroy {
 
     this.interactorsService.getResourceType(resource as string).subscribe({
       next: (resourceType) => {
-        console.log('Resource Type', resourceType);
         switch (resourceType) {
           case ResourceType.STATIC:
           case ResourceType.DISGENET:

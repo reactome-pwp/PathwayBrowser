@@ -54,10 +54,32 @@ export class SpeciesComponent implements AfterViewInit, OnDestroy {
     // abbreviation = HSA, DEL,...
     let abbreviation = species.abbreviation;
     this.diagramId = this.diagramId.replace(/-(.*?)-/, `-${abbreviation}-`);
+
+    const updatedParams = this.updateQueryParams(['select', 'flag'], abbreviation!);
+
+    // Close the species panel
+    setTimeout(() => this.visibility.species = false, 600)
+
     // Navigate to the new URL with the updated diagramId
     return this.router.navigate(['PathwayBrowser', this.diagramId], {
-      queryParamsHandling: "preserve" // Keep existing query params
+      // queryParamsHandling: "preserve" // Keep existing query params
+      queryParams: updatedParams,
+      queryParamsHandling: "merge" // Merges with the existing query params
     });
+  }
+
+  updateQueryParams(paramNames: string[], abbreviation: string) {
+    const currentParams = {...this.route.snapshot.queryParams};
+    paramNames.forEach(param => {
+      const value = currentParams[param];
+      if (value) {
+        return currentParams[param] = value
+          .split(',')
+          .map((s: string) => s.replace(/-(.*?)-/, `-${abbreviation}-`))
+          .join(',');
+      }
+    })
+    return currentParams;
   }
 
 }

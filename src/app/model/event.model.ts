@@ -4,4 +4,5 @@ export interface Event {
   displayName: string;
   schemaClass: string
   hasEvent?: Event[];
+  isSelected?: boolean
 }

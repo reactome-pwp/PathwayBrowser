@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
@@ -26,8 +26,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   dataSource = new MatTreeNestedDataSource<Event>();
 
   selectedStId = this.state.get('select') || null;
-  selectedParent: Event | null = null
-  activeNode: Event | null = null
+
+  // Get latest selected ids
+  selecting = this.state.onChange.select$.subscribe((value) => {
+      this.selectedStId = this.state.get('select')
+    }
+  )
 
   constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService) {
 
@@ -158,7 +162,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   selectNode(selectedNode: Event) {
     this.deselectAllNodes(this.data$.value);
     selectedNode.isSelected = true;
-    console.log("selectedId ", selectedNode)
     this.state.set('select', [selectedNode.stId])
   }
 
@@ -173,7 +176,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   trackById(index: number, event: Event): string {
-    console.log( 'trackBy ' , event.stId)
+   //todo: test it
     return event.stId;
   }
 
