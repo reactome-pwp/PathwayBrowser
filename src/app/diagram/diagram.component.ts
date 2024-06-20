@@ -236,6 +236,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
   select(tokens: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
+    cy.elements(':selected').unselect();
     let selected = this.getElements(tokens, cy);
     selected.select();
     if ("connectedNodes" in selected) {
