@@ -12,7 +12,9 @@ export class AppComponent {
 
   icons = [
     {name: 'species', route: 'species-icon'},
-    {name: 'overlay', route: 'overlay-icon'}
+    {name: 'overlay', route: 'overlay-icon'},
+    {name: 'arrow-down', route: 'arrow-down'},
+    {name: 'arrow-right', route: 'arrow-right'},
   ];
 
   species = [
