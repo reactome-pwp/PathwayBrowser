@@ -1,27 +1,32 @@
-<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="example-tree">
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
   <!-- This is the tree node template for leaf nodes -->
-  <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node">
     <!-- use a disabled button to provide padding for table leaf -->
-    <button mat-icon-button disabled></button>
-    <div (click)="selectNode(node)" [ngClass]="{'highlight': node.isSelected}"> {{ node.displayName }} {{ node.dbId }}
+    <!--    <button mat-icon-button disabled class="button-size"></button>-->
+    <div (click)="selectNode(node)">
+      <button mat-button [ngClass]="{'highlight': node.isSelected}" class="button">
+        <mat-icon class='custom-icon' matTooltip="Reaction"
+                  [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
+        <span class="font">{{ node.displayName }} {{ node.dbId }}</span>
+      </button>
     </div>
   </mat-tree-node>
 
   <!-- This is the tree node template for expandable nodes -->
   <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
     <div class="mat-tree-node">
-      <button mat-icon-button matTreeNodeToggle
+      <button mat-icon-button matTreeNodeToggle class="button-size"
               [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildNodes(node)">
         <mat-icon class="mat-icon-rtl-mirror"
                   [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
 
       </button>
-      <div (click)="selectNode(node)"
-           [ngClass]="{'highlight': treeControl.isExpanded(node)}">
-
-        <button mat-button routerLink="/PathwayBrowser/{{node.dbId}}" >
-          {{ node.displayName }}  {{ node.stId }}</button>
-
+      <div (click)="selectNode(node)" class="node-content">
+        <button mat-button class="button" [ngClass]="{'highlight': isHighlighted(node)}"
+                routerLink="/PathwayBrowser/{{node.stId}}">
+          <mat-icon matTooltip="pathway" class='custom-icon' svgIcon="pathway-ehld"></mat-icon>
+          <span class="font"> {{ node.displayName }}  {{ node.dbId }}</span>
+        </button>
       </div>
     </div>
     <!-- There is inline padding applied to this div using styles.

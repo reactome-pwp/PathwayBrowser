@@ -185,4 +185,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     console.log('expanded Nodes ', expandedNodes);
   }
 
+  isHighlighted(node: Event): boolean {
+    return this.treeControl.isExpanded(node) || node.isSelected!;
+  }
+
 }

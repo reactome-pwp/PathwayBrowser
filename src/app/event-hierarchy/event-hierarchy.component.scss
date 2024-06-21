@@ -13,7 +13,7 @@
  * This padding sets alignment of the nested nodes.
  */
 .example-tree .mat-nested-tree-node div[role=group] {
-  padding-left: 40px;
+  padding-left: 12px;
 }
 
 /*
@@ -22,5 +22,71 @@
  * under the same parent.
  */
 .example-tree div[role=group] > .mat-tree-node {
-  padding-left: 40px;
+  padding-left: 18px;
 }
+
+
+
+.mat-tree-node {
+  height: 26px;
+}
+
+.leaf-node {
+  height: 24px;
+}
+
+.highlight {
+  background: var(--primary);
+  border-radius: 50px;;
+  color: var(--on-primary) !important;
+  height: 24px;
+}
+
+.highlight .custom-icon::ng-deep svg * {
+  fill: var(--on-primary);
+}
+
+
+.custom-icon{
+ z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
+}
+
+.button-size{
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-size .mat-icon{
+  overflow: visible;
+}
+
+.node-content{
+  color: var(--on-surface);
+  //font-family: 'Roboto Flex';
+  //font-style: normal;
+  //font-weight: 400;
+  //font-size: 14px;
+  //line-height: 20px;
+}
+
+.font{
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.button{
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px 6px;
+ // gap: 5px;
+  border-radius: 50px;
+}
+

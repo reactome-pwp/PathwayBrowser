@@ -15,6 +15,9 @@ export class AppComponent {
     {name: 'overlay', route: 'overlay-icon'},
     {name: 'arrow-down', route: 'arrow-down'},
     {name: 'arrow-right', route: 'arrow-right'},
+    {name: 'pathway-ehld', route: 'pathway-ehld'},
+    {name: 'reaction', route: 'reaction'},
+    {name: 'transition', route: 'transition'}
   ];
 
   species = [
