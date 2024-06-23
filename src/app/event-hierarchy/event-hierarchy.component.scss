@@ -26,7 +26,6 @@
 }
 
 
-
 .mat-tree-node {
   height: 26px;
 }
@@ -39,7 +38,6 @@
   background: var(--primary);
   border-radius: 50px;;
   color: var(--on-primary) !important;
-  height: 24px;
 }
 
 .highlight .custom-icon::ng-deep svg * {
@@ -65,11 +63,6 @@
 
 .node-content{
   color: var(--on-surface);
-  //font-family: 'Roboto Flex';
-  //font-style: normal;
-  //font-weight: 400;
-  //font-size: 14px;
-  //line-height: 20px;
 }
 
 .font{
@@ -90,3 +83,8 @@
   border-radius: 50px;
 }
 
+ ul {
+  margin: 10px;
+  padding: 0;
+  border-left: 1px solid var(--outline-variant);
+}
