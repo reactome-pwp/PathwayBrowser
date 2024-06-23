@@ -1,5 +1,5 @@
 export interface Event {
-  dbId?: number; //todo remove this ? when deleting tree-nested-overview
+  dbId: number;
   stId: string;
   displayName: string;
   schemaClass: string

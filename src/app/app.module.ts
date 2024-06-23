@@ -36,7 +36,6 @@ import {SpeciesComponent} from './species/species.component';
 import {MatRippleModule} from "@angular/material/core";
 import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.component';
 import {MatTreeModule} from "@angular/material/tree";
-import {TreeNestedOverviewComponent} from './tree-nested-overview/tree-nested-overview.component';
 import {MatTooltipModule} from "@angular/material/tooltip";
 
 
@@ -49,8 +48,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     InteractorsComponent,
     ViewportComponent,
     SpeciesComponent,
-    EventHierarchyComponent,
-    TreeNestedOverviewComponent
+    EventHierarchyComponent
   ],
   imports: [
     BrowserModule,
