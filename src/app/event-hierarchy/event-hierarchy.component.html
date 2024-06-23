@@ -5,8 +5,12 @@
     <!--    <button mat-icon-button disabled class="button-size"></button>-->
     <div (click)="selectNode(node)">
       <button mat-button [ngClass]="{'highlight': node.isSelected}" class="button">
-        <mat-icon class='custom-icon' matTooltip="Reaction"
+        <mat-icon class='custom-icon' [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
                   [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
+        <mat-icon *ngIf="node.isInferred" class='custom-icon' matTooltip="Inferred from a non-human event"
+                  [svgIcon]="'reaction'">
+        </mat-icon>
+
         <span class="font">{{ node.displayName }} {{ node.dbId }}</span>
       </button>
     </div>
