@@ -18,18 +18,19 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   @Input('id') diagramId: string = '';
 
   speciesSubscription!: Subscription;
-  dataSubscription!: Subscription;
+  treeDataSubscription!: Subscription;
+  currentEventSubscription!: Subscription;
 
-
-  data$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
+  treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(node => node.hasEvent, {trackBy: node => node.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
 
-  selectedStId = this.state.get('select') || null;
+  selectedIds = this.state.get('select') || null;
+  selectedEvent!: Event;
 
   // Get latest selected ids
   selecting = this.state.onChange.select$.subscribe((value) => {
-      this.selectedStId = this.state.get('select')
+      this.selectedIds = this.state.get('select')
     }
   )
 
@@ -37,8 +38,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  setCurrentData(data: Event[]) {
-    this.data$.next(data);
+  setCurrentTreeData(events: Event[]) {
+    this.treeData$.next(events);
   }
 
   ngAfterViewInit(): void {
@@ -47,18 +48,23 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.getTopLevelPathways(taxId);
     });
 
-    this.dataSubscription = this.data$.subscribe(items => {
+    this.treeDataSubscription = this.treeData$.subscribe(events => {
       // @ts-ignore
       // Mat tree has a bug causing children to not be rendered in the UI without first setting the data to null
       // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
       this.dataSource.data = null; //todo: check performance issue
-      this.dataSource.data = items;
+      this.dataSource.data = events;
     });
+
+    this.currentEventSubscription = this.eventService.selectedEvent$.subscribe(event => {
+      this.selectedEvent = event;
+    });
+
   }
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).subscribe(results => {
-      this.setCurrentData(results);
+      this.setCurrentTreeData(results);
       if (this.diagramId) {
         this.buildTree(this.diagramId);
       }
@@ -75,7 +81,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.fetchChildEvents(node.stId).subscribe(children => {
       if (children.hasEvent) {
         node.hasEvent = children.hasEvent;
-        this.setCurrentData(this.data$.value);
+        this.setCurrentTreeData(this.treeData$.value);
         //this.dataSource.data = [...this.dataSource.data];  // doesn't work, see comments above
         if (!this.treeControl.isExpanded(node)) {
           this.treeControl.expand(node);
@@ -93,10 +99,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
           this.expandAllAncestors(ancestors);
         }),
         switchMap(ancestors => {
-          return this.buildNestedTree(this.data$.value, ancestors)
+          return this.buildNestedTree(this.treeData$.value, ancestors)
         })
       ).subscribe((tree) => {
-      this.setCurrentData(tree);
+      this.setCurrentTreeData(tree);
     })
   }
 
@@ -107,7 +113,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.speciesSubscription.unsubscribe();
-    this.dataSubscription.unsubscribe();
+    this.treeDataSubscription.unsubscribe();
+    this.currentEventSubscription.unsubscribe();
   }
 
 
@@ -133,9 +140,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
               map(children => {
                 existingEvent!.hasEvent = children.hasEvent;
                 //highlight selected events
-                if (this.selectedStId) {
+                if (this.selectedIds) {
                   existingEvent!.hasEvent?.forEach(node => {
-                    if (this.selectedStId.includes(node.stId)) {
+                    if (this.selectedIds.includes(node.stId)) {
                       node.isSelected = true;
                     }
                   })
@@ -160,8 +167,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   selectNode(selectedNode: Event) {
-    this.deselectAllNodes(this.data$.value);
+    this.deselectAllNodes(this.treeData$.value);
     selectedNode.isSelected = true;
+    this.eventService.setCurrentEvent(selectedNode);
+    this.expandedNodes = this.getExpandedNodes();
     this.state.set('select', [selectedNode.stId])
   }
 

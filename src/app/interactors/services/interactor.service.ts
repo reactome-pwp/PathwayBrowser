@@ -22,17 +22,17 @@ import {environment} from "../../../environments/environment";
 
 export class InteractorService {
 
-  private PREFIX_INTERACTOR = `${environment.host}/ContentService/interactors/`;
-  private PREFIX_DISEASE = `${environment.host}/overlays/disgenet/`;
+  private readonly _PREFIX_INTERACTOR = `${environment.host}/ContentService/interactors/`;
+  private readonly _PREFIX_DISEASE = `${environment.host}/overlays/disgenet/`;
 
-  private STATIC_URL = this.PREFIX_INTERACTOR + 'static/molecules/details';
-  private PSICQUIC_RESOURCE_URL = this.PREFIX_INTERACTOR + 'psicquic/resources/'
-  private PSICQUIC_URL = this.PREFIX_INTERACTOR + 'psicquic/molecules/';
-  public UPLOAD_URL = this.PREFIX_INTERACTOR + 'upload/tuple/';
-  public UPLOAD_PSICQUIC_URL = this.PREFIX_INTERACTOR + 'upload/psicquic/url';
-  private TOKEN_URL = this.PREFIX_INTERACTOR + 'token/';
+  private readonly _STATIC_URL = this._PREFIX_INTERACTOR + 'static/molecules/details';
+  private readonly _PSICQUIC_RESOURCE_URL = this._PREFIX_INTERACTOR + 'psicquic/resources/'
+  private readonly _PSICQUIC_URL = this._PREFIX_INTERACTOR + 'psicquic/molecules/';
+  public readonly UPLOAD_URL = this._PREFIX_INTERACTOR + 'upload/tuple/';
+  public readonly UPLOAD_PSICQUIC_URL = this._PREFIX_INTERACTOR + 'upload/psicquic/url';
+  private readonly _TOKEN_URL = this._PREFIX_INTERACTOR + 'token/';
 
-  private DISGENET_URL = this.PREFIX_DISEASE + 'findByGenes';
+  private readonly DISGENET_URL = this._PREFIX_DISEASE + 'findByGenes';
 
   private readonly DEFAULT_INTERACTOR_WIDTH = 100;
   private readonly DEFAULT_DISGENET_WIDTH = 250
@@ -95,11 +95,11 @@ export class InteractorService {
     this.updateIdentifiers(cy);
     let url;
     if (resource === ResourceType.STATIC) {
-      url = this.STATIC_URL;
+      url = this._STATIC_URL;
     } else if (resource === ResourceType.DISGENET) {
       url = this.DISGENET_URL;
     } else {
-      url = this.PSICQUIC_URL + resource.toLowerCase() + '/details'
+      url = this._PSICQUIC_URL + resource.toLowerCase() + '/details'
     }
 
     return this.http.post<Interactors>(url, this.identifiers, {
@@ -294,7 +294,7 @@ export class InteractorService {
   }
 
   public getPsicquicResources(): Observable<PsicquicResource[]> {
-    return this.http.get<PsicquicResource[]>(this.PSICQUIC_RESOURCE_URL, {
+    return this.http.get<PsicquicResource[]>(this._PSICQUIC_RESOURCE_URL, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
     }).pipe(
       map((psicquicResources) => {
@@ -335,7 +335,7 @@ export class InteractorService {
     interactors: Interactors
   }> {
     this.updateIdentifiers(cy);
-    return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
+    return this.http.post<Interactors>(this._TOKEN_URL + token.summary.token, this.identifiers, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     }).pipe(
       map((interactors) => ({token: token, interactors: interactors}))

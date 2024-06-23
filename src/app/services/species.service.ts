@@ -9,16 +9,18 @@ import {Species} from "../model/species.model";
 })
 export class SpeciesService {
 
+  private readonly _MAIN_SPECIES =`${environment.host}/ContentService/data/species/main`
+
   defaultSpecies = {displayName: 'Homo sapiens', taxId: '9606', shortName: 'H.sapiens'};
-  private currentSpeciesSubject = new BehaviorSubject<Species>(this.defaultSpecies);
-  public currentSpecies$ = this.currentSpeciesSubject.asObservable();
+  private _currentSpeciesSubject = new BehaviorSubject<Species>(this.defaultSpecies);
+  public currentSpecies$ = this._currentSpeciesSubject.asObservable();
 
 
   /**
    * This map is to help get current species value from the diagramId string when loading data. For instance:
    *  diagramId = R-HSA-4090294 then current species is H.sapiens, and then it will be selected in the species list
    */
-  abbreviationToSpecies: Map<string, Species> = new Map<string, Species>([
+  readonly abbreviationToSpecies: Map<string, Species> = new Map<string, Species>([
     ['HSA', {displayName: 'Homo sapiens', taxId: '9606', shortName: 'H.sapiens'}],
     ['BTA', {displayName: 'Bos taurus', taxId: '9913', shortName: 'B.taurus'}],
     ['CEL', {displayName: 'Caenorhabditis elegans', taxId: '6239', shortName: 'C.elegans'}],
@@ -42,7 +44,7 @@ export class SpeciesService {
   }
 
   getSpecies(): Observable<Species[]> {
-    return this.http.get<Species[]>(`${environment.host}/ContentService/data/species/main`, {
+    return this.http.get<Species[]>(this._MAIN_SPECIES, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
     });
   }
@@ -58,7 +60,7 @@ export class SpeciesService {
     s.shortName = `${genus.charAt(0)}.${species}`;
   }
   setCurrentSpecies(species: Species) {
-    this.currentSpeciesSubject.next(species);
+    this._currentSpeciesSubject.next(species);
   }
 
   public setSpeciesFromDiagramId(diagramId: string) {

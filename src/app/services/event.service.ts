@@ -2,34 +2,41 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {Observable} from "rxjs";
+import {Observable, Subject} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventService {
 
-  private TOP_LEVEL_PATHWAYS = `${environment.host}/ContentService/data/pathways/top/`;
-  private ENHANCED_QUERY = `${environment.host}/ContentService/data/query/enhanced/`
-  private ANCESTORS = `${environment.host}/ContentService/data/event/`
+  private readonly _TOP_LEVEL_PATHWAYS = `${environment.host}/ContentService/data/pathways/top/`;
+  private readonly _ENHANCED_QUERY = `${environment.host}/ContentService/data/query/enhanced/`
+  private readonly _ANCESTORS = `${environment.host}/ContentService/data/event/`
 
+
+  private _selectedEvent: Subject<Event> = new Subject<Event>();
+  public selectedEvent$ = this._selectedEvent.asObservable();
 
   constructor(private http: HttpClient) {
   }
 
+  setCurrentEvent(event: Event) {
+    this._selectedEvent.next(event);
+  }
+
 
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
-    let url = this.TOP_LEVEL_PATHWAYS + taxId;
+    let url = this._TOP_LEVEL_PATHWAYS + taxId;
     return this.http.get<Event[]>(url);
   }
 
   fetchChildEvents(stId: string): Observable<Event> {
-    let url = this.ENHANCED_QUERY + stId;
+    let url = this._ENHANCED_QUERY + stId;
     return this.http.get<Event>(url)
   }
 
   fetchEventAncestors(stId: string): Observable<Event[][]> {
-    let url = this.ANCESTORS + stId + '/ancestors';
+    let url = this._ANCESTORS + stId + '/ancestors';
     return this.http.get<Event[][]>(url)
 
   }
