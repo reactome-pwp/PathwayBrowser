@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {Species} from "../model/species.model";
 import {SpeciesService} from "../services/species.service";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {Subscription} from "rxjs";
 
 
@@ -16,20 +16,24 @@ export class SpeciesComponent implements AfterViewInit, OnDestroy {
   currentSpeciesSubscription!: Subscription;
 
   @Input('id') diagramId: string = '';
+  @Input('visibility') visibility = {
+    species: false,
+    interactor: false
+  }
 
-  constructor(private speciesService: SpeciesService, private router: Router) {
+  constructor(private speciesService: SpeciesService, private router: Router, private route: ActivatedRoute) {
 
   }
 
   ngAfterViewInit(): void {
     this.getSpecies();
 
-    if(this.diagramId){
+    if (this.diagramId) {
       this.speciesService.setSpeciesFromDiagramId(this.diagramId);
     }
 
     this.currentSpeciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
-      this. currentSpecies = species;
+      this.currentSpecies = species;
     });
 
   }
