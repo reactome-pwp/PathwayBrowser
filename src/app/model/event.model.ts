@@ -5,5 +5,8 @@ export interface Event {
   schemaClass: string
   hasEvent?: Event[];
   isSelected?: boolean;
-  isInferred?:boolean
+  isInferred?: boolean;
+  releaseStatus: string;
+  isInDisease: boolean;
+
 }
