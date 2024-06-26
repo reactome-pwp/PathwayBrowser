@@ -1,3 +1,6 @@
+/*
+ * Rename example-tree class will cause expand/collapse not working
+ */
 .example-tree-invisible {
   display: none;
 }
@@ -28,6 +31,20 @@
 
 .mat-tree-node {
   height: 26px;
+  position: relative;
+  width: 100%;
+
+  .left {
+    display: flex;
+  }
+
+  .right {
+    z-index: 99;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    display: flex;
+  }
 }
 
 .leaf-node {
@@ -45,11 +62,13 @@
 }
 
 
-.custom-icon{
- z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
+.custom-icon {
+  z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
+  height: 17px !important;
+  width: 17px !important;
 }
 
-.button-size{
+.button-size {
   width: 24px;
   height: 24px;
   display: flex;
@@ -57,34 +76,238 @@
   justify-content: center;
 }
 
-.button-size .mat-icon{
+.button-size .mat-icon {
   overflow: visible;
 }
 
-.node-content{
+.event-content {
   color: var(--on-surface);
 }
 
-.font{
+.font {
+  font-family: 'Roboto Flex', sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
   white-space: nowrap;
+  letter-spacing: 0.25px;
 }
 
-.button{
+.button {
   height: 24px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 0px 6px;
- // gap: 5px;
+  padding: 0 6px;
+  // gap: 5px;
   border-radius: 50px;
 }
 
- ul {
+/*
+ * Branch line helper
+ */
+ul {
   margin: 10px;
   padding: 0;
   border-left: 1px solid var(--outline-variant);
 }
+
+.group {
+  width: 100%;
+}
+
+/*
+  NIHAO
+ */
+
+//.tag-container {
+//  display: flex;
+//  flex-direction: row;
+//  justify-content: end;
+//  align-items: center;
+//  padding: 0 3px;
+//  gap: 3px;
+//  isolation: isolate;
+//  margin: 0 auto;
+//  width: 100%;
+//}
+//
+//.tag {
+//  display: flex;
+//  flex-direction: row;
+//  justify-content: center;
+//  align-items: center;
+//  padding: 0 3px;
+//  gap: 3px;
+//  isolation: isolate;
+//  position: relative;
+//
+//  width: 22px;
+//  height: 24px;
+//  background: #ffffff;
+//}
+//
+//.rectangle {
+//  position: absolute;
+//  width: 10px;
+//  left: -10px;
+//  top: 0;
+//  bottom: 0;
+//  background: linear-gradient(270deg, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%);
+//}
+//
+//.tag-content {
+//  height: 16px;
+//  display: flex;
+//  flex-direction: column;
+//  justify-content: center;
+//  align-items: center;
+//  padding: 0 4px;
+// // font-size: small;
+//
+//  position: relative;
+//  background: var(--primary);
+//  color: var(--on-primary);
+//  border-radius: 20px;
+//
+//}
+//
+//
+//.tag-font {
+//  font-family: 'Roboto Flex', sans-serif;
+//  font-style: normal;
+//  font-weight: 500;
+//  font-size: 11px;
+//  line-height: 16px;
+//  letter-spacing: 0.5px;
+//}
+//
+//.tag-content .full {
+//  position: absolute;
+//  right: 0;
+//  opacity: 0;
+//  transition: right 0.3s ease, opacity 0.3s ease;
+//  background: var(--primary);
+//  border-radius: 20px;
+//}
+//
+//.tag-content:hover .short {
+//  opacity: 0;
+//}
+//
+//.tag-content:hover .full {
+//  opacity: 1;
+//  right: 0;
+//
+//  display: flex;
+//  flex-direction: column;
+//  justify-content: center;
+//  align-items: center;
+//  padding: 0 4px;
+//  position: absolute;
+//  width: 55px;
+//  height: 16px;
+//}
+
+
+/**
+   TAGS
+ */
+.tag-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  padding: 0 3px;
+  gap: 3px;
+  isolation: isolate;
+  margin: 0 auto;
+  width: 100%;
+  background: var(--surface);
+
+
+  &:before {
+    content: '';
+    position: absolute;
+    width: 10px;
+    left: -9px;
+    height: 100%;
+    background: linear-gradient(270deg, var(--surface) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+
+  .tag {
+    --diameter: 16px;
+    --padding: 4px;
+    background: var(--primary);
+    width: calc(var(--diameter) - 2 * var(--padding));
+    height: var(--diameter);
+    //max-width: var(--diameter);
+    max-height: var(--diameter);
+    border-radius: var(--diameter);
+    line-height: var(--diameter);
+    color: var(--on-primary);
+    text-align: center;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 var(--padding);
+    transition: 1s;
+
+    .initial {
+    }
+
+    .body {
+      transition: 1s;
+      width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      visibility: hidden;
+      display: flex;
+    }
+
+    &:hover {
+      //max-width: unset;
+      width: 100%;
+      max-width: max-content;
+
+      .body {
+        visibility: visible;
+        width: 100%;
+      }
+    }
+  }
+
+}
+
+.tag-content {
+  height: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 4px;
+
+  position: relative;
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: 20px;
+
+}
+
+.tag-font {
+  font-family: 'Roboto Flex', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}
+
+.tag.disease {
+  background: var(--error) !important;
+
+}
+
