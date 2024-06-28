@@ -198,4 +198,16 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return this.treeControl.isExpanded(node) || node.isSelected!;
   }
 
+
+  onTagHover(node: Event) {
+    if (node.isSelected || this.treeControl.isExpanded(node)) return;
+    node.isHovered = true
+  }
+
+  onTagHoverLeave(node: Event) {
+    node.isHovered = false;
+  }
+
+
+
 }

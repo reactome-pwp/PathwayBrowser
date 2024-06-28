@@ -1,12 +1,11 @@
-<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree"
-          xmlns="http://www.w3.org/1999/html">
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
   <!-- This is the tree node template for leaf nodes -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node">
     <!-- use a disabled button to provide padding for table leaf -->
     <!--    <button mat-icon-button disabled class="button-size"></button>-->
     <div class="left">
       <div (click)="selectNode(node)">
-        <button mat-button [ngClass]="{'highlight': node.isSelected}" class="button">
+        <button mat-button [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
           <mat-icon class='custom-icon' [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
                     [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
 
@@ -20,11 +19,12 @@
 
     <div class="right">
       <div class="tag-container">
-        <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'">
+        <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'" (mouseover)="onTagHover(node)"
+             (mouseleave)="onTagHoverLeave(node)">
           <span class='initial'>U</span>
           <span class="body">PDATED</span>
         </div>
-        <div class="tag">
+        <div class="tag" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
           <span class='initial'>N</span>
           <span class="body">EW</span>
         </div>
@@ -33,6 +33,13 @@
           <span class='initial'>D</span>
           <span class="body">ISEASE</span>
         </div>
+
+        <div class="tag" *ngIf="node.isInferred" (mouseover)="onTagHover(node)"
+             (mouseleave)="onTagHoverLeave(node)">
+          <span class='initial'>I</span>
+          <span class="body">NFERRED</span>
+        </div>
+
       </div>
     </div>
   </mat-tree-node>
@@ -48,7 +55,7 @@
 
         </button>
         <div (click)="selectNode(node)" class="event-content">
-          <button mat-button class="button" [ngClass]="{'highlight': isHighlighted(node)}"
+          <button mat-button class="button" [ngClass]="{'highlight': isHighlighted(node), 'hovered': node.isHovered}"
                   routerLink="/PathwayBrowser/{{node.stId}}">
             <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
                       [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
@@ -62,21 +69,24 @@
 
       <div class="right">
         <div class="tag-container">
-          <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'">
+          <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'" (mouseover)="onTagHover(node)"
+               (mouseleave)="onTagHoverLeave(node)">
             <span class='initial'>U</span>
             <span class="body">PDATED</span>
           </div>
-          <div class="tag">
+          <div class="tag" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
             <span class='initial'>N</span>
             <span class="body">EW</span>
           </div>
 
-          <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease">
+          <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease"
+               (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
             <span class='initial'>D</span>
             <span class="body">ISEASE</span>
           </div>
 
-          <div class="tag" *ngIf="node.isInferred">
+          <div class="tag" *ngIf="node.isInferred" (mouseover)="onTagHover(node)"
+               (mouseleave)="onTagHoverLeave(node)">
             <span class='initial'>I</span>
             <span class="body">NFERRED</span>
           </div>
@@ -95,4 +105,3 @@
     </ul>
   </mat-nested-tree-node>
 </mat-tree>
-
