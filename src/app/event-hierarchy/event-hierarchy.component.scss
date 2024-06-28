@@ -10,13 +10,14 @@
   margin-top: 0;
   margin-bottom: 0;
   list-style-type: none;
+  margin-right: 6px;
 }
 
 /*
  * This padding sets alignment of the nested nodes.
  */
 .example-tree .mat-nested-tree-node div[role=group] {
-  padding-left: 12px;
+  padding-left: 6px;
 }
 
 /*
@@ -25,14 +26,14 @@
  * under the same parent.
  */
 .example-tree div[role=group] > .mat-tree-node {
-  padding-left: 18px;
+  padding-left: 8px;
 }
 
 
 .mat-tree-node {
   height: 26px;
   position: relative;
-  width: 100%;
+  width: auto;
 
   .left {
     display: flex;
