@@ -55,7 +55,7 @@
 
         </button>
         <div (click)="selectNode(node)" class="event-content">
-          <button mat-button class="button" [ngClass]="{'highlight': isHighlighted(node), 'hovered': node.isHovered}"
+          <button mat-button class="button" [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}"
                   routerLink="/PathwayBrowser/{{node.stId}}">
             <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
                       [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>

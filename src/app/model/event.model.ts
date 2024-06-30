@@ -9,5 +9,6 @@ export interface Event {
   isInferred?: boolean;
   releaseStatus: string;
   isInDisease: boolean;
+  parents: string[];
 
 }
