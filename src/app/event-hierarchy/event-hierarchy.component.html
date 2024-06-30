@@ -4,7 +4,7 @@
     <!-- use a disabled button to provide padding for table leaf -->
     <!--    <button mat-icon-button disabled class="button-size"></button>-->
     <div class="left">
-      <div (click)="selectNode(node)">
+      <div (click)="selectEvent(node)">
         <button mat-button [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
           <mat-icon class='custom-icon' [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
                     [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
@@ -29,7 +29,8 @@
           <span class="body">EW</span>
         </div>
 
-        <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease">
+        <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease" (mouseover)="onTagHover(node)"
+             (mouseleave)="onTagHoverLeave(node)">
           <span class='initial'>D</span>
           <span class="body">ISEASE</span>
         </div>
@@ -48,13 +49,13 @@
   <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
     <div class="mat-tree-node">
       <div class="left">
-        <button mat-icon-button matTreeNodeToggle class="button-size"
-                [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildNodes(node)">
+        <button mat-icon-button matTreeNodeToggle class="button-size" disableRipple
+                [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildEvents(node)">
           <mat-icon class="mat-icon-rtl-mirror"
                     [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
 
         </button>
-        <div (click)="selectNode(node)" class="event-content">
+        <div (click)="selectEvent(node)" class="event-content">
           <button mat-button class="button" [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}"
                   routerLink="/PathwayBrowser/{{node.stId}}">
             <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"

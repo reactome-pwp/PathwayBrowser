@@ -22,7 +22,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   currentEventSubscription!: Subscription;
 
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
-  treeControl = new NestedTreeControl<Event, string>(node => node.hasEvent, {trackBy: node => node.stId});
+  treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
 
   selectedIds = this.state.get('select') || null;
@@ -71,17 +71,17 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  hasChild = (_: number, node: Event) => !!node.hasEvent && node.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(node.schemaClass);
+  hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
 
-  loadChildNodes(node: Event) {
+  loadChildEvents(event: Event) {
     // Check if children are already loaded
-    if (node.hasEvent && node.hasEvent.length > 0) {
+    if (event.hasEvent && event.hasEvent.length > 0) {
       return;
     }
-    this.eventService.fetchChildEvents(node.stId).subscribe(children => {
+    this.eventService.fetchChildEvents(event.stId).subscribe(children => {
       if (children.hasEvent) {
-        node.hasEvent = children.hasEvent.map(child => {
-          child.parents = [...(node.parents || []), node.stId];
+        event.hasEvent = children.hasEvent.map(child => {
+          child.parents = [...(event.parents || []), event.stId];
           return child;
         });
         this.setCurrentTreeData(this.treeData$.value);
@@ -110,7 +110,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   expandAllAncestors(ancestors: Event[][]) {
     ancestors[0].reverse().forEach(ancestor => this.treeControl.expand(ancestor))
   }
-
 
   ngOnDestroy(): void {
     this.speciesSubscription.unsubscribe();
@@ -146,9 +145,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                 });
                 // Highlight selected events
                 if (this.selectedIds) {
-                  existingEvent!.hasEvent?.forEach(node => {
-                    if (this.selectedIds.includes(node.stId)) {
-                      node.isSelected = true;
+                  existingEvent!.hasEvent?.forEach(event => {
+                    if (this.selectedIds.includes(event.stId)) {
+                      event.isSelected = true;
                     }
                   })
                 }
@@ -171,34 +170,34 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  selectNode(selectedNode: Event) {
+  selectEvent(selectedevent: Event) {
     this.clearSelection(this.treeData$.value)
-    this.selectAllParents(selectedNode, this.treeData$.value);
-    selectedNode.isSelected = true;
-    if (selectedNode.schemaClass === 'TopLevelPathway') {
+    this.selectAllParents(selectedevent, this.treeData$.value);
+    selectedevent.isSelected = true;
+    if (selectedevent.schemaClass === 'TopLevelPathway') {
       this.treeControl.collapseAll();
     }
-    this.eventService.setCurrentEvent(selectedNode);
-    this.state.set('select', [selectedNode.stId])
+    this.eventService.setCurrentEvent(selectedevent);
+    this.state.set('select', [selectedevent.stId])
   }
 
 
-  selectAllParents(selectedNode: Event, nodes: Event[]) {
-    nodes.forEach(node => {
-      if (selectedNode.parents) {
-        node.isSelected = selectedNode.parents.includes(node.stId)
+  selectAllParents(selectedevent: Event, events: Event[]) {
+    events.forEach(event => {
+      if (selectedevent.parents) {
+        event.isSelected = selectedevent.parents.includes(event.stId)
       }
-      if (node.hasEvent) {
-        this.selectAllParents(selectedNode, node.hasEvent);
+      if (event.hasEvent) {
+        this.selectAllParents(selectedevent, event.hasEvent);
       }
     });
   }
 
-  clearSelection(nodes: Event[]) {
-    nodes.forEach(node => {
-      node.isSelected = false;
-      if (node.hasEvent) {
-        this.clearSelection(node.hasEvent);
+  clearSelection(events: Event[]) {
+    events.forEach(event => {
+      event.isSelected = false;
+      if (event.hasEvent) {
+        this.clearSelection(event.hasEvent);
       }
     });
   }
@@ -210,18 +209,18 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return event.stId;
   }
 
-  getExpandedNodes() {
-    // This returns a list of all selected expanded tree node even for the leaf node
+  getExpandedEvents() {
+    // This returns a list of all selected expanded tree event even for the leaf event
     return this.treeControl.expansionModel.deselect();
   }
 
-  onTagHover(node: Event) {
-    if (node.isSelected || (this.treeControl.isExpanded(node) && node.hasEvent)) return;
-    node.isHovered = true
+  onTagHover(event: Event) {
+    if (event.isSelected || (this.treeControl.isExpanded(event) && event.hasEvent)) return;
+    event.isHovered = true
   }
 
-  onTagHoverLeave(node: Event) {
-    node.isHovered = false;
+  onTagHoverLeave(event: Event) {
+    event.isHovered = false;
   }
 
 
