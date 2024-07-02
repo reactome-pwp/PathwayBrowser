@@ -25,12 +25,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
 
-  selectedIds = this.state.get('select') || null;
+  selectedId = this.state.get('select') || null;
   selectedEvent!: Event;
 
   // Get latest selected ids
-  selecting = this.state.onChange.select$.subscribe((value) => {
-      this.selectedIds = this.state.get('select')
+  selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
+      this.selectedId = this.state.get('select')
     }
   )
 
@@ -144,9 +144,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                   return child;
                 });
                 // Highlight selected events
-                if (this.selectedIds) {
+                if (this.selectedId) {
                   existingEvent!.hasEvent?.forEach(event => {
-                    if (this.selectedIds.includes(event.stId)) {
+                    if (this.selectedId === event.stId) {
                       event.isSelected = true;
                     }
                   })

@@ -235,9 +235,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     return elements;
   }
 
-  select(tokens: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
+  select(tokens: (string | number), cy: cytoscape.Core): cytoscape.CollectionArgument {
     cy.elements(':selected').unselect();
-    let selected = this.getElements(tokens, cy);
+    let selected = this.getElements([tokens], cy);
     selected.select();
     if ("connectedNodes" in selected) {
       selected = selected.add(selected.connectedNodes());
@@ -617,7 +617,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         elements = e.detail.cy.elements('node.reaction:selected')
       }
       const reactomeIds = elements.map(el => el.data('graph.stId'));
-      this.state.set('select', reactomeIds)
+      this.state.set('select', reactomeIds[0])
     }
   );
 
