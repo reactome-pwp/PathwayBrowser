@@ -170,16 +170,18 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       })
     );
   }
-
-  selectEvent(selectedevent: Event) {
+  selectEvent(selectedEvent: Event) {
     this.clearSelection(this.treeData$.value)
-    this.selectAllParents(selectedevent, this.treeData$.value);
-    selectedevent.isSelected = true;
-    if (selectedevent.schemaClass === 'TopLevelPathway') {
+    this.selectAllParents(selectedEvent, this.treeData$.value);
+    selectedEvent.isSelected = true;
+    if (selectedEvent.schemaClass === 'TopLevelPathway') {
       this.treeControl.collapseAll();
     }
-    this.eventService.setCurrentEvent(selectedevent);
-    this.state.set('select', [selectedevent.stId])
+    this.eventService.setCurrentEvent(selectedEvent);
+    this.state.set('select', selectedEvent.stId)
+
+    this.treeControl.expand(selectedEvent);
+    this.loadChildEvents(selectedEvent);
   }
 
 
