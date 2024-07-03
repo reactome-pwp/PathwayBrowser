@@ -21,6 +21,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   speciesSubscription!: Subscription;
   treeDataSubscription!: Subscription;
   currentEventSubscription!: Subscription;
+  breadcrumbsSubscription!: Subscription;
 
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
@@ -37,6 +38,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService) {
 
+  breadcrumbs: Event[] = [];
+
+  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef) {
   }
 
   setCurrentTreeData(events: Event[]) {
@@ -61,6 +65,21 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.selectedEvent = event;
     });
 
+
+    this.breadcrumbsSubscription = this.eventService.breadcrumbs$.subscribe(events => {
+      this.breadcrumbs = events;
+    });
+
+
+    this.sub = merge(this.split.dragProgress$.pipe(map((data) => ({name: 'C', data}))),
+    ).subscribe((d) => {
+      if (d.name === 'C') {
+        this.sizeSplit = this.split.getVisibleAreaSizes()[0] as number//d.data.sizes; <-- Could have use these values too
+        // console.log("split size is  ", this.sizeSplit)
+
+      }
+    })
+
   }
 
   getTopLevelPathways(taxId: string): void {
@@ -82,7 +101,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.fetchChildEvents(event.stId).subscribe(children => {
       if (children.hasEvent) {
         event.hasEvent = children.hasEvent.map(child => {
-          child.parents = [...(event.parents || []), event.stId];
+          child.parents = [...(event.parents || []), event];
           return child;
         });
         this.setCurrentTreeData(this.treeData$.value);
@@ -141,10 +160,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
               map(children => {
                 // ExistingEvent!.hasEvent = children.hasEvent;
                 existingEvent!.hasEvent = children.hasEvent!.map(child => {
-                  child.parents = [...(existingEvent!.parents || []), existingEvent!.stId];
+                  child.parents = [...(existingEvent!.parents || []), existingEvent!];
                   return child;
                 });
-                // Highlight selected events
+                // Highlight selected event
                 if (this.selectedIdFromUrl) {
                   existingEvent!.hasEvent?.forEach(event => {
                     if (this.selectedIdFromUrl === event.stId) {
@@ -170,25 +189,33 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       })
     );
   }
+
   selectEvent(selectedEvent: Event) {
     this.clearSelection(this.treeData$.value)
     this.selectAllParents(selectedEvent, this.treeData$.value);
     selectedEvent.isSelected = true;
     if (selectedEvent.schemaClass === 'TopLevelPathway') {
+      this.eventService.setBreadcrumbs([]);
       this.treeControl.collapseAll();
     }
     this.eventService.setCurrentEvent(selectedEvent);
-    this.state.set('select', selectedEvent.stId)
 
+    this.state.set('select', selectedEvent.stId)
     this.treeControl.expand(selectedEvent);
     this.loadChildEvents(selectedEvent);
+
+    if (selectedEvent.parents) {
+      this.eventService.setBreadcrumbs([...(selectedEvent!.parents), selectedEvent]);
+    }
+
   }
 
 
   selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
       if (selectedEvent.parents) {
-        event.isSelected = selectedEvent.parents.includes(event.stId)
+        const parentIds= selectedEvent.parents.map(parent => parent.stId);
+        event.isSelected = parentIds.includes(event.stId)
       }
       if (event.hasEvent) {
         this.selectAllParents(selectedEvent, event.hasEvent);

@@ -1,5 +1,18 @@
-<div class="breadcrumb" [style.display]="diagramId ? 'block':'none'">
-  breadcrumb
+<div id="breadcrumb-container" *ngIf="this.diagramId">
+  <div>
+    <mat-icon class='home-icon' svgIcon="home"></mat-icon>
+  </div>
+  <nav class="breadcrumb">
+    <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
+      <ng-container *ngIf="!last">
+        <a [routerLink]="['/PathwayBrowser', breadcrumb.stId]"> > {{ breadcrumb.displayName }}</a>
+      </ng-container>
+      <ng-container *ngIf="last">
+        > {{ breadcrumb.displayName }}
+      </ng-container>
+    </ng-container>
+  </nav>
+
 </div>
 
 

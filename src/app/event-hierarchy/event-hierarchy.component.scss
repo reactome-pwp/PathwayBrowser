@@ -1,13 +1,39 @@
-.breadcrumb {
-  background: var(--primary);
-  height: 34px;
+#breadcrumb-container {
+  background: var(--on-primary);
+  //height: 34px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px 10px 5px 0px;
 
   /* sticky div */
   position: sticky;
   top: 0;
   z-index: 999;
   overflow-y: hidden;
+
+
+  .breadcrumb{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 2px 0px 2px 7px;
+    isolation: isolate;
+
+    width: 100%;
+    height: 24px;
+    overflow-x: scroll;
+  }
+
 }
+
+.home-icon{
+  width: 16px;
+  height: 18px;
+  padding: 0 3.5px 0 4px;
+}
+
+
 
 
 /*

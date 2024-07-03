@@ -17,6 +17,9 @@ export class EventService {
   private _selectedEvent: Subject<Event> = new Subject<Event>();
   public selectedEvent$ = this._selectedEvent.asObservable();
 
+  private _breadcrumbsSubject = new Subject<Event[]>();
+  breadcrumbs$ = this._breadcrumbsSubject.asObservable();
+
   constructor(private http: HttpClient) {
   }
 
@@ -24,6 +27,9 @@ export class EventService {
     this._selectedEvent.next(event);
   }
 
+  setBreadcrumbs(events: Event[]) {
+    this._breadcrumbsSubject.next(events);
+  }
 
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
     let url = this._TOP_LEVEL_PATHWAYS + taxId;
