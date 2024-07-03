@@ -1,3 +1,15 @@
+.breadcrumb {
+  background: var(--primary);
+  height: 34px;
+
+  /* sticky div */
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  overflow-y: hidden;
+}
+
+
 /*
  * Rename example-tree class will cause expand/collapse not working
  */
@@ -70,7 +82,7 @@
 }
 
 .button-size {
-  width: 24px;
+  width: 20px;
   height: 24px;
   display: flex;
   align-items: center;
@@ -81,9 +93,6 @@
   overflow: visible;
 }
 
-.event-content {
-  color: var(--on-surface);
-}
 
 .font {
   font-family: 'Roboto Flex', sans-serif;
@@ -103,6 +112,11 @@
   padding: 0 6px;
   // gap: 5px;
   border-radius: 50px;
+  color: var(--on-surface);
+
+
+  width: 100%;
+  max-width: fit-content;
 }
 
 /*
@@ -131,6 +145,7 @@ ul {
   isolation: isolate;
   margin: 0 auto;
   width: 100%;
+  background: var(--surface);
 
   &:before {
     content: '';

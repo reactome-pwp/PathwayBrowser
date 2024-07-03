@@ -1,3 +1,8 @@
+<div class="breadcrumb" [style.display]="diagramId ? 'block':'none'">
+  breadcrumb
+</div>
+
+
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
   <!-- This is the tree node template for leaf nodes -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node">
@@ -49,20 +54,19 @@
   <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
     <div class="mat-tree-node">
       <div class="left">
-        <button mat-icon-button matTreeNodeToggle class="button-size" disableRipple
+        <button mat-icon-button matTreeNodeToggle class="button-size no-hover-effect"
                 [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildEvents(node)">
           <mat-icon class="mat-icon-rtl-mirror"
                     [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
 
         </button>
-        <div (click)="selectEvent(node)" class="event-content">
+        <div (click)="selectEvent(node)">
           <button mat-button class="button" [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}"
                   routerLink="/PathwayBrowser/{{node.stId}}">
             <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
                       [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
             <span class="font">
               {{ node.displayName }}
-              {{ node.dbId }}
             </span>
           </button>
         </div>

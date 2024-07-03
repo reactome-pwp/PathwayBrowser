@@ -128,16 +128,6 @@
   }
 }
 
-.breadcrumb {
-  background: var(--primary);
-  height: 34px;
-
-  /* sticky div */
-  position: sticky;
-  top: 56px;
-  z-index: 999;
-}
-
 .event-hierarchy {
   height: 100%;
   overflow-x: hidden;

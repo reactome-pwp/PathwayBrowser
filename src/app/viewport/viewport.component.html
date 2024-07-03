@@ -35,10 +35,6 @@
             <cr-interactors #interactors [cy]="diagram.cy" [cys]="diagram.cys"
                             (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
           </div>
-
-          <div class="breadcrumb" [style.display]="diagramId ? 'block':'none'">
-            breadcrumb
-          </div>
           <div class="event-hierarchy">
             <cr-event-hierarchy [id]="diagramId"></cr-event-hierarchy>
           </div>

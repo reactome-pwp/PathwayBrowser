@@ -13,6 +13,7 @@ import {DiagramStateService} from "../services/diagram-state.service";
   templateUrl: './event-hierarchy.component.html',
   styleUrls: ['./event-hierarchy.component.scss']
 })
+@UntilDestroy()
 export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
@@ -25,12 +26,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
 
-  selectedId = this.state.get('select') || null;
+  selectedIdFromUrl = this.state.get('select') || null;
   selectedEvent!: Event;
 
-  // Get latest selected ids
+  // Get latest selected id from URL
   selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
-      this.selectedId = this.state.get('select')
+      this.selectedIdFromUrl = this.state.get('select')
     }
   )
 
@@ -144,14 +145,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                   return child;
                 });
                 // Highlight selected events
-                if (this.selectedId) {
+                if (this.selectedIdFromUrl) {
                   existingEvent!.hasEvent?.forEach(event => {
-                    if (this.selectedId === event.stId) {
+                    if (this.selectedIdFromUrl === event.stId) {
                       event.isSelected = true;
                     }
                   })
                 }
-                // Highlight selected event 's parent when loading from URL
+                // Highlight selected event's parent when loading from URL
                 existingEvent!.isSelected = true;
                 return existingEvent!.hasEvent!;
               })
@@ -182,13 +183,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  selectAllParents(selectedevent: Event, events: Event[]) {
+  selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
-      if (selectedevent.parents) {
-        event.isSelected = selectedevent.parents.includes(event.stId)
+      if (selectedEvent.parents) {
+        event.isSelected = selectedEvent.parents.includes(event.stId)
       }
       if (event.hasEvent) {
-        this.selectAllParents(selectedevent, event.hasEvent);
+        this.selectAllParents(selectedEvent, event.hasEvent);
       }
     });
   }
