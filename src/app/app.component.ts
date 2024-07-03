@@ -18,7 +18,8 @@ export class AppComponent {
     {name: 'pathway-ehld', route: 'pathway-ehld'},
     {name: 'pathway', route: 'pathway'},
     {name: 'reaction', route: 'reaction'},
-    {name: 'transition', route: 'transition'}
+    {name: 'transition', route: 'transition'},
+    {name: 'home', route: 'home'}
   ];
 
   species = [
