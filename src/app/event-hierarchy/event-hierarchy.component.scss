@@ -14,7 +14,7 @@
   white-space: nowrap;
 
 
-  .breadcrumb{
+  .breadcrumb {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -74,6 +74,7 @@
 
   .left {
     display: flex;
+    overflow: hidden;
   }
 
   .right {
@@ -104,6 +105,7 @@
   z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
   height: 17px !important;
   width: 17px !important;
+  flex-shrink: 0; // Ensure the icon does not shrink
 }
 
 .button-size {
@@ -138,6 +140,7 @@
   // gap: 5px;
   border-radius: 50px;
   color: var(--on-surface);
+  justify-content: flex-start;
 
 
   width: 100%;
@@ -240,13 +243,6 @@ ul {
 }
 
 
-  position: relative;
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: 20px;
-
-}
-
 .tag-font {
   font-family: 'Roboto Flex', sans-serif;
   font-style: normal;
@@ -261,3 +257,30 @@ ul {
 
 }
 
+.no-hover-effect {
+  &.mat-mdc-icon-button {
+    ::ng-deep {
+      .mat-mdc-button-persistent-ripple, .mat-mdc-button-ripple {
+        display: none;
+      }
+    }
+  }
+}
+
+/*
+ * DisplayName
+ */
+.name-container {
+  overflow: hidden;
+}
+
+.displayName {
+  position: relative;
+  left: 0;
+  width: 100%;
+  transition: left 3s;
+}
+
+//.displayName.animate {
+//  left: -100%;
+//}
