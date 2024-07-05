@@ -1,11 +1,14 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild} from '@angular/core';
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {BehaviorSubject, forkJoin, map, merge, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
+import {BehaviorSubject, forkJoin, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
+import {SplitComponent} from "angular-split";
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -17,7 +20,11 @@ import {DiagramStateService} from "../services/diagram-state.service";
 export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
+  @Input('eventSplit') split!: SplitComponent
+  @ViewChild('button', {read: ElementRef}) button!: ElementRef;
 
+
+  splitSynchronized!: Subscription
   speciesSubscription!: Subscription;
   treeDataSubscription!: Subscription;
   currentEventSubscription!: Subscription;
@@ -26,6 +33,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
+  breadcrumbs: Event[] = [];
 
   selectedIdFromUrl = this.state.get('select') || null;
   selectedEvent!: Event;
@@ -36,11 +44,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     }
   )
 
-  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService) {
 
-  breadcrumbs: Event[] = [];
-
-  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef) {
+  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
 
   setCurrentTreeData(events: Event[]) {
@@ -70,17 +75,46 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.breadcrumbs = events;
     });
 
-
-    this.sub = merge(this.split.dragProgress$.pipe(map((data) => ({name: 'C', data}))),
-    ).subscribe((d) => {
-      if (d.name === 'C') {
-        this.sizeSplit = this.split.getVisibleAreaSizes()[0] as number//d.data.sizes; <-- Could have use these values too
-        // console.log("split size is  ", this.sizeSplit)
-
-      }
-    })
+    this.splitSynchronized = this.split.dragProgress$.subscribe(data => {
+      // this.sizeSplit = this.split.getVisibleAreaSizes()[0] as number; // return percent value
+      this.adjustWidths();
+    });
 
   }
+
+  /**
+   * Adjust widths when loading mat tree data at very beginning.
+   */
+  adjustWidths() {
+    const treeNodes = this.el.nativeElement.querySelectorAll('.mat-tree-node');
+    treeNodes.forEach((node: HTMLElement) => {
+      this.adjustWidth(node)
+    });
+  }
+
+
+  adjustWidth(node: HTMLElement) {
+    const left = node.querySelector('.left') as HTMLElement;
+    const right = node.querySelector('.right') as HTMLElement;
+    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
+    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
+    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
+  }
+
+  getLeftDivElWidth(node: HTMLElement) {
+    const left = node.querySelector('.left') as HTMLElement;
+    const right = node.querySelector('.right') as HTMLElement;
+    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
+    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
+    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
+    // console.log('parent ', parentWidth);
+    // console.log('right ', rightWidth);
+    console.log('single width ', left.style.width);
+
+    return parentWidth - rightWidth;
+
+  }
+
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).subscribe(results => {
@@ -93,9 +127,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
 
+  hasChildSingleEvent(event: Event): boolean {
+    return this.hasChild(0, event);
+  }
+
   loadChildEvents(event: Event) {
     // Check if children are already loaded
     if (event.hasEvent && event.hasEvent.length > 0) {
+      this.setCurrentTreeData(this.treeData$.value);
       return;
     }
     this.eventService.fetchChildEvents(event.stId).subscribe(children => {
@@ -108,8 +147,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       } else {
         console.log('No children found');
       }
-
-      // this.calculateWidth(320);
     });
   }
 
@@ -124,6 +161,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         })
       ).subscribe((tree) => {
       this.setCurrentTreeData(tree);
+      this.adjustWidths();
     })
   }
 
@@ -135,6 +173,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.speciesSubscription.unsubscribe();
     this.treeDataSubscription.unsubscribe();
     this.currentEventSubscription.unsubscribe();
+    this.splitSynchronized.unsubscribe();
   }
 
 
@@ -158,7 +197,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
           if (existingEvent) {
             return this.eventService.fetchChildEvents(event.stId).pipe(
               map(children => {
-                // ExistingEvent!.hasEvent = children.hasEvent;
                 existingEvent!.hasEvent = children.hasEvent!.map(child => {
                   child.parents = [...(existingEvent!.parents || []), existingEvent!];
                   return child;
@@ -191,9 +229,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   selectEvent(selectedEvent: Event) {
-    this.clearSelection(this.treeData$.value)
+
+    this.clearAllSelectedEvents(this.treeData$.value)
     this.selectAllParents(selectedEvent, this.treeData$.value);
     selectedEvent.isSelected = true;
+
     if (selectedEvent.schemaClass === 'TopLevelPathway') {
       this.eventService.setBreadcrumbs([]);
       this.treeControl.collapseAll();
@@ -201,11 +241,20 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.setCurrentEvent(selectedEvent);
 
     this.state.set('select', selectedEvent.stId)
+
+
     this.treeControl.expand(selectedEvent);
     this.loadChildEvents(selectedEvent);
 
+
     if (selectedEvent.parents) {
       this.eventService.setBreadcrumbs([...(selectedEvent!.parents), selectedEvent]);
+    }
+
+    if (this.hasChildSingleEvent(selectedEvent)) {
+      this.router.navigate(['PathwayBrowser', selectedEvent.stId], {
+        queryParamsHandling: "preserve" // Keep existing query params
+      });
     }
 
   }
@@ -214,7 +263,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
       if (selectedEvent.parents) {
-        const parentIds= selectedEvent.parents.map(parent => parent.stId);
+        const parentIds = selectedEvent.parents.map(parent => parent.stId);
         event.isSelected = parentIds.includes(event.stId)
       }
       if (event.hasEvent) {
@@ -223,11 +272,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  clearSelection(events: Event[]) {
+  clearAllSelectedEvents(events: Event[]) {
     events.forEach(event => {
       event.isSelected = false;
       if (event.hasEvent) {
-        this.clearSelection(event.hasEvent);
+        this.clearAllSelectedEvents(event.hasEvent);
       }
     });
   }
@@ -254,4 +303,37 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
+  currentLeft = 0;
+
+  onNameHover($event: MouseEvent, event: Event) {
+
+    const targetParentNode = ($event.target as HTMLElement).closest('.mat-tree-node') as HTMLElement;
+    let leftDivWidth = this.getLeftDivElWidth(targetParentNode);
+
+    const targetElement = $event.target as HTMLElement;
+    const contentWidth = targetElement.offsetWidth + 17 + 16; // icon width and padding lef and right
+
+    let left = contentWidth - leftDivWidth;
+    //console.log('contentWidth ', contentWidth)
+    //console.log('left width', leftDivWidth)
+    // Check if there is space between the left and content span
+    if (contentWidth > leftDivWidth) {
+     // console.log("Applying animation");
+      // targetElement.classList.add('animate');
+      targetElement.style.left = `-${left}px`; // Set the distance to scroll
+      this.currentLeft = -left;
+    }
+  }
+
+  onNameHoverLeave($event: MouseEvent, event: Event) {
+    const targetElement = $event.target as HTMLElement;
+    // targetElement.classList.remove('animate');
+    targetElement.style.left = '0'; // Reset position
+    this.currentLeft = 0;
+  }
+
+  onScroll($event: WheelEvent) {
+    console.log("start scrolling...")
+
+  }
 }

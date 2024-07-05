@@ -11,6 +11,7 @@
   top: 0;
   z-index: 999;
   overflow-y: hidden;
+  white-space: nowrap;
 
 
   .breadcrumb{
@@ -27,13 +28,11 @@
 
 }
 
-.home-icon{
+.home-icon {
   width: 16px;
   height: 18px;
   padding: 0 3.5px 0 4px;
 }
-
-
 
 
 /*

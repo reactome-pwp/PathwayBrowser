@@ -12,27 +12,27 @@
       </ng-container>
     </ng-container>
   </nav>
-
 </div>
-
 
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
   <!-- This is the tree node template for leaf nodes -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node">
     <!-- use a disabled button to provide padding for table leaf -->
     <!--    <button mat-icon-button disabled class="button-size"></button>-->
-    <div class="left">
-      <div (click)="selectEvent(node)">
-        <button mat-button [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
-          <mat-icon class='custom-icon' [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
-                    [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
 
-          <span class="font">
-          {{ node.displayName }}
-            {{ node.dbId }}
-        </span>
-        </button>
-      </div>
+    <div class="left">
+      <button mat-button (click)="selectEvent(node)" #button
+              [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
+        <mat-icon class='custom-icon'
+                  [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
+                  [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
+        <div class="name-container" (wheel)="onScroll($event)">
+          <span class="font displayName" (mouseover)="onNameHover($event ,node)"
+                (mouseleave)="onNameHoverLeave($event, node)">
+            {{ node.displayName }}
+          </span>
+        </div>
+      </button>
     </div>
 
     <div class="right">
@@ -71,18 +71,19 @@
                 [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildEvents(node)">
           <mat-icon class="mat-icon-rtl-mirror"
                     [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
-
         </button>
-        <div (click)="selectEvent(node)">
-          <button mat-button class="button" [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}"
-                  routerLink="/PathwayBrowser/{{node.stId}}">
-            <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
-                      [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
-            <span class="font">
+
+        <button mat-button (click)="selectEvent(node)" class="button"
+                [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}">
+          <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
+                    [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
+          <div class="name-container">
+          <span class="font displayName" (mouseover)="onNameHover($event, node)"
+                (mouseleave)="onNameHoverLeave($event, node)">
               {{ node.displayName }}
             </span>
-          </button>
-        </div>
+          </div>
+        </button>
       </div>
 
       <div class="right">
