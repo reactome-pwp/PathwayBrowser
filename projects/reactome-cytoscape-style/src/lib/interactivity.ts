@@ -240,7 +240,8 @@ export class Interactivity {
               if (isElementInViewport(elem)) {
                 // console.log('rendering', name)
                 if (this.videoLayer?.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
-                  console.log('loading', name)
+                  video.classList.add('loading');
+                  video.oncanplay = e => video.classList.remove('loading')
                   video.load();
                 }
                 elem.style.visibility = node.visible() ? 'visible' : 'hidden';
