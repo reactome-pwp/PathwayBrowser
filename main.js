@@ -4488,7 +4488,7 @@ class Interactivity {
   constructor(cy, properties) {
     this.cy = cy;
     this.properties = properties;
-    this.isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    this.isMobile = 'ontouchstart' in document || navigator.maxTouchPoints > 0;
     this.applyToReaction = (action, stateKey) => reactionNode => {
       if (state[stateKey]) return;
       state[stateKey] = true;
@@ -4500,6 +4500,7 @@ class Interactivity {
       protein: () => undefined
     };
     this.margin = 0;
+    console.log('is mobile', this.isMobile);
     // @ts-ignore
     cy.elements().ungrabify().panify();
     this.initHover(cy);
@@ -4689,9 +4690,9 @@ class Interactivity {
       };
     }();
     if (this.isMobile) {
-      this.cy.on('mouseover', 'node.Protein', handler(v => v.play())).on('mouseout', 'node.Protein', handler(v => v.pause()));
-    } else {
       this.cy.on('select', 'node.Protein', handler(v => v.play())).on('unselect', 'node.Protein', handler(v => v.pause()));
+    } else {
+      this.cy.on('mouseover', 'node.Protein', handler(v => v.play())).on('mouseout', 'node.Protein', handler(v => v.pause()));
     }
   }
   initStructureMolecule(cy) {
