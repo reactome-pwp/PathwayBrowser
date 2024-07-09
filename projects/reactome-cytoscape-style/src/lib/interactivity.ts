@@ -11,17 +11,10 @@ type RenderableHTMLElement = HTMLElement & { render: _.DebouncedFunc<() => void>
 
 export class Interactivity {
 
-  isMobile = [
-    /Android/i,
-    /webOS/i,
-    /iPhone/i,
-    /iPad/i,
-    /iPod/i,
-    /BlackBerry/i,
-    /Windows Phone/i
-  ].some((toMatchItem) => navigator.userAgent.match(toMatchItem));
+  isMobile = 'ontouchstart' in document || navigator.maxTouchPoints > 0;
 
   constructor(private cy: cytoscape.Core, private properties: Properties) {
+    console.log('is mobile', this.isMobile)
     // @ts-ignore
     cy.elements().ungrabify().panify();
     this.initHover(cy);
@@ -191,7 +184,7 @@ export class Interactivity {
     const container = cy.container()!;
 
     cy
-      .on('click', 'node.InteractorOccurrences', e => {
+      .on('tap', 'node.InteractorOccurrences', e => {
         const openClass = 'opened';
         let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
         e.target.toggleClass(openClass);
@@ -203,18 +196,18 @@ export class Interactivity {
         }))
       })
 
-      .on('click', '.Interactor', e => {
+      .on('tap', '.Interactor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
       })
-      .on('click', '.DiseaseInteractor', e => {
+      .on('tap', '.DiseaseInteractor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
       })
 
-    // .on('click', e => {
+    // .on('tap', e => {
     //   const openClass = 'opened';
     //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
     //   e.target.toggleClass(openClass);
@@ -281,14 +274,12 @@ export class Interactivity {
     };
     if (this.isMobile) {
       this.cy
-        .on('mouseover', 'node.Protein', handler(v => v.play()))
-        .on('mouseout', 'node.Protein', handler(v => v.pause()));
-    } else {
-      this.cy
         .on('select', 'node.Protein', handler(v => v.play()))
         .on('unselect', 'node.Protein', handler(v => v.pause()))
     }
-
+    this.cy
+      .on('mouseover', 'node.Protein', handler(v => v.play()))
+      .on('mouseout', 'node.Protein', handler(v => v.pause()));
   }
 
   private moleculeLayer?: IHTMLLayer;
