@@ -1,36 +1,6 @@
 "use strict";
 (self["webpackChunkpathway_browser"] = self["webpackChunkpathway_browser"] || []).push([["main"],{
 
-/***/ 8998:
-/*!*********************************************************************************!*\
-  !*** ./projects/reactome-cytoscape-style/src/lib/model/reactome-event.model.ts ***!
-  \*********************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ReactomeEvent: () => (/* binding */ ReactomeEvent),
-/* harmony export */   ReactomeEventTypes: () => (/* binding */ ReactomeEventTypes)
-/* harmony export */ });
-var ReactomeEventTypes;
-(function (ReactomeEventTypes) {
-  ReactomeEventTypes["hover"] = "reactome::hover";
-  ReactomeEventTypes["leave"] = "reactome::leave";
-  ReactomeEventTypes["select"] = "reactome::select";
-  ReactomeEventTypes["unselect"] = "reactome::unselect";
-  ReactomeEventTypes["open"] = "reactome::open";
-  ReactomeEventTypes["close"] = "reactome::close";
-})(ReactomeEventTypes || (ReactomeEventTypes = {}));
-class ReactomeEvent extends CustomEvent {
-  constructor(type, target) {
-    super(type, {
-      detail: target
-    });
-  }
-}
-
-/***/ }),
-
 /***/ 1355:
 /*!***********************************************************************!*\
   !*** ./projects/reactome-cytoscape-style/src/lib/properties-utils.ts ***!
@@ -386,23 +356,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DiagramComponent: () => (/* binding */ DiagramComponent),
 /* harmony export */   PaletteSummary: () => (/* binding */ PaletteSummary)
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! tslib */ 2321);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! tslib */ 2321);
 /* harmony import */ var cytoscape__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! cytoscape */ 5388);
-/* harmony import */ var reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! reactome-cytoscape-style */ 5595);
+/* harmony import */ var reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! reactome-cytoscape-style */ 5595);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! rxjs */ 2513);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! rxjs */ 3317);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! rxjs */ 3738);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! rxjs */ 4520);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! rxjs */ 5584);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! rxjs */ 7592);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! rxjs */ 4300);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! rxjs */ 1527);
-/* harmony import */ var _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model */ 8998);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! rxjs */ 4300);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! rxjs */ 1527);
 /* harmony import */ var _angular_forms__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @angular/forms */ 8849);
-/* harmony import */ var _ngneat_until_destroy__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! @ngneat/until-destroy */ 2813);
+/* harmony import */ var _ngneat_until_destroy__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! @ngneat/until-destroy */ 2813);
 /* harmony import */ var _interactors_custom_interactor_dialog_custom_interactor_dialog_component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../interactors/custom-interactor-dialog/custom-interactor-dialog.component */ 2373);
 /* harmony import */ var _interactors_common_overlay_resource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../interactors/common/overlay-resource */ 9049);
-/* harmony import */ var _projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../../projects/reactome-cytoscape-style/src/lib/properties-utils */ 1355);
+/* harmony import */ var _projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../../../projects/reactome-cytoscape-style/src/lib/properties-utils */ 1355);
 /* harmony import */ var _services_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../services/utils */ 7038);
 /* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! chroma-js */ 3062);
 /* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(chroma_js__WEBPACK_IMPORTED_MODULE_4__);
@@ -413,21 +382,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _services_dark_service__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../services/dark.service */ 4393);
 /* harmony import */ var _interactors_services_interactor_service__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../interactors/services/interactor.service */ 7364);
 /* harmony import */ var _services_diagram_state_service__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../services/diagram-state.service */ 6742);
-/* harmony import */ var _angular_material_dialog__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @angular/material/dialog */ 7401);
+/* harmony import */ var _angular_material_dialog__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @angular/material/dialog */ 7401);
 /* harmony import */ var _services_analysis_service__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../services/analysis.service */ 7139);
-/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @angular/router */ 7947);
-/* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @angular/common */ 6575);
-/* harmony import */ var _angular_material_button__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @angular/material/button */ 895);
-/* harmony import */ var _angular_material_slide_toggle__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @angular/material/slide-toggle */ 9293);
-/* harmony import */ var _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @angular/cdk/drag-drop */ 7792);
-/* harmony import */ var _angular_material_select__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @angular/material/select */ 6355);
-/* harmony import */ var _angular_material_core__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @angular/material/core */ 5309);
-/* harmony import */ var _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @angular/material/progress-spinner */ 3910);
-/* harmony import */ var _angular_material_icon__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! @angular/material/icon */ 6515);
-/* harmony import */ var _angular_material_list__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! @angular/material/list */ 3228);
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @angular/router */ 7947);
+/* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @angular/common */ 6575);
+/* harmony import */ var _angular_material_button__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @angular/material/button */ 895);
+/* harmony import */ var _angular_material_slide_toggle__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @angular/material/slide-toggle */ 9293);
+/* harmony import */ var _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @angular/cdk/drag-drop */ 7792);
+/* harmony import */ var _angular_material_select__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @angular/material/select */ 6355);
+/* harmony import */ var _angular_material_core__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @angular/material/core */ 5309);
+/* harmony import */ var _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @angular/material/progress-spinner */ 3910);
+/* harmony import */ var _angular_material_icon__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @angular/material/icon */ 6515);
+/* harmony import */ var _angular_material_list__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! @angular/material/list */ 3228);
 
-
-// @ts-ignore
 
 
 
@@ -687,10 +654,10 @@ let DiagramComponent = class DiagramComponent {
       }
       this.applyEvent(event, replacements);
     });
-    this.interactorOpeningHandling = this.reactomeEvents$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => e.detail.cy !== this.legend), (0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => [_projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.open, _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.close].includes(e.type)), (0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => e.detail.type === 'Interactor')).subscribe(e => {
+    this.interactorOpeningHandling = this.reactomeEvents$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => e.detail.cy !== this.legend), (0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => [reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.open, reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.close].includes(e.type)), (0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => e.detail.type === 'Interactor')).subscribe(e => {
       [this.reactomeStyle, this.reactomeStyleCompare].filter(s => s !== undefined && e.detail.cy === s.cy).forEach(style => {
         const occurrenceNode = e.detail.element.nodes()[0];
-        if (e.type === _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.open) this.interactorsService.addInteractorNodes(occurrenceNode, style.cy);else this.interactorsService.removeInteractorNodes(occurrenceNode);
+        if (e.type === reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.open) this.interactorsService.addInteractorNodes(occurrenceNode, style.cy);else this.interactorsService.removeInteractorNodes(occurrenceNode);
         style.interactivity.updateProteins();
         style.interactivity.triggerZoom();
       });
@@ -713,7 +680,7 @@ let DiagramComponent = class DiagramComponent {
       this._ignore = false;
     });
     this.diagramSelect2state = this.reactomeEvents$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(e => e.detail.cy !== this.legend), (0,rxjs__WEBPACK_IMPORTED_MODULE_18__.delay)(0)).subscribe(e => {
-      if (e.type !== _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select) return;
+      if (e.type !== reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select) return;
       let elements = e.detail.element;
       if (e.detail.type === 'reaction') {
         elements = e.detail.cy.elements('node.reaction:selected');
@@ -735,16 +702,16 @@ let DiagramComponent = class DiagramComponent {
           matchingElement = matchingElement.add(matchingElement.connectedEdges());
         }
         switch (event.type) {
-          case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select:
+          case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select:
             this.state.set('flag', ['class:' + classes[0] + (event.detail.type === 'reaction' ? '' : (classes.includes('drug') ? '.' : '!') + 'drug')]);
             break;
-          case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.unselect:
+          case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.unselect:
             this.state.set('flag', []);
             break;
-          case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.hover:
+          case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.hover:
             matchingElement.addClass('hover');
             break;
-          case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.leave:
+          case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.leave:
             matchingElement.removeClass('hover');
             break;
         }
@@ -764,13 +731,13 @@ let DiagramComponent = class DiagramComponent {
     const container = this.cytoscapeContainer.nativeElement;
     const compareContainer = this.compareContainer.nativeElement;
     const legendContainer = this.legendContainer.nativeElement;
-    Object.values(_projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes).forEach(type => {
+    Object.values(reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes).forEach(type => {
       container.addEventListener(type, e => this._reactomeEvents$.next(e));
       compareContainer.addEventListener(type, e => this._reactomeEvents$.next(e));
       legendContainer.addEventListener(type, e => this._reactomeEvents$.next(e));
     });
-    this.reactomeStyle = new reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_21__.Style(container);
-    this.underlayPadding = (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(this.reactomeStyle.properties.shadow.padding);
+    this.reactomeStyle = new reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.Style(container);
+    this.underlayPadding = (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(this.reactomeStyle.properties.shadow.padding);
     this.diagram.getLegend().subscribe(legend => {
       this.legend = (0,cytoscape__WEBPACK_IMPORTED_MODULE_0__["default"])({
         container: legendContainer,
@@ -864,7 +831,7 @@ let DiagramComponent = class DiagramComponent {
       this.cy.nodes('.crossed').removeClass('crossed');
       this.cyCompare.on('viewport', () => this.syncViewports(this.cyCompare, compareContainer, this.cy, container));
       this.cy.on('viewport', () => this.syncViewports(this.cy, container, this.cyCompare, compareContainer));
-      this.reactomeStyleCompare = new reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_21__.Style(compareContainer);
+      this.reactomeStyleCompare = new reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.Style(compareContainer);
       this.reactomeStyleCompare?.bindToCytoscape(this.cyCompare);
       this.cyCompare.minZoom(this.cy.minZoom());
       this.cyCompare.maxZoom(this.cy.maxZoom());
@@ -972,16 +939,16 @@ let DiagramComponent = class DiagramComponent {
   }
   applyEvent(event, affectedElements) {
     switch (event.type) {
-      case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.hover:
+      case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.hover:
         affectedElements.addClass('hover');
         break;
-      case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.leave:
+      case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.leave:
         affectedElements.removeClass('hover');
         break;
-      case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select:
+      case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.select:
         affectedElements.select();
         break;
-      case _projects_reactome_cytoscape_style_src_lib_model_reactome_event_model__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.unselect:
+      case reactome_cytoscape_style__WEBPACK_IMPORTED_MODULE_17__.ReactomeEventTypes.unselect:
         affectedElements.unselect();
         break;
     }
@@ -1093,20 +1060,20 @@ let DiagramComponent = class DiagramComponent {
         cy.batch(() => {
           cy.nodes().removeData('exp');
           cy.edges('[?color]').style({
-            'underlay-padding': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(this.reactomeStyle.properties.shadow.padding)
+            'underlay-padding': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(this.reactomeStyle.properties.shadow.padding)
           });
           cy.nodes('.Shadow').style({
-            'font-size': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(this.reactomeStyle.properties.shadow.fontSize),
-            'text-outline-width': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(this.reactomeStyle.properties.shadow.fontPadding)
+            'font-size': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(this.reactomeStyle.properties.shadow.fontSize),
+            'text-outline-width': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(this.reactomeStyle.properties.shadow.fontPadding)
           });
         });
       });
       return;
     }
-    (0,rxjs__WEBPACK_IMPORTED_MODULE_23__.forkJoin)({
+    (0,rxjs__WEBPACK_IMPORTED_MODULE_22__.forkJoin)({
       entities: this.analysis.foundEntities(this.diagramId, token),
       pathways: this.analysis.pathwaysResults(this.cy.nodes('.Pathway').map(p => p.data('reactomeId')), token),
-      result: this.analysis.result$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(_services_utils__WEBPACK_IMPORTED_MODULE_3__.isDefined), (0,rxjs__WEBPACK_IMPORTED_MODULE_24__.take)(1))
+      result: this.analysis.result$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_15__.filter)(_services_utils__WEBPACK_IMPORTED_MODULE_3__.isDefined), (0,rxjs__WEBPACK_IMPORTED_MODULE_23__.take)(1))
     }).subscribe(({
       entities,
       result,
@@ -1148,8 +1115,8 @@ let DiagramComponent = class DiagramComponent {
             'underlay-padding': 8
           });
           cy.nodes('.Shadow').style({
-            'font-size': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(style.properties.shadow.fontSize) / 2,
-            'text-outline-width': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_22__.extract)(style.properties.shadow.fontPadding) / 2
+            'font-size': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(style.properties.shadow.fontSize) / 2,
+            'text-outline-width': (0,_projects_reactome_cytoscape_style_src_lib_properties_utils__WEBPACK_IMPORTED_MODULE_21__.extract)(style.properties.shadow.fontPadding) / 2
           });
           const validGroups = new Set();
           if (result.summary.type === 'GSA_REGULATION') {
@@ -1217,7 +1184,7 @@ let DiagramComponent = class DiagramComponent {
     this.analysis.example(example).subscribe();
   }
   static #_ = this.ɵfac = function DiagramComponent_Factory(t) {
-    return new (t || DiagramComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_diagram_service__WEBPACK_IMPORTED_MODULE_5__.DiagramService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_dark_service__WEBPACK_IMPORTED_MODULE_6__.DarkService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_interactors_services_interactor_service__WEBPACK_IMPORTED_MODULE_7__.InteractorService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_diagram_state_service__WEBPACK_IMPORTED_MODULE_8__.DiagramStateService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_material_dialog__WEBPACK_IMPORTED_MODULE_25__.MatDialog), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_10__.ChangeDetectorRef), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_analysis_service__WEBPACK_IMPORTED_MODULE_9__.AnalysisService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_router__WEBPACK_IMPORTED_MODULE_26__.Router));
+    return new (t || DiagramComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_diagram_service__WEBPACK_IMPORTED_MODULE_5__.DiagramService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_dark_service__WEBPACK_IMPORTED_MODULE_6__.DarkService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_interactors_services_interactor_service__WEBPACK_IMPORTED_MODULE_7__.InteractorService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_diagram_state_service__WEBPACK_IMPORTED_MODULE_8__.DiagramStateService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_material_dialog__WEBPACK_IMPORTED_MODULE_24__.MatDialog), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_10__.ChangeDetectorRef), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_services_analysis_service__WEBPACK_IMPORTED_MODULE_9__.AnalysisService), _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdirectiveInject"](_angular_router__WEBPACK_IMPORTED_MODULE_25__.Router));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdefineComponent"]({
     type: DiagramComponent,
@@ -1391,11 +1358,11 @@ let DiagramComponent = class DiagramComponent {
         _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵproperty"]("ngIf", (ctx.resourceTokens == null ? null : ctx.resourceTokens.length) != 0);
       }
     },
-    dependencies: [_angular_common__WEBPACK_IMPORTED_MODULE_27__.NgForOf, _angular_common__WEBPACK_IMPORTED_MODULE_27__.NgIf, _angular_common__WEBPACK_IMPORTED_MODULE_27__.NgStyle, _angular_forms__WEBPACK_IMPORTED_MODULE_11__["ɵNgNoValidate"], _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgControlStatus, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgControlStatusGroup, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgModel, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgForm, _angular_material_button__WEBPACK_IMPORTED_MODULE_28__.MatButton, _angular_material_button__WEBPACK_IMPORTED_MODULE_28__.MatIconButton, _angular_material_slide_toggle__WEBPACK_IMPORTED_MODULE_29__.MatSlideToggle, _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_30__.CdkDragHandle, _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_30__.CdkDrag, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_20__.MatFormField, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_20__.MatLabel, _angular_material_select__WEBPACK_IMPORTED_MODULE_31__.MatSelect, _angular_material_select__WEBPACK_IMPORTED_MODULE_31__.MatSelectTrigger, _angular_material_core__WEBPACK_IMPORTED_MODULE_32__.MatOption, _angular_material_core__WEBPACK_IMPORTED_MODULE_32__.MatOptgroup, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.FormControlDirective, _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_33__.MatProgressSpinner, _angular_material_icon__WEBPACK_IMPORTED_MODULE_34__.MatIcon, _angular_material_list__WEBPACK_IMPORTED_MODULE_35__.MatSelectionList, _angular_material_list__WEBPACK_IMPORTED_MODULE_35__.MatListOption, _angular_common__WEBPACK_IMPORTED_MODULE_27__.AsyncPipe],
+    dependencies: [_angular_common__WEBPACK_IMPORTED_MODULE_26__.NgForOf, _angular_common__WEBPACK_IMPORTED_MODULE_26__.NgIf, _angular_common__WEBPACK_IMPORTED_MODULE_26__.NgStyle, _angular_forms__WEBPACK_IMPORTED_MODULE_11__["ɵNgNoValidate"], _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgControlStatus, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgControlStatusGroup, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgModel, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.NgForm, _angular_material_button__WEBPACK_IMPORTED_MODULE_27__.MatButton, _angular_material_button__WEBPACK_IMPORTED_MODULE_27__.MatIconButton, _angular_material_slide_toggle__WEBPACK_IMPORTED_MODULE_28__.MatSlideToggle, _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_29__.CdkDragHandle, _angular_cdk_drag_drop__WEBPACK_IMPORTED_MODULE_29__.CdkDrag, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_20__.MatFormField, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_20__.MatLabel, _angular_material_select__WEBPACK_IMPORTED_MODULE_30__.MatSelect, _angular_material_select__WEBPACK_IMPORTED_MODULE_30__.MatSelectTrigger, _angular_material_core__WEBPACK_IMPORTED_MODULE_31__.MatOption, _angular_material_core__WEBPACK_IMPORTED_MODULE_31__.MatOptgroup, _angular_forms__WEBPACK_IMPORTED_MODULE_11__.FormControlDirective, _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_32__.MatProgressSpinner, _angular_material_icon__WEBPACK_IMPORTED_MODULE_33__.MatIcon, _angular_material_list__WEBPACK_IMPORTED_MODULE_34__.MatSelectionList, _angular_material_list__WEBPACK_IMPORTED_MODULE_34__.MatListOption, _angular_common__WEBPACK_IMPORTED_MODULE_26__.AsyncPipe],
     styles: [".variables[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0 0 40px 0;\n  --opacity: 0.08;\n  --structure-opacity: [[130,0], [150,100]];\n  --shadow-padding: 20;\n  --shadow-luminosity: 40;\n  --on-surface: #001F24;\n  --primary: #006782;\n  --on-primary: #FFFFFF;\n  --on-tertiary: #FFFFFF;\n  --positive: #0C9509;\n  --negative: #BA1A1A;\n  --negative-contrast: #ea7d7d;\n  --select-node: #6EB3E4;\n  --select-edge: #0561A6;\n  --hover-node: #78E076;\n  --hover-edge: #04B601;\n  --interactor-fill: #68297C;\n  --interactor-stroke: #9f5cb5;\n  --flag: #ff009a;\n  --compartment: #E5834A;\n  --primary-contrast-1: #001F29;\n  --primary-contrast-2: #003545;\n  --primary-contrast-3: #004D62;\n  --primary-contrast-4: #006782;\n  --tertiary-contrast-1: #00315C;\n  --tertiary-contrast-2: #004882;\n  --tertiary-contrast-3: #1660A5;\n  --drug-contrast-1: #3E001D;\n  --drug-contrast-2: #610B33;\n  --drug-contrast-3: #7E2549;\n  --drug-contrast-4: #BB557A;\n  --analysis-uni-palette: [\n    [0, \"#FFFFE0\"],\n    [1, \"#00429D\"]\n  ];\n  --analysis-bi-palette: \"viridis\";\n}\n.variables.dark[_ngcontent-%COMP%] {\n  --opacity: 0.08;\n  --shadow-luminosity: 70;\n  --shadow-opacity: [[20, 40], [40, 0]];\n  --on-surface: #97F0FF;\n  --primary: #5CD4FF;\n  --on-primary: #0D1617;\n  --on-tertiary: #0D1317;\n  --positive: #10d70b;\n  --negative: #ea2323;\n  --select-node: #00ffff;\n  --negative-contrast: #8f0000;\n  --select-edge: #1d85cc;\n  --hover-node: #ffff00;\n  --hover-edge: #ffff00;\n  --flag: #DA429E;\n  --compartment: #5e232d;\n  --primary-contrast-1: #5CD4FF;\n  --primary-contrast-2: #20B9E5;\n  --primary-contrast-3: #009DC4;\n  --primary-contrast-4: #0081A2;\n  --tertiary-contrast-1: #a48ee0;\n  --tertiary-contrast-2: #9b73d3;\n  --tertiary-contrast-3: #8c63c5;\n  --drug-contrast-1: #FFB1C8;\n  --drug-contrast-2: #F988AE;\n  --drug-contrast-3: #DA6E94;\n  --drug-contrast-4: #c4527b;\n}\n\n#controls[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: calc(100vh - 40px) 0 0 0;\n  background: var(--surface);\n}\n#controls[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  background: var(--surface);\n  color: var(--on-surface);\n}\n\n#cytoscape[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0 0 0 0;\n  background: var(--surface);\n}\n\n#legend-boundary[_ngcontent-%COMP%] {\n  --legend-width: 400px;\n  --border-width: 2px;\n  --handle-width: 20px;\n  position: absolute;\n  pointer-events: none;\n  right: calc(-1 * var(--legend-width) - var(--border-width));\n  height: 100%;\n  width: calc(2 * var(--legend-width) + var(--handle-width));\n}\n#legend-boundary[_ngcontent-%COMP%]   #legend-container[_ngcontent-%COMP%] {\n  position: relative;\n  z-index: 1;\n  display: flex;\n  align-items: center;\n  width: -moz-fit-content;\n  width: fit-content;\n  left: calc(var(--legend-width) - var(--border-width));\n  pointer-events: all;\n  height: 100%;\n}\n#legend-boundary[_ngcontent-%COMP%]   #legend-handle[_ngcontent-%COMP%] {\n  width: var(--handle-width);\n  text-orientation: upright;\n  writing-mode: vertical-lr;\n  border-radius: 8.5px 0 0 8.5px;\n  background: color-mix(in srgb, var(--surface) 80%, transparent);\n  -webkit-backdrop-filter: blur(5px);\n          backdrop-filter: blur(5px);\n  border-left: var(--border-width) solid var(--primary);\n  border-top: var(--border-width) solid var(--primary);\n  border-bottom: var(--border-width) solid var(--primary);\n  border-right: 0;\n  cursor: ew-resize;\n  color: var(--on-surface);\n}\n#legend-boundary[_ngcontent-%COMP%]   #legend[_ngcontent-%COMP%] {\n  width: var(--legend-width);\n  height: 100%;\n  background: color-mix(in srgb, var(--surface) 80%, transparent);\n  -webkit-backdrop-filter: blur(5px);\n          backdrop-filter: blur(5px);\n}\n#legend-boundary[_ngcontent-%COMP%]   #legend[_ngcontent-%COMP%]:before {\n  content: \"\";\n  height: 100%;\n  width: 2px;\n  background-color: var(--primary);\n  position: absolute;\n  left: -1px;\n  z-index: 4;\n}\n\n.drag-container[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 10%;\n  width: 100%;\n  pointer-events: all;\n  z-index: 1;\n  display: flex;\n  align-items: center;\n  height: 100%;\n}\n\n#handle-limits[_ngcontent-%COMP%] {\n  --width: 500px;\n  --height: 500px;\n  position: absolute;\n  left: calc(-0.5 * var(--width));\n  top: calc(50% - 0.5 * var(--height));\n  width: var(--width);\n  height: var(--height);\n  z-index: 5;\n  pointer-events: none;\n}\n#handle-limits.active[_ngcontent-%COMP%] {\n  pointer-events: all;\n  cursor: ew-resize;\n}\n\n.drag-handle[_ngcontent-%COMP%] {\n  --width: 4px;\n  --height: 30px;\n  position: absolute;\n  left: calc(50% - 0.5 * var(--width) - 4px);\n  top: calc(50% - 0.5 * var(--height) - 4px);\n  border-radius: var(--height);\n  width: var(--width);\n  height: var(--height);\n  border: 4px solid var(--primary);\n  cursor: ew-resize;\n  color: var(--on-surface);\n  pointer-events: all;\n  filter: drop-shadow(-2px 0px 0px var(--primary-container)) drop-shadow(2px 0px 0px var(--error-container));\n  background: var(--surface);\n}\n\n#cytoscape-compare[_ngcontent-%COMP%] {\n  box-sizing: border-box;\n  position: absolute;\n  height: 100%;\n  width: 100%;\n  inset: 0 0 0 0;\n  background-color: color-mix(in srgb, var(--error) 5%, color-mix(in srgb, var(--surface) 50%, transparent));\n}\n#cytoscape-compare[_ngcontent-%COMP%]:before {\n  content: \"\";\n  height: 100%;\n  width: 4px;\n  background-color: var(--primary);\n  filter: drop-shadow(-2px 0px 0px var(--primary-container)) drop-shadow(2px 0px 0px var(--error-container));\n  position: absolute;\n  left: -2px;\n  z-index: 4;\n}\n\n.option-content[_ngcontent-%COMP%] {\n  width: 100%;\n  display: flex;\n  justify-content: space-between;\n  gap: 100px;\n  align-items: center;\n}\n\n.palette[_ngcontent-%COMP%] {\n  height: 20px;\n  min-width: 100px;\n  margin-right: 20px;\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9hcHAvZGlhZ3JhbS9kaWFncmFtLmNvbXBvbmVudC5zY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0VBQ0Usa0JBQUE7RUFDQSxpQkFBQTtFQUNBLGVBQUE7RUFDQSx5Q0FBQTtFQUNBLG9CQUFBO0VBRUEsdUJBQUE7RUFDQSxxQkFBQTtFQUNBLGtCQUFBO0VBQ0EscUJBQUE7RUFDQSxzQkFBQTtFQUNBLG1CQUFBO0VBQ0EsbUJBQUE7RUFDQSw0QkFBQTtFQUNBLHNCQUFBO0VBQ0Esc0JBQUE7RUFDQSxxQkFBQTtFQUNBLHFCQUFBO0VBQ0EsMEJBQUE7RUFDQSw0QkFBQTtFQUNBLGVBQUE7RUFHQSxzQkFBQTtFQUVBLDZCQUFBO0VBQ0EsNkJBQUE7RUFDQSw2QkFBQTtFQUNBLDZCQUFBO0VBRUEsOEJBQUE7RUFDQSw4QkFBQTtFQUNBLDhCQUFBO0VBRUEsMEJBQUE7RUFDQSwwQkFBQTtFQUNBLDBCQUFBO0VBQ0EsMEJBQUE7RUFFQTs7O0dBQUE7RUFXQSxnQ0FBQTtBQWJGO0FBZUU7RUFDRSxlQUFBO0VBQ0EsdUJBQUE7RUFDQSxxQ0FBQTtFQUdBLHFCQUFBO0VBQ0Esa0JBQUE7RUFDQSxxQkFBQTtFQUNBLHNCQUFBO0VBQ0EsbUJBQUE7RUFDQSxtQkFBQTtFQUNBLHNCQUFBO0VBQ0EsNEJBQUE7RUFDQSxzQkFBQTtFQUNBLHFCQUFBO0VBQ0EscUJBQUE7RUFHQSxlQUFBO0VBRUEsc0JBQUE7RUFFQSw2QkFBQTtFQUNBLDZCQUFBO0VBQ0EsNkJBQUE7RUFDQSw2QkFBQTtFQUVBLDhCQUFBO0VBQ0EsOEJBQUE7RUFDQSw4QkFBQTtFQUVBLDBCQUFBO0VBQ0EsMEJBQUE7RUFDQSwwQkFBQTtFQUNBLDBCQUFBO0FBckJKOztBQXlCQTtFQUNFLGtCQUFBO0VBQ0EsK0JBQUE7RUFPQSwwQkFBQTtBQTVCRjtBQXVCRTtFQUNFLDBCQUFBO0VBQ0Esd0JBQUE7QUFyQko7O0FBNEJBO0VBQ0Usa0JBQUE7RUFDQSxjQUFBO0VBQ0EsMEJBQUE7QUF6QkY7O0FBNkJBO0VBQ0UscUJBQUE7RUFDQSxtQkFBQTtFQUNBLG9CQUFBO0VBRUEsa0JBQUE7RUFDQSxvQkFBQTtFQUNBLDJEQUFBO0VBQ0EsWUFBQTtFQUNBLDBEQUFBO0FBM0JGO0FBNkJFO0VBQ0Usa0JBQUE7RUFDQSxVQUFBO0VBQ0EsYUFBQTtFQUNBLG1CQUFBO0VBQ0EsdUJBQUE7RUFBQSxrQkFBQTtFQUNBLHFEQUFBO0VBQ0EsbUJBQUE7RUFDQSxZQUFBO0FBM0JKO0FBOEJFO0VBQ0UsMEJBQUE7RUFDQSx5QkFBQTtFQUNBLHlCQUFBO0VBRUEsOEJBQUE7RUFDQSwrREFBQTtFQUNBLGtDQUFBO1VBQUEsMEJBQUE7RUFDQSxxREFBQTtFQUNBLG9EQUFBO0VBQ0EsdURBQUE7RUFDQSxlQUFBO0VBQ0EsaUJBQUE7RUFDQSx3QkFBQTtBQTdCSjtBQWdDRTtFQUNFLDBCQUFBO0VBQ0EsWUFBQTtFQUVBLCtEQUFBO0VBQ0Esa0NBQUE7VUFBQSwwQkFBQTtBQS9CSjtBQWlDSTtFQUNFLFdBQUE7RUFDQSxZQUFBO0VBQ0EsVUFBQTtFQUNBLGdDQUFBO0VBQ0Esa0JBQUE7RUFDQSxVQUFBO0VBQ0EsVUFBQTtBQS9CTjs7QUFvQ0E7RUFDRSxrQkFBQTtFQUNBLFNBQUE7RUFDQSxXQUFBO0VBQ0EsbUJBQUE7RUFFQSxVQUFBO0VBQ0EsYUFBQTtFQUNBLG1CQUFBO0VBQ0EsWUFBQTtBQWxDRjs7QUFxQ0E7RUFDRSxjQUFBO0VBQ0EsZUFBQTtFQUNBLGtCQUFBO0VBQ0EsK0JBQUE7RUFDQSxvQ0FBQTtFQUNBLG1CQUFBO0VBQ0EscUJBQUE7RUFFQSxVQUFBO0VBQ0Esb0JBQUE7QUFuQ0Y7QUFxQ0U7RUFDRSxtQkFBQTtFQUNBLGlCQUFBO0FBbkNKOztBQXVDQTtFQUNFLFlBQUE7RUFDQSxjQUFBO0VBRUEsa0JBQUE7RUFDQSwwQ0FBQTtFQUNBLDBDQUFBO0VBRUEsNEJBQUE7RUFDQSxtQkFBQTtFQUNBLHFCQUFBO0VBQ0EsZ0NBQUE7RUFDQSxpQkFBQTtFQUNBLHdCQUFBO0VBQ0EsbUJBQUE7RUFDQSwwR0FBQTtFQUNBLDBCQUFBO0FBdENGOztBQTJDQTtFQUNFLHNCQUFBO0VBQ0Esa0JBQUE7RUFFQSxZQUFBO0VBQ0EsV0FBQTtFQUNBLGNBQUE7RUFDQSwwR0FBQTtBQXpDRjtBQTJDRTtFQUNFLFdBQUE7RUFDQSxZQUFBO0VBQ0EsVUFBQTtFQUNBLGdDQUFBO0VBQ0EsMEdBQUE7RUFDQSxrQkFBQTtFQUNBLFVBQUE7RUFDQSxVQUFBO0FBekNKOztBQTZDQTtFQUNFLFdBQUE7RUFDQSxhQUFBO0VBQ0EsOEJBQUE7RUFDQSxVQUFBO0VBQ0EsbUJBQUE7QUExQ0Y7O0FBNkNBO0VBRUUsWUFBQTtFQUNBLGdCQUFBO0VBQ0Esa0JBQUE7QUEzQ0YiLCJzb3VyY2VzQ29udGVudCI6WyIudmFyaWFibGVzIHtcbiAgcG9zaXRpb246IGFic29sdXRlO1xuICBpbnNldDogMCAwIDQwcHggMDtcbiAgLS1vcGFjaXR5OiAwLjA4O1xuICAtLXN0cnVjdHVyZS1vcGFjaXR5OiBbWzEzMCwwXSwgWzE1MCwxMDBdXTtcbiAgLS1zaGFkb3ctcGFkZGluZzogMjA7XG5cbiAgLS1zaGFkb3ctbHVtaW5vc2l0eTogNDA7XG4gIC0tb24tc3VyZmFjZTogIzAwMUYyNDtcbiAgLS1wcmltYXJ5OiAjMDA2NzgyO1xuICAtLW9uLXByaW1hcnk6ICNGRkZGRkY7XG4gIC0tb24tdGVydGlhcnk6ICNGRkZGRkY7XG4gIC0tcG9zaXRpdmU6ICMwQzk1MDk7XG4gIC0tbmVnYXRpdmU6ICNCQTFBMUE7XG4gIC0tbmVnYXRpdmUtY29udHJhc3Q6ICNlYTdkN2Q7XG4gIC0tc2VsZWN0LW5vZGU6ICM2RUIzRTQ7XG4gIC0tc2VsZWN0LWVkZ2U6ICMwNTYxQTY7XG4gIC0taG92ZXItbm9kZTogIzc4RTA3NjtcbiAgLS1ob3Zlci1lZGdlOiAjMDRCNjAxO1xuICAtLWludGVyYWN0b3ItZmlsbDogIzY4Mjk3QztcbiAgLS1pbnRlcmFjdG9yLXN0cm9rZTogIzlmNWNiNTtcbiAgLS1mbGFnOiAjZmYwMDlhO1xuXG5cbiAgLS1jb21wYXJ0bWVudDogI0U1ODM0QTtcblxuICAtLXByaW1hcnktY29udHJhc3QtMTogIzAwMUYyOTtcbiAgLS1wcmltYXJ5LWNvbnRyYXN0LTI6ICMwMDM1NDU7XG4gIC0tcHJpbWFyeS1jb250cmFzdC0zOiAjMDA0RDYyO1xuICAtLXByaW1hcnktY29udHJhc3QtNDogIzAwNjc4MjtcblxuICAtLXRlcnRpYXJ5LWNvbnRyYXN0LTE6ICMwMDMxNUM7XG4gIC0tdGVydGlhcnktY29udHJhc3QtMjogIzAwNDg4MjtcbiAgLS10ZXJ0aWFyeS1jb250cmFzdC0zOiAjMTY2MEE1O1xuXG4gIC0tZHJ1Zy1jb250cmFzdC0xOiAjM0UwMDFEO1xuICAtLWRydWctY29udHJhc3QtMjogIzYxMEIzMztcbiAgLS1kcnVnLWNvbnRyYXN0LTM6ICM3RTI1NDk7XG4gIC0tZHJ1Zy1jb250cmFzdC00OiAjQkI1NTdBO1xuXG4gIC0tYW5hbHlzaXMtdW5pLXBhbGV0dGU6IFtcbiAgICBbMCwgJyNGRkZGRTAnXSxcbiAgICBbMSwgJyMwMDQyOUQnXVxuICBdO1xuXG4gIC8vLS1hbmFseXNpcy1iaS1wYWxldHRlOiBbXG4gIC8vICBbMC4wLCAnIzkzMDAzQSddLFxuICAvLyAgWzAuNSwgJyNGRkZGRTAnXSxcbiAgLy8gIFsxLjAsICcjMDA0MjlEJ11cbiAgLy9dO1xuXG4gIC0tYW5hbHlzaXMtYmktcGFsZXR0ZTogJ3ZpcmlkaXMnO1xuXG4gICYuZGFyayB7XG4gICAgLS1vcGFjaXR5OiAwLjA4O1xuICAgIC0tc2hhZG93LWx1bWlub3NpdHk6IDcwO1xuICAgIC0tc2hhZG93LW9wYWNpdHk6IFtbMjAsIDQwXSwgWzQwLCAwXV07XG5cblxuICAgIC0tb24tc3VyZmFjZTogIzk3RjBGRjtcbiAgICAtLXByaW1hcnk6ICM1Q0Q0RkY7XG4gICAgLS1vbi1wcmltYXJ5OiAjMEQxNjE3O1xuICAgIC0tb24tdGVydGlhcnk6ICMwRDEzMTc7XG4gICAgLS1wb3NpdGl2ZTogIzEwZDcwYjtcbiAgICAtLW5lZ2F0aXZlOiAjZWEyMzIzO1xuICAgIC0tc2VsZWN0LW5vZGU6ICMwMGZmZmY7XG4gICAgLS1uZWdhdGl2ZS1jb250cmFzdDogIzhmMDAwMDtcbiAgICAtLXNlbGVjdC1lZGdlOiAjMWQ4NWNjO1xuICAgIC0taG92ZXItbm9kZTogI2ZmZmYwMDtcbiAgICAtLWhvdmVyLWVkZ2U6ICNmZmZmMDA7XG4gICAgLy8tLWludGVyYWN0b3Itc3Ryb2tlOiAjNjgyOTdDO1xuICAgIC8vLS1pbnRlcmFjdG9yLWZpbGw6ICM5ZjVjYjU7XG4gICAgLS1mbGFnOiAjREE0MjlFO1xuXG4gICAgLS1jb21wYXJ0bWVudDogIzVlMjMyZDtcblxuICAgIC0tcHJpbWFyeS1jb250cmFzdC0xOiAjNUNENEZGO1xuICAgIC0tcHJpbWFyeS1jb250cmFzdC0yOiAjMjBCOUU1O1xuICAgIC0tcHJpbWFyeS1jb250cmFzdC0zOiAjMDA5REM0O1xuICAgIC0tcHJpbWFyeS1jb250cmFzdC00OiAjMDA4MUEyO1xuXG4gICAgLS10ZXJ0aWFyeS1jb250cmFzdC0xOiAjYTQ4ZWUwO1xuICAgIC0tdGVydGlhcnktY29udHJhc3QtMjogIzliNzNkMztcbiAgICAtLXRlcnRpYXJ5LWNvbnRyYXN0LTM6ICM4YzYzYzU7XG5cbiAgICAtLWRydWctY29udHJhc3QtMTogI0ZGQjFDODtcbiAgICAtLWRydWctY29udHJhc3QtMjogI0Y5ODhBRTtcbiAgICAtLWRydWctY29udHJhc3QtMzogI0RBNkU5NDtcbiAgICAtLWRydWctY29udHJhc3QtNDogI2M0NTI3YjtcbiAgfVxufVxuXG4jY29udHJvbHMge1xuICBwb3NpdGlvbjogYWJzb2x1dGU7XG4gIGluc2V0OiBjYWxjKDEwMHZoIC0gNDBweCkgMCAwIDA7XG5cbiAgKiB7XG4gICAgYmFja2dyb3VuZDogdmFyKC0tc3VyZmFjZSk7XG4gICAgY29sb3I6IHZhcigtLW9uLXN1cmZhY2UpO1xuICB9XG5cbiAgYmFja2dyb3VuZDogdmFyKC0tc3VyZmFjZSk7XG5cbn1cblxuI2N5dG9zY2FwZSB7XG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgaW5zZXQ6IDAgMCAwIDA7XG4gIGJhY2tncm91bmQ6IHZhcigtLXN1cmZhY2UpO1xufVxuXG5cbiNsZWdlbmQtYm91bmRhcnkge1xuICAtLWxlZ2VuZC13aWR0aDogNDAwcHg7XG4gIC0tYm9yZGVyLXdpZHRoOiAycHg7XG4gIC0taGFuZGxlLXdpZHRoOiAyMHB4O1xuXG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgcG9pbnRlci1ldmVudHM6IG5vbmU7XG4gIHJpZ2h0OiBjYWxjKC0xICogdmFyKC0tbGVnZW5kLXdpZHRoKSAtIHZhcigtLWJvcmRlci13aWR0aCkpO1xuICBoZWlnaHQ6IDEwMCU7XG4gIHdpZHRoOiBjYWxjKDIgKiB2YXIoLS1sZWdlbmQtd2lkdGgpICsgdmFyKC0taGFuZGxlLXdpZHRoKSk7XG5cbiAgI2xlZ2VuZC1jb250YWluZXIge1xuICAgIHBvc2l0aW9uOiByZWxhdGl2ZTtcbiAgICB6LWluZGV4OiAxO1xuICAgIGRpc3BsYXk6IGZsZXg7XG4gICAgYWxpZ24taXRlbXM6IGNlbnRlcjtcbiAgICB3aWR0aDogZml0LWNvbnRlbnQ7XG4gICAgbGVmdDogY2FsYyh2YXIoLS1sZWdlbmQtd2lkdGgpIC0gdmFyKC0tYm9yZGVyLXdpZHRoKSk7XG4gICAgcG9pbnRlci1ldmVudHM6IGFsbDtcbiAgICBoZWlnaHQ6IDEwMCU7XG4gIH1cblxuICAjbGVnZW5kLWhhbmRsZSB7XG4gICAgd2lkdGg6IHZhcigtLWhhbmRsZS13aWR0aCk7XG4gICAgdGV4dC1vcmllbnRhdGlvbjogdXByaWdodDtcbiAgICB3cml0aW5nLW1vZGU6IHZlcnRpY2FsLWxyO1xuXG4gICAgYm9yZGVyLXJhZGl1czogOC41cHggMCAwIDguNXB4O1xuICAgIGJhY2tncm91bmQ6IGNvbG9yLW1peChpbiBzcmdiLCB2YXIoLS1zdXJmYWNlKSA4MCUsIHRyYW5zcGFyZW50KTtcbiAgICBiYWNrZHJvcC1maWx0ZXI6IGJsdXIoNXB4KTtcbiAgICBib3JkZXItbGVmdDogdmFyKC0tYm9yZGVyLXdpZHRoKSBzb2xpZCB2YXIoLS1wcmltYXJ5KTtcbiAgICBib3JkZXItdG9wOiB2YXIoLS1ib3JkZXItd2lkdGgpIHNvbGlkIHZhcigtLXByaW1hcnkpO1xuICAgIGJvcmRlci1ib3R0b206IHZhcigtLWJvcmRlci13aWR0aCkgc29saWQgdmFyKC0tcHJpbWFyeSk7XG4gICAgYm9yZGVyLXJpZ2h0OiAwO1xuICAgIGN1cnNvcjogZXctcmVzaXplO1xuICAgIGNvbG9yOiB2YXIoLS1vbi1zdXJmYWNlKTtcbiAgfVxuXG4gICNsZWdlbmQge1xuICAgIHdpZHRoOiB2YXIoLS1sZWdlbmQtd2lkdGgpO1xuICAgIGhlaWdodDogMTAwJTtcbiAgICAvL2JvcmRlci1sZWZ0OiB2YXIoLS1ib3JkZXItd2lkdGgpIHNvbGlkIHZhcigtLXByaW1hcnkpO1xuICAgIGJhY2tncm91bmQ6IGNvbG9yLW1peChpbiBzcmdiLCB2YXIoLS1zdXJmYWNlKSA4MCUsIHRyYW5zcGFyZW50KTtcbiAgICBiYWNrZHJvcC1maWx0ZXI6IGJsdXIoNXB4KTtcblxuICAgICY6YmVmb3JlIHtcbiAgICAgIGNvbnRlbnQ6IFwiXCI7XG4gICAgICBoZWlnaHQ6IDEwMCU7XG4gICAgICB3aWR0aDogMnB4O1xuICAgICAgYmFja2dyb3VuZC1jb2xvcjogdmFyKC0tcHJpbWFyeSk7XG4gICAgICBwb3NpdGlvbjogYWJzb2x1dGU7XG4gICAgICBsZWZ0OiAtMXB4O1xuICAgICAgei1pbmRleDogNDtcbiAgICB9XG4gIH1cbn1cblxuLmRyYWctY29udGFpbmVyIHtcbiAgcG9zaXRpb246IGFic29sdXRlO1xuICBsZWZ0OiAxMCU7IC8vIEltcG9ydGFudDogSW5pdGlhbCBwb3NpdGlvbiBvZiBjb21wYXJlIGRyYWcgaGFuZGxlXG4gIHdpZHRoOiAxMDAlO1xuICBwb2ludGVyLWV2ZW50czogYWxsO1xuICAvL3Bvc2l0aW9uOiByZWxhdGl2ZTtcbiAgei1pbmRleDogMTtcbiAgZGlzcGxheTogZmxleDtcbiAgYWxpZ24taXRlbXM6IGNlbnRlcjtcbiAgaGVpZ2h0OiAxMDAlO1xufVxuXG4jaGFuZGxlLWxpbWl0cyB7XG4gIC0td2lkdGg6IDUwMHB4O1xuICAtLWhlaWdodDogNTAwcHg7XG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgbGVmdDogY2FsYygtMSAvIDIgKiB2YXIoLS13aWR0aCkpO1xuICB0b3A6IGNhbGMoNTAlIC0gMSAvIDIgKiB2YXIoLS1oZWlnaHQpKTtcbiAgd2lkdGg6IHZhcigtLXdpZHRoKTtcbiAgaGVpZ2h0OiB2YXIoLS1oZWlnaHQpO1xuICAvL2JhY2tncm91bmQ6IzAwMDAwMGFhO1xuICB6LWluZGV4OiA1O1xuICBwb2ludGVyLWV2ZW50czogbm9uZTtcblxuICAmLmFjdGl2ZSB7XG4gICAgcG9pbnRlci1ldmVudHM6IGFsbDtcbiAgICBjdXJzb3I6IGV3LXJlc2l6ZTtcbiAgfVxufVxuXG4uZHJhZy1oYW5kbGUge1xuICAtLXdpZHRoOiA0cHg7XG4gIC0taGVpZ2h0OiAzMHB4O1xuXG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgbGVmdDogY2FsYyg1MCUgLSAxIC8gMiAqIHZhcigtLXdpZHRoKSAtIDRweCk7XG4gIHRvcDogY2FsYyg1MCUgLSAxIC8gMiAqIHZhcigtLWhlaWdodCkgLSA0cHgpO1xuXG4gIGJvcmRlci1yYWRpdXM6IHZhcigtLWhlaWdodCk7XG4gIHdpZHRoOiB2YXIoLS13aWR0aCk7XG4gIGhlaWdodDogdmFyKC0taGVpZ2h0KTtcbiAgYm9yZGVyOiA0cHggc29saWQgdmFyKC0tcHJpbWFyeSk7XG4gIGN1cnNvcjogZXctcmVzaXplO1xuICBjb2xvcjogdmFyKC0tb24tc3VyZmFjZSk7XG4gIHBvaW50ZXItZXZlbnRzOiBhbGw7XG4gIGZpbHRlcjogZHJvcC1zaGFkb3coLTJweCAwcHggMHB4IHZhcigtLXByaW1hcnktY29udGFpbmVyKSkgZHJvcC1zaGFkb3coMnB4IDBweCAwcHggdmFyKC0tZXJyb3ItY29udGFpbmVyKSk7XG4gIGJhY2tncm91bmQ6IHZhcigtLXN1cmZhY2UpO1xuXG59XG5cblxuI2N5dG9zY2FwZS1jb21wYXJlIHtcbiAgYm94LXNpemluZzogYm9yZGVyLWJveDtcbiAgcG9zaXRpb246IGFic29sdXRlO1xuICAvL2JvcmRlci1sZWZ0OiA0cHggc29saWQgdmFyKC0tZXJyb3IpO1xuICBoZWlnaHQ6IDEwMCU7XG4gIHdpZHRoOiAxMDAlO1xuICBpbnNldDogMCAwIDAgMDtcbiAgYmFja2dyb3VuZC1jb2xvcjogY29sb3ItbWl4KGluIHNyZ2IsIHZhcigtLWVycm9yKSA1JSwgY29sb3ItbWl4KGluIHNyZ2IsIHZhcigtLXN1cmZhY2UpIDUwJSwgdHJhbnNwYXJlbnQpKTtcblxuICAmOmJlZm9yZSB7XG4gICAgY29udGVudDogXCJcIjtcbiAgICBoZWlnaHQ6IDEwMCU7XG4gICAgd2lkdGg6IDRweDtcbiAgICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1wcmltYXJ5KTtcbiAgICBmaWx0ZXI6IGRyb3Atc2hhZG93KC0ycHggMHB4IDBweCB2YXIoLS1wcmltYXJ5LWNvbnRhaW5lcikpIGRyb3Atc2hhZG93KDJweCAwcHggMHB4IHZhcigtLWVycm9yLWNvbnRhaW5lcikpO1xuICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgICBsZWZ0OiAtMnB4O1xuICAgIHotaW5kZXg6IDQ7XG4gIH1cbn1cblxuLm9wdGlvbi1jb250ZW50IHtcbiAgd2lkdGg6IDEwMCU7XG4gIGRpc3BsYXk6IGZsZXg7XG4gIGp1c3RpZnktY29udGVudDogc3BhY2UtYmV0d2VlbjtcbiAgZ2FwOiAxMDBweDtcbiAgYWxpZ24taXRlbXM6IGNlbnRlcjtcbn1cblxuLnBhbGV0dGUge1xuICAvL3dpZHRoOiAxMDAlO1xuICBoZWlnaHQ6IDIwcHg7XG4gIG1pbi13aWR0aDogMTAwcHg7XG4gIG1hcmdpbi1yaWdodDogMjBweDtcbn1cblxuIl0sInNvdXJjZVJvb3QiOiIifQ== */"]
   });
 };
-DiagramComponent = (0,tslib__WEBPACK_IMPORTED_MODULE_36__.__decorate)([(0,_ngneat_until_destroy__WEBPACK_IMPORTED_MODULE_37__.UntilDestroy)({
+DiagramComponent = (0,tslib__WEBPACK_IMPORTED_MODULE_35__.__decorate)([(0,_ngneat_until_destroy__WEBPACK_IMPORTED_MODULE_36__.UntilDestroy)({
   checkProperties: true
 })], DiagramComponent);
 
@@ -2459,7 +2426,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @angular/core */ 1699);
 /* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @angular/common/http */ 4860);
 
-// @ts-ignore
 
 
 
@@ -3216,6 +3182,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Interactivity: () => (/* binding */ Interactivity),
 /* harmony export */   ReactomeEvent: () => (/* binding */ ReactomeEvent),
+/* harmony export */   ReactomeEventTypes: () => (/* binding */ ReactomeEventTypes),
 /* harmony export */   Style: () => (/* binding */ Style),
 /* harmony export */   Types: () => (/* binding */ types)
 /* harmony export */ });
@@ -4521,6 +4488,7 @@ class Interactivity {
   constructor(cy, properties) {
     this.cy = cy;
     this.properties = properties;
+    this.isMobile = [/Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i].some(toMatchItem => navigator.userAgent.match(toMatchItem));
     this.applyToReaction = (action, stateKey) => reactionNode => {
       if (state[stateKey]) return;
       state[stateKey] = true;
@@ -4691,7 +4659,8 @@ class Interactivity {
           if (isElementInViewport(elem)) {
             // console.log('rendering', name)
             if (this.videoLayer?.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
-              console.log('loading', name);
+              video.classList.add('loading');
+              video.oncanplay = e => video.classList.remove('loading');
               video.load();
             }
             elem.style.visibility = node.visible() ? 'visible' : 'hidden';
@@ -4707,24 +4676,23 @@ class Interactivity {
       queryEachTime: false
     });
     this.videoLayer?.node.classList.add('video');
-    this.cy?.on('mouseover', 'node.Protein', /*#__PURE__*/function () {
+    const handler = action => /*#__PURE__*/function () {
       var _ref = (0,_Users_eragueneau_WebstormProjects_pathway_browser_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* (event) {
         const videoId = event.target.id();
         const videoElement = _this.videoLayer?.node.querySelector(`#video-${videoId}`);
         if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-          yield videoElement.play();
+          action(videoElement);
         }
       });
       return function (_x) {
         return _ref.apply(this, arguments);
       };
-    }()).on('mouseout', 'node.Protein', event => {
-      const videoId = event.target.id();
-      const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`);
-      if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-        videoElement.pause();
-      }
-    });
+    }();
+    if (this.isMobile) {
+      this.cy.on('mouseover', 'node.Protein', handler(v => v.play())).on('mouseout', 'node.Protein', handler(v => v.pause()));
+    } else {
+      this.cy.on('select', 'node.Protein', handler(v => v.play())).on('unselect', 'node.Protein', handler(v => v.pause()));
+    }
   }
   initStructureMolecule(cy) {
     // @ts-ignore
@@ -5439,13 +5407,11 @@ class Style {
     }, {
       selector: "edge[?sourceEndpoint]",
       style: {
-        // @ts-ignore
         "source-endpoint": "data(sourceEndpoint)"
       }
     }, {
       selector: "edge[?targetEndpoint]",
       style: {
-        // @ts-ignore
         "target-endpoint": "data(targetEndpoint)"
       }
     }, {

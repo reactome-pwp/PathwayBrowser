@@ -4442,14 +4442,13 @@ html {
 /*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/styles.scss?ngGlobalStyle ***!
   \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
-body {
-  height: 100%;
-  overflow: hidden;
-  background: var(--surface);
+.loading {
+  background-size: auto 100% !important;
+  background: url(https://i.gifer.com/yy3.gif) no-repeat center;
 }
 
 .video {
-  filter: brightness(2);
+  filter: brightness(1.2);
 }
 
 .dark .video {
@@ -4457,6 +4456,12 @@ body {
 }
 .dark .molecule {
   filter: invert(1) hue-rotate(180deg);
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
 }
 
 /*# sourceMappingURL=styles.css.map*/
