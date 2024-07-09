@@ -4611,7 +4611,7 @@ class Interactivity {
   }
   initClick(cy) {
     const container = cy.container();
-    cy.on('click', 'node.InteractorOccurrences', e => {
+    cy.on('tap', 'node.InteractorOccurrences', e => {
       const openClass = 'opened';
       let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
       e.target.toggleClass(openClass);
@@ -4621,16 +4621,16 @@ class Interactivity {
         reactomeId: e.target.data('reactomeId'),
         cy
       }));
-    }).on('click', '.Interactor', e => {
+    }).on('tap', '.Interactor', e => {
       const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
       const url = e.target.data(prop);
       if (url) window.open(url);
-    }).on('click', '.DiseaseInteractor', e => {
+    }).on('tap', '.DiseaseInteractor', e => {
       const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
       const url = e.target.data(prop);
       if (url) window.open(url);
     });
-    // .on('click', e => {
+    // .on('tap', e => {
     //   const openClass = 'opened';
     //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
     //   e.target.toggleClass(openClass);
