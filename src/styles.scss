@@ -1,19 +1,8 @@
+@import "reactome-cytoscape-style";
+
 body {
   height: 100%;
   overflow: hidden;
   background: var(--surface);
 }
 
-
-.video {
-  filter: brightness(2);
-}
-
-.dark {
-  .video {
-    filter: brightness(1);
-  }
-  .molecule {
-    filter: invert(1) hue-rotate(180deg);
-  }
-}

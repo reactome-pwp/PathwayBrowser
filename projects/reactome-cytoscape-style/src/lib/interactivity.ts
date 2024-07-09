@@ -10,7 +10,11 @@ cytoscape.use(Layers)
 type RenderableHTMLElement = HTMLElement & { render: _.DebouncedFunc<() => void> };
 
 export class Interactivity {
+
+  isMobile = 'ontouchstart' in document || navigator.maxTouchPoints > 0;
+
   constructor(private cy: cytoscape.Core, private properties: Properties) {
+    console.log('is mobile', this.isMobile)
     // @ts-ignore
     cy.elements().ungrabify().panify();
     this.initHover(cy);
@@ -180,7 +184,7 @@ export class Interactivity {
     const container = cy.container()!;
 
     cy
-      .on('click', 'node.InteractorOccurrences', e => {
+      .on('tap', 'node.InteractorOccurrences', e => {
         const openClass = 'opened';
         let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
         e.target.toggleClass(openClass);
@@ -192,18 +196,18 @@ export class Interactivity {
         }))
       })
 
-      .on('click', '.Interactor', e => {
+      .on('tap', '.Interactor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
       })
-      .on('click', '.DiseaseInteractor', e => {
+      .on('tap', '.DiseaseInteractor', e => {
         const prop = e.target.isNode() ? 'accURL' : 'evidenceURLs';
         const url = e.target.data(prop);
         if (url) window.open(url);
       })
 
-    // .on('click', e => {
+    // .on('tap', e => {
     //   const openClass = 'opened';
     //   let eventType = !e.target.hasClass(openClass) ? ReactomeEventTypes.open : ReactomeEventTypes.close;
     //   e.target.toggleClass(openClass);
@@ -240,7 +244,8 @@ export class Interactivity {
               if (isElementInViewport(elem)) {
                 // console.log('rendering', name)
                 if (this.videoLayer?.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
-                  console.log('loading', name)
+                  video.classList.add('loading');
+                  video.oncanplay = e => video.classList.remove('loading')
                   video.load();
                 }
                 elem.style.visibility = node.visible() ? 'visible' : 'hidden';
@@ -260,21 +265,21 @@ export class Interactivity {
     );
 
     this.videoLayer?.node.classList.add('video')
+    const handler = (action: (video: HTMLVideoElement) => void) => async (event: cytoscape.EventObject) => {
+      const videoId = event.target.id();
+      const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+      if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
+        action(videoElement)
+      }
+    };
+    if (this.isMobile) {
+      this.cy
+        .on('select', 'node.Protein', handler(v => v.play()))
+        .on('unselect', 'node.Protein', handler(v => v.pause()))
+    }
     this.cy
-      ?.on('mouseover', 'node.Protein', async (event) => {
-        const videoId = event.target.id();
-        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-          await videoElement.play();
-        }
-      })
-      .on('mouseout', 'node.Protein', (event) => {
-        const videoId = event.target.id();
-        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-          videoElement.pause();
-        }
-      });
+      .on('mouseover', 'node.Protein', handler(v => v.play()))
+      .on('mouseout', 'node.Protein', handler(v => v.pause()));
   }
 
   private moleculeLayer?: IHTMLLayer;
