@@ -4488,7 +4488,7 @@ class Interactivity {
   constructor(cy, properties) {
     this.cy = cy;
     this.properties = properties;
-    this.isMobile = [/Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i].some(toMatchItem => navigator.userAgent.match(toMatchItem));
+    this.isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     this.applyToReaction = (action, stateKey) => reactionNode => {
       if (state[stateKey]) return;
       state[stateKey] = true;
