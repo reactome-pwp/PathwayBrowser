@@ -4691,9 +4691,8 @@ class Interactivity {
     }();
     if (this.isMobile) {
       this.cy.on('select', 'node.Protein', handler(v => v.play())).on('unselect', 'node.Protein', handler(v => v.pause()));
-    } else {
-      this.cy.on('mouseover', 'node.Protein', handler(v => v.play())).on('mouseout', 'node.Protein', handler(v => v.pause()));
     }
+    this.cy.on('mouseover', 'node.Protein', handler(v => v.play())).on('mouseout', 'node.Protein', handler(v => v.pause()));
   }
   initStructureMolecule(cy) {
     // @ts-ignore
