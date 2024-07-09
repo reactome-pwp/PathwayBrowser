@@ -10,6 +10,17 @@ cytoscape.use(Layers)
 type RenderableHTMLElement = HTMLElement & { render: _.DebouncedFunc<() => void> };
 
 export class Interactivity {
+
+  isMobile = [
+    /Android/i,
+    /webOS/i,
+    /iPhone/i,
+    /iPad/i,
+    /iPod/i,
+    /BlackBerry/i,
+    /Windows Phone/i
+  ].some((toMatchItem) => navigator.userAgent.match(toMatchItem));
+
   constructor(private cy: cytoscape.Core, private properties: Properties) {
     // @ts-ignore
     cy.elements().ungrabify().panify();
@@ -261,21 +272,23 @@ export class Interactivity {
     );
 
     this.videoLayer?.node.classList.add('video')
-    this.cy
-      ?.on('mouseover', 'node.Protein', async (event) => {
-        const videoId = event.target.id();
-        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-          await videoElement.play();
-        }
-      })
-      .on('mouseout', 'node.Protein', (event) => {
-        const videoId = event.target.id();
-        const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
-        if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
-          videoElement.pause();
-        }
-      });
+    const handler = (action: (video: HTMLVideoElement) => void) => async (event: cytoscape.EventObject) => {
+      const videoId = event.target.id();
+      const videoElement = this.videoLayer?.node.querySelector(`#video-${videoId}`) as HTMLVideoElement;
+      if (videoElement && videoElement.readyState >= videoElement.HAVE_ENOUGH_DATA) {
+        action(videoElement)
+      }
+    };
+    if (this.isMobile) {
+      this.cy
+        .on('mouseover', 'node.Protein', handler(v => v.play()))
+        .on('mouseout', 'node.Protein', handler(v => v.pause()));
+    } else {
+      this.cy
+        .on('select', 'node.Protein', handler(v => v.play()))
+        .on('unselect', 'node.Protein', handler(v => v.pause()))
+    }
+
   }
 
   private moleculeLayer?: IHTMLLayer;
