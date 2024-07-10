@@ -19,18 +19,20 @@
 }
 
 .search {
-  height: 60px;
+  height: 59px;
   background: var(--primary);
 
   /* sticky div */
   position: sticky;
   top: 0;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 
 .sidebar {
   height: 90%;
+  overflow: hidden;
 }
 
 
@@ -41,8 +43,9 @@
 }
 
 .top {
-  height: 60px;
+  height: 59px;
   background: var(--primary);
+  flex-shrink: 0;
 }
 
 .content {
@@ -79,7 +82,7 @@
 
 .species,
 .interactor {
-  width: 100%;
+  width: 50%;
   background: var(--surface-variant);
   color: var(--on-surface-variant);
   border-bottom: 1px solid var(--on-surface-variant);
@@ -129,7 +132,7 @@
 }
 
 .event-hierarchy {
-  height: 100%;
+  height: 90%;
   overflow-x: hidden;
 
   /* sticky div helper */
