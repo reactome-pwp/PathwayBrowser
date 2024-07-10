@@ -11,10 +11,10 @@ export interface UrlParam<T> {
 
 export type State = {
   [token: string]: UrlParam<any>
-  select: UrlParam<(string | number)[]>
+  select: UrlParam<(string | number)>
   flag: UrlParam<(string | number)[]>
   flagInteractors: UrlParam<boolean>
-  overlay: UrlParam<string>
+  overlay: UrlParam<string | null>
   analysis: UrlParam<string | null>
   analysisProfile: UrlParam<string | null>
 };
@@ -30,7 +30,7 @@ export class DiagramStateService {
 
 
   private state: State = {
-    select: {otherTokens: ['SEL'], value: []},
+    select: {otherTokens: ['SEL'], value: ''},
     flag: {otherTokens: ['FLG'], value: []},
     flagInteractors: {otherTokens: ['FLGINT'], value: false},
     overlay: {value: ''},

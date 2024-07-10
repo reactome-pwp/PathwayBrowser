@@ -1,13 +1,19 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
-import {map, Observable, switchMap} from "rxjs";
-import {Interactor, Interactors, InteractorToken, PsicquicResource} from "../model/interactor-entity.model";
+import {catchError, map, Observable, of, Subject, switchMap} from "rxjs";
+import {
+  Interactor,
+  Interactors,
+  InteractorToken,
+  PsicquicResource,
+  ResourceAndType,
+  ResourceType
+} from "../model/interactor.model";
 
 
 import InteractorsLayout from "../layout/interactors-layout";
 import {DiagramService} from "../../services/diagram.service";
-import {ResourceType} from "../common/overlay-resource";
 import {environment} from "../../../environments/environment";
 
 @Injectable({
@@ -16,17 +22,17 @@ import {environment} from "../../../environments/environment";
 
 export class InteractorService {
 
-  private PREFIX_INTERACTOR = `${environment.host}/ContentService/interactors/`;
-  private PREFIX_DISEASE = `${environment.host}/overlays/disgenet/`;
+  private readonly _PREFIX_INTERACTOR = `${environment.host}/ContentService/interactors/`;
+  private readonly _PREFIX_DISEASE = `${environment.host}/overlays/disgenet/`;
 
-  private STATIC_URL = this.PREFIX_INTERACTOR + 'static/molecules/details';
-  private PSICQUIC_RESOURCE_URL = this.PREFIX_INTERACTOR + 'psicquic/resources/'
-  private PSICQUIC_URL = this.PREFIX_INTERACTOR + 'psicquic/molecules/';
-  public UPLOAD_URL = this.PREFIX_INTERACTOR + 'upload/tuple/';
-  public UPLOAD_PSICQUIC_URL = this.PREFIX_INTERACTOR + 'upload/psicquic/url';
-  private TOKEN_URL = this.PREFIX_INTERACTOR + 'token/';
+  private readonly _STATIC_URL = this._PREFIX_INTERACTOR + 'static/molecules/details';
+  private readonly _PSICQUIC_RESOURCE_URL = this._PREFIX_INTERACTOR + 'psicquic/resources/'
+  private readonly _PSICQUIC_URL = this._PREFIX_INTERACTOR + 'psicquic/molecules/';
+  public readonly UPLOAD_URL = this._PREFIX_INTERACTOR + 'upload/tuple/';
+  public readonly UPLOAD_PSICQUIC_URL = this._PREFIX_INTERACTOR + 'upload/psicquic/url';
+  private readonly _TOKEN_URL = this._PREFIX_INTERACTOR + 'token/';
 
-  private DISGENET_URL = this.PREFIX_DISEASE + 'findByGenes';
+  private readonly DISGENET_URL = this._PREFIX_DISEASE + 'findByGenes';
 
   private readonly DEFAULT_INTERACTOR_WIDTH = 100;
   private readonly DEFAULT_DISGENET_WIDTH = 250
@@ -39,19 +45,35 @@ export class InteractorService {
   identifiers: string = '';
   cyToSelectedResource = new Map<cytoscape.Core, string>();
 
+  private currentInteractorResourceSubject = new Subject<ResourceAndType>();
+  public currentInteractorResource$ = this.currentInteractorResourceSubject.asObservable();
 
   constructor(private http: HttpClient, private diagramService: DiagramService) {
   }
 
-  private getAllIdentifiers(cy: cytoscape.Core): void {
+  setCurrentResource(r: ResourceAndType) {
+    this.currentInteractorResourceSubject.next(r);
+  }
+
+  private getIdentifiers(cy: cytoscape.Core): void {
     this.identifiers = this.getIdentifiersFromGraph(cy);
   }
 
-  private updateIdentifiersIfNeeded(cy: cytoscape.Core): void {
-    if (!this.identifiers) {
-      this.getAllIdentifiers(cy);
+  private updateIdentifiers(cy: cytoscape.Core): void {
+    const currentIdentifiers = this.getIdentifiersFromGraph(cy);
+
+    if (!this.identifiers || !this.areSame(this.identifiers, currentIdentifiers)) {
+      this.identifiers = currentIdentifiers;
+    } else {
+      this.getIdentifiers(cy);
     }
   }
+
+  areSame(idsA: string, idsB: string): boolean {
+    const normalize = (str: string): string => str.split(',').sort().join(',');
+    return normalize(idsA) === normalize(idsB);
+  }
+
 
   public getIdentifiersFromGraph(cy: cytoscape.Core) {
     const graphNodes = cy?.nodes(`[graph]`);
@@ -70,14 +92,14 @@ export class InteractorService {
   }
 
   public getInteractorData(cy: cytoscape.Core, resource: string): Observable<Interactors> {
-    this.updateIdentifiersIfNeeded(cy);
+    this.updateIdentifiers(cy);
     let url;
     if (resource === ResourceType.STATIC) {
-      url = this.STATIC_URL;
+      url = this._STATIC_URL;
     } else if (resource === ResourceType.DISGENET) {
       url = this.DISGENET_URL;
     } else {
-      url = this.PSICQUIC_URL + resource.toLowerCase() + '/details'
+      url = this._PSICQUIC_URL + resource.toLowerCase() + '/details'
     }
 
     return this.http.post<Interactors>(url, this.identifiers, {
@@ -139,17 +161,6 @@ export class InteractorService {
       });
   }
 
-  public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
-    const entityNode = occurrenceNode.data('entity');
-    const interactors = entityNode.closedNeighborhood('node.Interactor');
-
-    entityNode.connectedEdges('.Interactor').remove();
-    interactors.forEach((interactor: cytoscape.NodeSingular) => {
-      if (interactor.connectedEdges().empty()) {
-        interactor.remove()
-      }
-    })
-  }
 
   public addInteractorNodes(occurrenceNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
     const interactorsData = occurrenceNode.data('interactors');
@@ -171,7 +182,7 @@ export class InteractorService {
     const dynamicInteractors = [];
     const existingInteractors = [];
     // get interactors to draw with a provided a number, collect existing interactors for creating edge
-    for (const interactor of interactorsData) {
+    for (let interactor of interactorsData) {
       const diagramNodes = cy?.nodes(`.PhysicalEntity[acc = '${interactor.acc}']`);
 
       if (!diagramNodes || diagramNodes.length === 0) {
@@ -260,65 +271,146 @@ export class InteractorService {
     interactorsToDisplay.layout(layoutOptions).run();
   }
 
+  public removeInteractorNodes(occurrenceNode: cytoscape.NodeSingular) {
+    const entityNode = occurrenceNode.data('entity');
+    const interactors = entityNode.closedNeighborhood('node.Interactor');
 
-  public removeInteractorEdges(targetNode: cytoscape.NodeSingular, cy: cytoscape.Core) {
-    const edgesToRemove = cy.edges(`[edgeToTarget = '${targetNode.id()}']`);
-    edgesToRemove.remove();
+    entityNode.connectedEdges('.Interactor').remove();
+    interactors.forEach((interactor: cytoscape.NodeSingular) => {
+      if (interactor.connectedEdges().empty()) {
+        interactor.remove()
+      }
+    })
+  }
+
+  public clearAllInteractorNodes(cy: cytoscape.Core) {
+    this.cyToSelectedResource.clear();
+    const interactorOcc = cy.elements(`.InteractorOccurrences`).remove();
+    interactorOcc.forEach(node => {
+      if (node.hasClass('opened')) {
+        this.removeInteractorNodes(node)
+      }
+    })
   }
 
   public getPsicquicResources(): Observable<PsicquicResource[]> {
-    return this.http.get<PsicquicResource[]>(this.PSICQUIC_RESOURCE_URL, {
+    return this.http.get<PsicquicResource[]>(this._PSICQUIC_RESOURCE_URL, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
-    });
+    }).pipe(
+      map((psicquicResources) => {
+        return psicquicResources.filter(r => r.name !== ResourceType.STATIC && r.active)
+      })
+    )
   }
 
-  public getInteractorToken(name: string, url: string, body: string | FormData) {
+
+  public getInteractorsToken(name: string, url: string, body: string | FormData) {
     return this.http.post<InteractorToken>(url, body, {
       params: new HttpParams().set('name', name),
     })
   }
 
 
-  public getInteractorsWithToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<{
-    token: InteractorToken,
-    interactors: Interactors
-  }> {
-    this.updateIdentifiersIfNeeded(cy);
-    return this.getInteractorToken(name, url, body).pipe(
-      switchMap(token => {
-        return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
-          headers: new HttpHeaders({'Content-Type': 'text/plain'})
-        }).pipe(
-          map((interactors) => ({token: token, interactors: interactors}))
-        );
-      })
-    );
-  }
-
+  /**
+   * This method is used in custom dialog for retrieving interactors with a token , it first generates a token then
+   * get interactors data from that token. There are different API calls based on user's selection to generate tokens.
+   *
+   * @param name custom resource name
+   * @param url  different URLs, for instance, add data from a local file, the url will be UPLOAD_URL
+   * @param body content
+   * @param cy   cytoscape container
+   */
   public getInteractorsFromToken(name: string, url: string, body: string | FormData, cy: cytoscape.Core): Observable<{
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updateIdentifiersIfNeeded(cy);
-    return this.getInteractorToken(name, url, body).pipe(
-      switchMap(token => this.sendPostRequest(token, cy))
+    this.updateIdentifiers(cy);
+    return this.getInteractorsToken(name, url, body).pipe(
+      switchMap(token => this.fetchCustomInteractors(token, cy))
     );
   }
 
-  public sendPostRequest(token: InteractorToken, cy: cytoscape.Core): Observable<{
+  public fetchCustomInteractors(token: InteractorToken, cy: cytoscape.Core): Observable<{
     token: InteractorToken,
     interactors: Interactors
   }> {
-    this.updateIdentifiersIfNeeded(cy);
-    return this.http.post<Interactors>(this.TOKEN_URL + token.summary.token, this.identifiers, {
+    this.updateIdentifiers(cy);
+    return this.http.post<Interactors>(this._TOKEN_URL + token.summary.token, this.identifiers, {
       headers: new HttpHeaders({'Content-Type': 'text/plain'})
     }).pipe(
       map((interactors) => ({token: token, interactors: interactors}))
     );
   }
 
-  public isCustomResource(resource: string, psiResource: PsicquicResource[]) {
-    const isFromPSICQUIC = psiResource.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === resource)
-    return resource != ResourceType.STATIC && resource != ResourceType.DISGENET && !isFromPSICQUIC;
+
+  public getResourceTypeStatic(resource: string): ResourceType | null {
+
+    if (resource === ResourceType.STATIC) {
+      return ResourceType.STATIC;
+    }
+    if (resource === ResourceType.DISGENET) {
+      return ResourceType.DISGENET;
+    }
+
+    // isFromPSICQUIC will be a function with a static dictionary to map to result, not Observable
+    if (this.isFromPSICQUIC(resource)) {
+      return ResourceType.PSICQUIC;
+    }
+    // none of above then is custom
+    if (this.isCustomResource(resource)) {
+      return ResourceType.CUSTOM;
+    }
+
+    return null;
+  }
+
+
+  public getResourceType(resource: string): Observable<ResourceType | null> {
+    if (resource === ResourceType.STATIC) {
+      return of(ResourceType.STATIC);
+    }
+    if (resource === ResourceType.DISGENET) {
+      return of(ResourceType.DISGENET);
+    }
+
+    return this.isFromPSICQUIC(resource).pipe(
+      switchMap(isPsicquic => {
+        if (isPsicquic) {
+          return of(ResourceType.PSICQUIC);
+        }
+
+        return this.isCustomResource(resource).pipe(
+          map(isCustom => isCustom ? ResourceType.CUSTOM : null)
+        );
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  public isFromPSICQUIC(resource: string): Observable<boolean> {
+    if (!resource) {
+      return of(false);
+    }
+
+    return this.getPsicquicResources().pipe(
+      map(psicquicResources =>
+        psicquicResources.some(pr => pr.name === resource && pr.name !== ResourceType.STATIC)
+      )
+    );
+  }
+
+  public isCustomResource(resource: string): Observable<boolean> {
+    if (!resource) {
+      return of(false);
+    }
+
+    return this.getPsicquicResources().pipe(
+      map(psicquicResources => {
+        const isPsicquic = psicquicResources.some(pr => pr.name === resource && pr.name !== ResourceType.STATIC);
+        return resource !== ResourceType.STATIC &&
+          resource !== ResourceType.DISGENET &&
+          !isPsicquic;
+      })
+    );
   }
 }

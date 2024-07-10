@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
 // @ts-ignore
@@ -17,22 +7,16 @@ import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
 import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
-import {PsicquicResource, Resource} from "../interactors/model/interactor-entity.model";
-import {MatSelect} from "@angular/material/select";
-import {FormControl} from "@angular/forms";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
-import {MatDialog} from "@angular/material/dialog";
-import {
-  CustomInteractorDialogComponent
-} from "../interactors/custom-interactor-dialog/custom-interactor-dialog.component";
-import {ResourceType} from "../interactors/common/overlay-resource";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
 import {AnalysisService, Examples} from "../services/analysis.service";
 import {Graph} from "../model/graph.model";
 import {isDefined} from "../services/utils";
 import {Analysis} from "../model/analysis.model";
 import {Router} from "@angular/router";
+import {InteractorsComponent} from "../interactors/interactors.component";
+
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -45,25 +29,20 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
-  @ViewChild('psicquicSelect') psicquicSelect?: MatSelect;
+  @Input('interactor') interactorsComponent?: InteractorsComponent;
 
   comparing: boolean = false;
   fit = true;
-  psicquicResources: PsicquicResource[] = []
-  selectedPsicquicResource = new FormControl();
-  isDataFromPsicquicLoading: boolean = false;
-  resourceTokens: Resource[] = [];
-  readonly ResourceType = ResourceType;
+
 
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
               private interactorsService: InteractorService,
               private state: DiagramStateService,
-              public dialog: MatDialog,
-              private cdr: ChangeDetectorRef,
               private analysis: AnalysisService,
-              private router: Router) {
+              private router: Router
+              ) {
   }
 
   cy!: cytoscape.Core;
@@ -119,7 +98,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     this.loadDiagram();
 
-    this.getPsicquicResources();
   }
 
   loadDiagram() {
@@ -147,7 +125,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       })
   }
 
-  private initialiseReplaceElements() {
+  public initialiseReplaceElements() {
     if (this.comparing)
       this.cy.batch(() => {
         this.cy.elements('[!isBackground]').style('visibility', 'hidden')
@@ -257,8 +235,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     return elements;
   }
 
-  select(tokens: (string | number)[], cy: cytoscape.Core): cytoscape.CollectionArgument {
-    let selected = this.getElements(tokens, cy);
+  select(tokens: (string | number), cy: cytoscape.Core): cytoscape.CollectionArgument {
+    cy.elements(':selected').unselect();
+    let selected = this.getElements([tokens], cy);
     selected.select();
     if ("connectedNodes" in selected) {
       selected = selected.add(selected.connectedNodes());
@@ -405,79 +384,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   };
 
 
-  getInteractors(resource: string) {
-    const isCustom = this.interactorsService.isCustomResource(resource, this.psicquicResources)
-    const isPsicquic = this.psicquicResources.filter(pr => pr.name != ResourceType.STATIC).some(r => r.name === this.state.get('overlay'))
-    this.cys.forEach(cy => {
-      if (!resource) return;
-
-      if (!isPsicquic) {
-        this.selectedPsicquicResource.reset();
-      }
-
-      if (!isCustom) {
-        this.interactorsService.getInteractorData(cy, resource).subscribe(interactors => {
-          this.interactorsService.addInteractorOccurrenceNode(interactors, cy, resource);
-          this.initialiseReplaceElements(); // Avoid floating occurrence nodes when in compare mode
-        });
-      }
-      this.state.set('overlay', resource)
-    })
-  }
-
-  getPsicquicResources() {
-    this.interactorsService.getPsicquicResources().subscribe(resources => {
-      this.psicquicResources = resources;
-    });
-  }
-
-  onPsicquicResourceChange(selectedResource: string) {
-    this.isDataFromPsicquicLoading = true;
-    this.interactorsService.getInteractorData(this.cy, selectedResource).subscribe(interactors => {
-      this.interactorsService.addInteractorOccurrenceNode(interactors, this.cy, selectedResource)
-      this.isDataFromPsicquicLoading = false;
-      this.psicquicSelect?.close();
-      this.state.set('overlay', selectedResource)
-    })
-  }
-
-  openCustomInteractorDialog() {
-    const dialogRef = this.dialog.open(CustomInteractorDialogComponent, {
-      data: {cy: this.cy},
-      restoreFocus: false // Deselect button when closing
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      const resource = dialogRef.componentInstance.resource
-      if (resource.token) {
-        this.resourceTokens!.push(resource)
-        this.state.set('overlay', resource.token.summary.token)
-      }
-      this.cdr.detectChanges();
-    })
-  }
-
-  deleteResource(resource: Resource) {
-    const index = this.resourceTokens!.indexOf(resource);
-    if (index !== -1) {
-      this.resourceTokens!.splice(index, 1);
-      this.cy.elements(`[resource = '${resource.token?.summary.token}']`).remove();
-    }
-  }
-
-  onCustomResourceChange(resource: Resource) {
-    this.interactorsService.sendPostRequest(resource.token!, this.cy).subscribe((result) => {
-      this.cys.forEach(cy => {
-        this.interactorsService.addInteractorOccurrenceNode(result.interactors, cy, result.interactors.resource);
-        this.state.set('overlay', resource.token!.summary.token);
-      })
-    })
-  }
-
-  isSelected(resource: Resource): boolean {
-    return this.resourceTokens!.includes(resource);
-  }
-
   private loadAnalysis(token: string | null) {
     console.log(token, this.diagramId)
     if (!token || !this.diagramId) {
@@ -612,7 +518,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   flagging = this.state.onChange.flag$.subscribe((value) => this.cys.forEach(cy => this.flag(value, cy)))
   selecting = this.state.onChange.select$.subscribe((value) => this.cys.forEach(cy => this.select(value, cy)))
-  interactoring = this.state.onChange.overlay$.subscribe((value) => this.getInteractors(value));
+  //interactoring = this.state.onChange.overlay$.subscribe((value) => this.interactorsComponent?.getInteractors(value));
   analysing = this.state.onChange.analysis$.subscribe((value) => this.loadAnalysis(value));
 
 
@@ -623,7 +529,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       this.flag(this.state.get('flag'), cy);
       this.select(this.state.get("select"), cy);
     }
-    this.getInteractors(this.state.get("overlay"));
+
+    const resource = this.state.get('overlay');
+    if (resource) {
+      this.interactorsComponent?.getInteractors(resource)
+    }
+
     this.loadAnalysis(this.state.get('analysis'))
   }
 
@@ -706,7 +617,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         elements = e.detail.cy.elements('node.reaction:selected')
       }
       const reactomeIds = elements.map(el => el.data('graph.stId'));
-      this.state.set('select', reactomeIds)
+      this.state.set('select', reactomeIds[0])
     }
   );
 

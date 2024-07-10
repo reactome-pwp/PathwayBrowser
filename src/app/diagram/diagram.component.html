@@ -18,44 +18,14 @@
     </div>
   </div>
 
-
   <form id="controls">
-    <button mat-raised-button (click)="getInteractors(ResourceType.STATIC)">IntAct</button>
-    <button mat-raised-button (click)="getInteractors(ResourceType.DISGENET)">DisGeNet</button>
     <button mat-raised-button (click)="updateStyle()">Update Style</button>
     <button mat-raised-button (click)="logProteins()">Log Proteins</button>
     <button mat-raised-button (click)="analyse('uniprot')">Uniprot</button>
     <button mat-raised-button (click)="analyse('microarray')">Microarray</button>
 
-    <mat-form-field appearance="outline">
-      <mat-label>PSICQUIC</mat-label>
-      <mat-select #psicquicSelect [formControl]="selectedPsicquicResource" [hideSingleSelectionIndicator]=true (selectionChange)="onPsicquicResourceChange($event.value)">
-        <mat-option *ngFor="let resource of psicquicResources" [value]="resource.name" [disabled]="!resource.active" (click)="psicquicSelect.open()">
-          <div class="option-content">
-            <span><i>{{ resource.name }}</i></span>
-            <mat-spinner diameter="20" *ngIf="isDataFromPsicquicLoading && selectedPsicquicResource.value === resource.name"></mat-spinner>
-          </div>
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <button mat-raised-button (click)="openCustomInteractorDialog()">Custom resource</button>
-
     <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>
     <span>{{(reactomeEvents$ | async)?.detail?.reactomeId}}</span>
   </form>
-
-
-  <mat-selection-list style="width: 260px" *ngIf="resourceTokens?.length != 0" [multiple]="false">
-    <mat-list-option color="primary" *ngFor="let resourceToken of resourceTokens" [value]="resourceToken"
-                     [selected]="isSelected(resourceToken)" (click)="onCustomResourceChange(resourceToken)">
-      <div class="option-content">
-        <div>{{ resourceToken.token?.summary?.name }}</div>
-        <button mat-icon-button color="primary" (click)="deleteResource(resourceToken)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </div>
-    </mat-list-option>
-  </mat-selection-list>
 
 </div>

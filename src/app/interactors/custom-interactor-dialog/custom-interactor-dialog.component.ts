@@ -15,7 +15,7 @@ import {MatRadioChange} from "@angular/material/radio";
 import {InteractorService} from "../services/interactor.service";
 import cytoscape from "cytoscape";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
-import {InputCategory, Resource} from "../model/interactor-entity.model";
+import {InputCategory, InteractorToken} from "../model/interactor.model";
 
 
 @Component({
@@ -32,7 +32,7 @@ export class CustomInteractorDialogComponent implements OnInit {
   tabId = 'data'; // Default value
   selectedValue = 'form'; // Default value
   isDataLoading: boolean = false;
-  resource = new Resource();
+  token? : InteractorToken;
   items = [
     {'name': 'form', 'content': 'File'},
     {'name': 'content', 'content': 'Copy & Paste'},
@@ -102,8 +102,8 @@ export class CustomInteractorDialogComponent implements OnInit {
     const userInput = this.getInputs();
     if (userInput) {
       this.interactorService.getInteractorsFromToken(this.name.value!, userInput.url!, userInput.content!, this.cy).subscribe((result) => {
-        this.interactorService.addInteractorOccurrenceNode(result.interactors, this.cy, result.interactors.resource)
-        this.resource.token =result.token
+        this.interactorService.addInteractorOccurrenceNode(result.interactors, this.cy, result.interactors.resource);
+        this.token = result.token;
         this.isDataLoading = false;
         this.dialogRef.close();
       })

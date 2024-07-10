@@ -1,0 +1,286 @@
+#breadcrumb-container {
+  background: var(--on-primary);
+  //height: 34px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px 10px 5px 0px;
+
+  /* sticky div */
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  overflow-y: hidden;
+  white-space: nowrap;
+
+
+  .breadcrumb {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 2px 0px 2px 7px;
+    isolation: isolate;
+
+    width: 100%;
+    height: 24px;
+    overflow-x: scroll;
+  }
+
+}
+
+.home-icon {
+  width: 16px;
+  height: 18px;
+  padding: 0 3.5px 0 4px;
+}
+
+
+/*
+ * Rename example-tree class will cause expand/collapse not working
+ */
+.example-tree-invisible {
+  display: none;
+}
+
+.example-tree ul,
+.example-tree li {
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-type: none;
+  margin-right: 6px;
+}
+
+/*
+ * This padding sets alignment of the nested nodes.
+ */
+.example-tree .mat-nested-tree-node div[role=group] {
+  padding-left: 6px;
+}
+
+/*
+ * Padding for leaf nodes.
+ * Leaf nodes need to have padding so as to align with other non-leaf nodes
+ * under the same parent.
+ */
+.example-tree div[role=group] > .mat-tree-node {
+  padding-left: 8px;
+}
+
+
+.mat-tree-node {
+  height: 26px;
+  position: relative;
+  width: auto;
+
+  .left {
+    display: flex;
+    overflow: hidden;
+  }
+
+  .right {
+    z-index: 99;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    display: flex;
+  }
+}
+
+.leaf-node {
+  height: 24px;
+}
+
+.highlight {
+  background: var(--primary);
+  border-radius: 50px;;
+  color: var(--on-primary) !important;
+}
+
+.highlight .custom-icon::ng-deep svg * {
+  fill: var(--on-primary);
+}
+
+
+.custom-icon {
+  z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
+  height: 17px !important;
+  width: 17px !important;
+  flex-shrink: 0; // Ensure the icon does not shrink
+}
+
+.button-size {
+  width: 20px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-size .mat-icon {
+  overflow: visible;
+}
+
+
+.font {
+  font-family: 'Roboto Flex', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  letter-spacing: 0.25px;
+}
+
+.button {
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 6px;
+  // gap: 5px;
+  border-radius: 50px;
+  color: var(--on-surface);
+  justify-content: flex-start;
+
+
+  width: 100%;
+  max-width: fit-content;
+}
+
+/*
+ * Branch line helper
+ */
+ul {
+  margin: 10px;
+  padding: 0;
+  border-left: 1px solid var(--outline-variant);
+}
+
+.group {
+  width: 100%;
+}
+
+/**
+   TAGS
+ */
+.tag-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  padding: 0 3px;
+  gap: 3px;
+  isolation: isolate;
+  margin: 0 auto;
+  width: 100%;
+  background: var(--surface);
+
+  &:before {
+    content: '';
+    position: absolute;
+    width: 10px;
+    left: -9px;
+    height: 100%;
+    background: linear-gradient(270deg, var(--surface) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .tag {
+    --diameter: 16px;
+    --padding: 4px;
+    background: var(--primary);
+    width: calc(var(--diameter) - 2 * var(--padding));
+    height: var(--diameter);
+    //max-width: var(--diameter);
+    max-height: var(--diameter);
+    border-radius: var(--diameter);
+    line-height: normal;
+    color: var(--on-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 var(--padding);
+    transition: 1s;
+
+    font-family: 'Roboto Flex', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-align: center;
+    font-size: 11px;
+
+
+    .initial {
+    }
+
+    .body {
+      transition: 1s;
+      width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      visibility: hidden;
+      display: flex;
+    }
+
+    &:hover {
+      width: 100%;
+      max-width: max-content; /* Fix increasing width when hover between two tags*/
+
+      .body {
+        visibility: visible;
+        width: 100%;
+      }
+    }
+  }
+
+  .disease {
+    background: var(--error) !important;
+  }
+}
+
+.hovered {
+  background: #f0f3f5;
+  border-radius: 50px;
+}
+
+
+.tag-font {
+  font-family: 'Roboto Flex', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}
+
+.tag.disease {
+  background: var(--error) !important;
+
+}
+
+.no-hover-effect {
+  &.mat-mdc-icon-button {
+    ::ng-deep {
+      .mat-mdc-button-persistent-ripple, .mat-mdc-button-ripple {
+        display: none;
+      }
+    }
+  }
+}
+
+/*
+ * DisplayName
+ */
+.name-container {
+  overflow: hidden;
+}
+
+.displayName {
+  position: relative;
+  left: 0;
+  width: 100%;
+  transition: left 3s;
+}
+
+//.displayName.animate {
+//  left: -100%;
+//}
