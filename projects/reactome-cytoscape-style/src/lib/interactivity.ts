@@ -246,6 +246,13 @@ export class Interactivity {
                 if (this.videoLayer?.node.style.opacity !== '0' && video.readyState === video.HAVE_NOTHING && video.networkState === video.NETWORK_IDLE) {
                   video.classList.add('loading');
                   video.oncanplay = e => video.classList.remove('loading')
+                  let errors = 0;
+                  const sources = video.querySelectorAll('source')!;
+                  sources.forEach(source => source.addEventListener('error', (e) => {
+                    errors ++;
+                    if (errors === sources.length) this.removeProteinVideo(video, node)
+                  }));
+
                   video.load();
                 }
                 elem.style.visibility = node.visible() ? 'visible' : 'hidden';
@@ -281,6 +288,17 @@ export class Interactivity {
       .on('mouseover', 'node.Protein', handler(v => v.play()))
       .on('mouseout', 'node.Protein', handler(v => v.pause()));
   }
+
+  removeProteinVideo(video: HTMLVideoElement, node: cytoscape.NodeSingular) {
+    video.classList.remove('loading')
+    let baseFontSize = extract(this.properties.font.size);
+    node.style({
+      'font-size': baseFontSize,
+      'text-margin-x': 0,
+      'text-max-width': "100%",
+    })
+    this.proteins = this.proteins.not(node);
+  };
 
   private moleculeLayer?: IHTMLLayer;
 
