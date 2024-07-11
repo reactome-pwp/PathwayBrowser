@@ -207,19 +207,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     this.clearAllSelectedEvents(this.treeData$.value)
     this.selectAllParents(selectedEvent, this.treeData$.value);
+    this.toggleEvent(selectedEvent);
+
     selectedEvent.isSelected = true;
 
-    if (selectedEvent.schemaClass === 'TopLevelPathway') {
-      this.eventService.setBreadcrumbs([]);
-      this.treeControl.collapseAll();
-    }
-    this.eventService.setCurrentEvent(selectedEvent);
 
+    this.eventService.setCurrentEvent(selectedEvent);
     this.state.set('select', selectedEvent.stId)
 
-
-    this.treeControl.expand(selectedEvent);
-    this.loadChildEvents(selectedEvent);
 
 
     if (selectedEvent.parents) {
@@ -232,6 +227,34 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       });
     }
 
+  }
+
+  private toggleEvent(event: Event) {
+
+    // Collapse all events when selecting any tlps
+    if (event.schemaClass === 'TopLevelPathway') {
+      this.eventService.setBreadcrumbs([]);
+      this.treeControl.collapseAll();
+    }
+
+    if (!this.treeControl.isExpanded(event)) {
+      this.treeControl.expand(event);
+      this.loadChildEvents(event);
+    } else {
+      this.treeControl.collapse(event);
+      event.isSelected = false;
+    }
+
+    if (event.parents) {
+      // Get 1st parent
+      let directParent = event.parents[event.parents.length - 1];
+      // Loop through the parent's children to collapse any expanded siblings
+      directParent.hasEvent?.forEach(childEvent => {
+        if (childEvent !== event && this.treeControl.isExpanded(childEvent)) {
+          this.treeControl.collapse(childEvent);
+        }
+      })
+    }
   }
 
 
