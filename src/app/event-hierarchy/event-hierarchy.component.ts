@@ -1,8 +1,8 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {BehaviorSubject, forkJoin, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
+import {BehaviorSubject, forkJoin, fromEvent, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
@@ -21,7 +21,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
   @Input('eventSplit') split!: SplitComponent
-  @ViewChild('button', {read: ElementRef}) button!: ElementRef;
+  @ViewChild('treeControlButton', {read: ElementRef}) treeControlButton!: ElementRef;
+  //@ViewChild('displayNameDiv', {read: ElementRef, static: false}) displayNameDiv!: ElementRef;
 
 
   splitSynchronized!: Subscription
@@ -29,11 +30,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeDataSubscription!: Subscription;
   currentEventSubscription!: Subscription;
   breadcrumbsSubscription!: Subscription;
+  scrollSubscription!: Subscription;
+  windowResizeSubscription!: Subscription;
 
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   dataSource = new MatTreeNestedDataSource<Event>();
   breadcrumbs: Event[] = [];
+  scrollTimeout: undefined | ReturnType<typeof setTimeout>;
 
   selectedIdFromUrl = this.state.get('select') || null;
   selectedEvent!: Event;
@@ -43,7 +47,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.selectedIdFromUrl = this.state.get('select')
     }
   )
-
 
   constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
@@ -76,45 +79,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
 
     this.splitSynchronized = this.split.dragProgress$.subscribe(data => {
-      // this.sizeSplit = this.split.getVisibleAreaSizes()[0] as number; // return percent value
       this.adjustWidths();
     });
 
-  }
-
-  /**
-   * Adjust widths when loading mat tree data at very beginning.
-   */
-  adjustWidths() {
-    const treeNodes = this.el.nativeElement.querySelectorAll('.mat-tree-node');
-    treeNodes.forEach((node: HTMLElement) => {
-      this.adjustWidth(node)
+    this.windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => {
+      this.adjustWidths();
     });
   }
-
-
-  adjustWidth(node: HTMLElement) {
-    const left = node.querySelector('.left') as HTMLElement;
-    const right = node.querySelector('.right') as HTMLElement;
-    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
-    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
-    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
-  }
-
-  getLeftDivElWidth(node: HTMLElement) {
-    const left = node.querySelector('.left') as HTMLElement;
-    const right = node.querySelector('.right') as HTMLElement;
-    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
-    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
-    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
-    // console.log('parent ', parentWidth);
-    // console.log('right ', rightWidth);
-    console.log('single width ', left.style.width);
-
-    return parentWidth - rightWidth;
-
-  }
-
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).subscribe(results => {
@@ -132,6 +103,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   loadChildEvents(event: Event) {
+    event.isSelected = this.treeControl.isExpanded(event);
     // Check if children are already loaded
     if (event.hasEvent && event.hasEvent.length > 0) {
       this.setCurrentTreeData(this.treeData$.value);
@@ -145,7 +117,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         });
         this.setCurrentTreeData(this.treeData$.value);
       } else {
-        console.log('No children found');
+        console.log('No children found'); //todo: delete it
       }
     });
   }
@@ -174,6 +146,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.treeDataSubscription.unsubscribe();
     this.currentEventSubscription.unsubscribe();
     this.splitSynchronized.unsubscribe();
+    this.breadcrumbsSubscription.unsubscribe();
+    this.windowResizeSubscription.unsubscribe();
+    clearTimeout(this.scrollTimeout);
   }
 
 
@@ -228,7 +203,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  selectEvent(selectedEvent: Event) {
+  onEventSelect(selectedEvent: Event) {
 
     this.clearAllSelectedEvents(this.treeData$.value)
     this.selectAllParents(selectedEvent, this.treeData$.value);
@@ -288,10 +263,34 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return event.stId;
   }
 
-  getExpandedEvents() {
-    // This returns a list of all selected expanded tree event even for the leaf event
-    return this.treeControl.expansionModel.deselect();
+
+  /**
+   * Adjust widths when loading mat tree data at the initialization.
+   */
+  adjustWidths() {
+    const treeNodes = this.el.nativeElement.querySelectorAll('.mat-tree-node');
+    treeNodes.forEach((node: HTMLElement) => {
+      this.adjustWidth(node);
+    });
   }
+
+  adjustWidth(node: HTMLElement) {
+    const left = node.querySelector('.left') as HTMLElement;
+    const right = node.querySelector('.right') as HTMLElement;
+    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
+    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
+    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
+  }
+
+  getLeftDivElWidth(node: HTMLElement) {
+    const left = node.querySelector('.left') as HTMLElement;
+    const right = node.querySelector('.right') as HTMLElement;
+    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
+    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
+    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
+    return parentWidth - rightWidth;
+  }
+
 
   onTagHover(event: Event) {
     if (event.isSelected || (this.treeControl.isExpanded(event) && event.hasEvent)) return;
@@ -302,38 +301,69 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     event.isHovered = false;
   }
 
-
-  currentLeft = 0;
+  ICON_WIDTH_AND_PADDING = 17 + 16;
+  private _SCROLL_SPEED = 50; // pixels per second
 
   onNameHover($event: MouseEvent, event: Event) {
-
     const targetParentNode = ($event.target as HTMLElement).closest('.mat-tree-node') as HTMLElement;
     let leftDivWidth = this.getLeftDivElWidth(targetParentNode);
-
     const targetElement = $event.target as HTMLElement;
-    const contentWidth = targetElement.offsetWidth + 17 + 16; // icon width and padding lef and right
+    const treeControlButtonWidth = this.treeControlButton.nativeElement.getBoundingClientRect().width;
+    const contentWidth = !this.hasChildSingleEvent(event) ? targetElement.offsetWidth + this.ICON_WIDTH_AND_PADDING : targetElement.offsetWidth + this.ICON_WIDTH_AND_PADDING + treeControlButtonWidth// icon width and padding lef and right
 
-    let left = contentWidth - leftDivWidth;
-    //console.log('contentWidth ', contentWidth)
-    //console.log('left width', leftDivWidth)
+    // Allow animation if this element has been scrolling before
+    targetElement.classList.remove('no-transition');
     // Check if there is space between the left and content span
     if (contentWidth > leftDivWidth) {
-     // console.log("Applying animation");
-      // targetElement.classList.add('animate');
-      targetElement.style.left = `-${left}px`; // Set the distance to scroll
-      this.currentLeft = -left;
+      let distanceToScroll = contentWidth - leftDivWidth;
+      // Calculate the transition duration based on the distance and the constant speed
+      const duration = distanceToScroll / this._SCROLL_SPEED;
+      targetElement.style.transition = `left ${duration}s linear`;
+      // Set the distance to scroll
+      targetElement.style.left = `-${distanceToScroll}px`;
     }
   }
 
   onNameHoverLeave($event: MouseEvent, event: Event) {
     const targetElement = $event.target as HTMLElement;
-    // targetElement.classList.remove('animate');
     targetElement.style.left = '0'; // Reset position
-    this.currentLeft = 0;
   }
 
-  onScroll($event: WheelEvent) {
-    console.log("start scrolling...")
 
+  onScroll($event: WheelEvent, node: Event) {
+    const targetElement = $event.target as HTMLElement;
+    this.onScrollStart(targetElement);
+
+    clearTimeout(this.scrollTimeout);
+
+    this.scrollTimeout = setTimeout(() => {
+      this.onScrollStop(targetElement);
+    }, 500); // Debounce time
+  }
+
+
+  /**
+   * Not working with mat tree node
+   */
+  // private initializeScrollEvent(): void {
+  //   this.scrollSubscription = fromEvent(this.displayNameDiv.nativeElement, 'scroll').pipe(
+  //     tap(() => this.onScrollStart(this.displayNameDiv.nativeElement)),
+  //     debounceTime(200)
+  //   ).subscribe(() => {
+  //     this.onScrollStop(this.displayNameDiv.nativeElement)
+  //   });
+  // }
+
+  private onScrollStart(el: HTMLElement): void {
+    // Need to make it scrollable to enable the scrolling
+    const labelSpan = el.closest('.mdc-button__label') as HTMLElement;
+    labelSpan.classList.add('add-overflowX');
+    el.classList.add('no-transition');
+  }
+
+  private onScrollStop(el: HTMLElement): void {
+    const labelSpan = el.closest('.mdc-button__label') as HTMLElement;
+    labelSpan.classList.remove('add-overflowX');
+    el.classList.remove('no-transition');
   }
 }

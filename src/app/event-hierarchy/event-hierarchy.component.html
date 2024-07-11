@@ -19,18 +19,19 @@
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node">
     <!-- use a disabled button to provide padding for table leaf -->
     <!--    <button mat-icon-button disabled class="button-size"></button>-->
-
     <div class="left">
-      <button mat-button (click)="selectEvent(node)" #button
+      <button mat-button (click)="onEventSelect(node)"
               [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
         <mat-icon class='custom-icon'
                   [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
                   [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
-        <div class="name-container" (wheel)="onScroll($event)">
-          <span class="font displayName" (mouseover)="onNameHover($event ,node)"
-                (mouseleave)="onNameHoverLeave($event, node)">
+        <div class="name-container">
+          <div class="font displayName" #displayNameDiv
+               (mouseover)="onNameHover($event ,node)"
+               (mouseleave)="onNameHoverLeave($event, node)"
+               (wheel)="onScroll($event, node)">
             {{ node.displayName }}
-          </span>
+          </div>
         </div>
       </button>
     </div>
@@ -42,7 +43,7 @@
           <span class='initial'>U</span>
           <span class="body">PDATED</span>
         </div>
-        <div class="tag" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
+        <div class="tag" *ngIf="node.releaseStatus === 'NEW'" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
           <span class='initial'>N</span>
           <span class="body">EW</span>
         </div>
@@ -67,21 +68,22 @@
   <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
     <div class="mat-tree-node">
       <div class="left">
-        <button mat-icon-button matTreeNodeToggle class="button-size no-hover-effect"
+        <button #treeControlButton mat-icon-button matTreeNodeToggle class="button-size no-hover-effect"
                 [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildEvents(node)">
           <mat-icon class="mat-icon-rtl-mirror"
                     [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
         </button>
 
-        <button mat-button (click)="selectEvent(node)" class="button"
+        <button mat-button (click)="onEventSelect(node)" class="button"
                 [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}">
           <mat-icon class='custom-icon' [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
                     [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
           <div class="name-container">
-          <span class="font displayName" (mouseover)="onNameHover($event, node)"
-                (mouseleave)="onNameHoverLeave($event, node)">
+          <div class="font displayName" (mouseover)="onNameHover($event, node)"
+                (mouseleave)="onNameHoverLeave($event, node)"
+                (wheel)="onScroll($event, node)">
               {{ node.displayName }}
-            </span>
+            </div>
           </div>
         </button>
       </div>
@@ -93,7 +95,7 @@
             <span class='initial'>U</span>
             <span class="body">PDATED</span>
           </div>
-          <div class="tag" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
+          <div class="tag" *ngIf="node.releaseStatus === 'NEW'" (mouseover)="onTagHover(node)" (mouseleave)="onTagHoverLeave(node)">
             <span class='initial'>N</span>
             <span class="body">EW</span>
           </div>
