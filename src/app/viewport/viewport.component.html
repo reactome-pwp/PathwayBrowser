@@ -5,7 +5,7 @@
     <as-split-area [size]="20">
       <div class="left-panel">
         <div class="search"><p>search-box</p></div>
-        <div class="sidebar">
+<!--        <div class="sidebar">-->
 
           <div class="species-interactor-container">
             <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
@@ -39,7 +39,7 @@
             <cr-event-hierarchy [id]="diagramId" [eventSplit]="sideSplit"></cr-event-hierarchy>
           </div>
         </div>
-      </div>
+<!--      </div>-->
     </as-split-area>
 
     <as-split-area [size]="80">

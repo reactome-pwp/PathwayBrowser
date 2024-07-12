@@ -30,10 +30,10 @@
 }
 
 
-.sidebar {
-  height: 90%;
-  overflow: hidden;
-}
+//.sidebar {
+//  height: 90%;
+//  overflow: hidden;
+//}
 
 
 .right-panel {
@@ -132,9 +132,9 @@
 }
 
 .event-hierarchy {
-  height: 90%;
+  height: 100%;
   overflow-x: hidden;
 
   /* sticky div helper */
-  overflow-y: auto; //Ensure the sidebar can scroll if content overflows
+  //overflow-y: auto; //Ensure the sidebar can scroll if content overflows
 }

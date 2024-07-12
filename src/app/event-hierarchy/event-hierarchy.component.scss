@@ -1,6 +1,12 @@
+#hierarchy-container{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 #breadcrumb-container {
   background: var(--on-primary);
-  //height: 34px;
+  height: 34px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -32,6 +38,11 @@
   width: 16px;
   height: 18px;
   padding: 0 3.5px 0 4px;
+}
+
+
+#events-container{
+  overflow-y: scroll;
 }
 
 
@@ -176,7 +187,7 @@ ul {
   &:before {
     content: '';
     position: absolute;
-    width: 10px;
+    width: 10px; // This valued is used to calculate left DIV width, remember to update it in the component adjustWidth method when you change it
     left: -9px;
     height: 100%;
     background: linear-gradient(270deg, var(--surface) 0%, rgba(255, 255, 255, 0) 100%);
@@ -276,14 +287,14 @@ ul {
   overflow: hidden;
 }
 
-.displayName {
+.name {
   position: relative;
   left: 0;
   width: 100%;
 }
 
 
-.displayName.no-transition {
+.name.no-transition {
   transition: none !important;
   overflow-x: scroll;
   white-space: nowrap;
