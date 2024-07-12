@@ -22,6 +22,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   @Input('id') diagramId: string = '';
   @Input('eventSplit') split!: SplitComponent
   @ViewChild('treeControlButton', {read: ElementRef}) treeControlButton!: ElementRef;
+  @ViewChild('eventIcon', {read: ElementRef}) eventIcon!: ElementRef;
   //@ViewChild('displayNameDiv', {read: ElementRef, static: false}) displayNameDiv!: ElementRef;
 
 
@@ -38,7 +39,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   dataSource = new MatTreeNestedDataSource<Event>();
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
-
+  private _SCROLL_SPEED = 50; // pixels per second
   selectedIdFromUrl = this.state.get('select') || null;
   selectedEvent!: Event;
 
@@ -79,7 +80,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
 
     this.splitSynchronized = this.split.dragProgress$.subscribe(data => {
-      this.adjustWidths();
+       this.adjustWidths();
     });
 
     this.windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => {
@@ -98,12 +99,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
 
-  hasChildSingleEvent(event: Event): boolean {
+  eventHasChild(event: Event): boolean {
     return this.hasChild(0, event);
   }
 
   loadChildEvents(event: Event) {
     event.isSelected = this.treeControl.isExpanded(event);
+    this.collapseSiblingEvent(event);
     // Check if children are already loaded
     if (event.hasEvent && event.hasEvent.length > 0) {
       this.setCurrentTreeData(this.treeData$.value);
@@ -207,21 +209,16 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     this.clearAllSelectedEvents(this.treeData$.value)
     this.selectAllParents(selectedEvent, this.treeData$.value);
-    this.toggleEvent(selectedEvent);
-
-    selectedEvent.isSelected = true;
-
+    this.toggleEventCollapseExpand(selectedEvent);
 
     this.eventService.setCurrentEvent(selectedEvent);
     this.state.set('select', selectedEvent.stId)
-
-
 
     if (selectedEvent.parents) {
       this.eventService.setBreadcrumbs([...(selectedEvent!.parents), selectedEvent]);
     }
 
-    if (this.hasChildSingleEvent(selectedEvent)) {
+    if (this.eventHasChild(selectedEvent)) {
       this.router.navigate(['PathwayBrowser', selectedEvent.stId], {
         queryParamsHandling: "preserve" // Keep existing query params
       });
@@ -229,8 +226,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  private toggleEvent(event: Event) {
-
+  private toggleEventCollapseExpand(event: Event) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
       this.eventService.setBreadcrumbs([]);
@@ -245,6 +241,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       event.isSelected = false;
     }
 
+    this.collapseSiblingEvent(event);
+  }
+
+
+  private collapseSiblingEvent(event: Event){
     if (event.parents) {
       // Get 1st parent
       let directParent = event.parents[event.parents.length - 1];
@@ -252,13 +253,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       directParent.hasEvent?.forEach(childEvent => {
         if (childEvent !== event && this.treeControl.isExpanded(childEvent)) {
           this.treeControl.collapse(childEvent);
+          childEvent.isSelected = false;
         }
       })
     }
   }
 
-
-  selectAllParents(selectedEvent: Event, events: Event[]) {
+  private selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
       if (selectedEvent.parents) {
         const parentIds = selectedEvent.parents.map(parent => parent.stId);
@@ -270,7 +271,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  clearAllSelectedEvents(events: Event[]) {
+  private clearAllSelectedEvents(events: Event[]) {
     events.forEach(event => {
       event.isSelected = false;
       if (event.hasEvent) {
@@ -299,17 +300,22 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   adjustWidth(node: HTMLElement) {
     const left = node.querySelector('.left') as HTMLElement;
-    const right = node.querySelector('.right') as HTMLElement;
-    const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
-    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
-    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
+    const hasEvents = left.children.length > 1;
+    this.calculateAndSetWidth(node, hasEvents)
+
   }
 
-  getLeftDivElWidth(node: HTMLElement) {
+  getLeftDivElWidth(node: HTMLElement, event: Event) {
+    const hasEvents = this.eventHasChild(event);
+    return this.calculateAndSetWidth(node, hasEvents);
+  }
+
+
+  private calculateAndSetWidth(node: HTMLElement, hasEvents: boolean): number {
     const left = node.querySelector('.left') as HTMLElement;
     const right = node.querySelector('.right') as HTMLElement;
     const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
-    const rightWidth = right.offsetWidth + 10; // 10 is the width of the gradient
+    const rightWidth = hasEvents ? right.offsetWidth : right.offsetWidth + 10; // 10 is the width of the gradient
     left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
     return parentWidth - rightWidth;
   }
@@ -324,43 +330,51 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     event.isHovered = false;
   }
 
-  ICON_WIDTH_AND_PADDING = 17 + 16;
-  private _SCROLL_SPEED = 50; // pixels per second
+
 
   onNameHover($event: MouseEvent, event: Event) {
     const targetParentNode = ($event.target as HTMLElement).closest('.mat-tree-node') as HTMLElement;
-    let leftDivWidth = this.getLeftDivElWidth(targetParentNode);
-    const targetElement = $event.target as HTMLElement;
-    const treeControlButtonWidth = this.treeControlButton.nativeElement.getBoundingClientRect().width;
-    const contentWidth = !this.hasChildSingleEvent(event) ? targetElement.offsetWidth + this.ICON_WIDTH_AND_PADDING : targetElement.offsetWidth + this.ICON_WIDTH_AND_PADDING + treeControlButtonWidth// icon width and padding lef and right
-
+    const leftDivWidth = this.getLeftDivElWidth(targetParentNode, event);
+    const nameElement = $event.target as HTMLElement;
+    const contentWidth = this.calculateContentWidth(nameElement, event);
     // Allow animation if this element has been scrolling before
-    targetElement.classList.remove('no-transition');
+    nameElement.classList.remove('no-transition');
     // Check if there is space between the left and content span
     if (contentWidth > leftDivWidth) {
       let distanceToScroll = contentWidth - leftDivWidth;
-      // Calculate the transition duration based on the distance and the constant speed
-      const duration = distanceToScroll / this._SCROLL_SPEED;
-      targetElement.style.transition = `left ${duration}s linear`;
-      // Set the distance to scroll
-      targetElement.style.left = `-${distanceToScroll}px`;
+      this.setScrollStyles(nameElement, distanceToScroll);
     }
   }
 
+  private calculateContentWidth(targetElement: HTMLElement, event: Event): number {
+    const iconWidth = this.eventIcon.nativeElement.getBoundingClientRect().width + 16; // width and padding
+    const treeControlButtonWidth = this.treeControlButton.nativeElement.getBoundingClientRect().width;
+    const baseWidth = targetElement.offsetWidth + iconWidth;
+    return this.eventHasChild(event) ? baseWidth + treeControlButtonWidth : baseWidth;
+  }
+
+  private setScrollStyles(targetElement: HTMLElement, distanceToScroll: number): void {
+    // Calculate the transition duration based on the distance and the constant speed
+    const duration = distanceToScroll / this._SCROLL_SPEED;
+    targetElement.style.transition = `left ${duration}s linear`;
+    // Set the distance to scroll
+    targetElement.style.left = `-${distanceToScroll}px`;
+  }
+
   onNameHoverLeave($event: MouseEvent, event: Event) {
-    const targetElement = $event.target as HTMLElement;
-    targetElement.style.left = '0'; // Reset position
+    const nameElement = $event.target as HTMLElement;
+    nameElement.style.left = '0'; // Reset position
   }
 
 
   onScroll($event: WheelEvent, node: Event) {
-    const targetElement = $event.target as HTMLElement;
-    this.onScrollStart(targetElement);
+    const nameElement = $event.target as HTMLElement;
+    this.onScrollStart(nameElement);
 
     clearTimeout(this.scrollTimeout);
 
     this.scrollTimeout = setTimeout(() => {
-      this.onScrollStop(targetElement);
+      this.onScrollStop(nameElement);
     }, 500); // Debounce time
   }
 
