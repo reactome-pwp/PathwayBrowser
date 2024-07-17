@@ -80,7 +80,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
 
     this.splitSynchronized = this.split.dragProgress$.subscribe(data => {
-       this.adjustWidths();
+      this.adjustWidths();
     });
 
     this.windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => {
@@ -91,9 +91,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).subscribe(results => {
       this.setCurrentTreeData(results);
-      if (this.diagramId) {
-        this.buildTree(this.diagramId);
-      }
+      const id = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
+      this.buildTree(id);
     });
   }
 
@@ -102,6 +101,16 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   eventHasChild(event: Event): boolean {
     return this.hasChild(0, event);
   }
+
+  hasLeafSibling(event: Event): boolean {
+    if (!event.parents || event.parents.length === 0) {
+      return false;
+    }
+    // Direct parent
+    const parent = event.parents[event.parents.length - 1];
+    return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
+  }
+
 
   loadChildEvents(event: Event) {
     event.isSelected = this.treeControl.isExpanded(event);
@@ -124,7 +133,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  buildTree(stId: string) {
+  buildTree(stId: string | number) {
     this.eventService.fetchEventAncestors(stId)
       .pipe(
         tap(ancestors => {
@@ -165,7 +174,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
    *                  But here is from parent to child,no need to use reverse() with ancestors[0]
    */
   buildNestedTree(roots: Event[], ancestors: Event[][]) {
-    console.log('Executing buildNestedTree with data:', roots, 'and ancestors:', ancestors);
+    console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
     const tree = [...roots];
     const nestedTree = ancestors[0].reduce((acc, event) => {
       return acc.pipe(
@@ -174,8 +183,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
           if (existingEvent) {
             return this.eventService.fetchChildEvents(event.stId).pipe(
               map(children => {
-                existingEvent!.hasEvent = children.hasEvent!.map(child => {
+                existingEvent!.hasEvent = children.hasEvent?.map(child => {
                   child.parents = [...(existingEvent!.parents || []), existingEvent!];
+                  this.eventService.setBreadcrumbs([...child.parents])
                   return child;
                 });
                 // Highlight selected event
@@ -183,6 +193,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                   existingEvent!.hasEvent?.forEach(event => {
                     if (this.selectedIdFromUrl === event.stId) {
                       event.isSelected = true;
+                      this.eventService.setBreadcrumbs([...(event!.parents), event]) //todo: when not loading from URL
                     }
                   })
                 }
@@ -205,47 +216,113 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  onEventSelect(selectedEvent: Event) {
+  onEventSelect(event: Event) {
+    if (this.eventHasChild(event)) {
+      // Toggle isSelected property if it has children for pathway
+      event.isSelected = !event.isSelected;
+    } else {
+      // Select without toggle if it doesn't have children for reaction
+      event.isSelected = true;
+    }
+    if (event.isSelected) {
+      this.handleSelection(event)
+    } else {
+      this.handleDeselection(event)
+    }
+  }
 
-    this.clearAllSelectedEvents(this.treeData$.value)
-    this.selectAllParents(selectedEvent, this.treeData$.value);
-    this.toggleEventCollapseExpand(selectedEvent);
+  private handleSelection(event: Event) {
+    // First click
+    this.clearAllSelectedEvents(this.treeData$.value);
+    this.selectAllParents(event, this.treeData$.value);
+    this.eventExpand(event);
 
-    this.eventService.setCurrentEvent(selectedEvent);
-    this.state.set('select', selectedEvent.stId)
+    if (event.parents) {
+      this.eventService.setBreadcrumbs([...(event.parents), event]);
+    }
+    this.updateSelectedEvent(event);
+  }
 
-    if (selectedEvent.parents) {
-      this.eventService.setBreadcrumbs([...(selectedEvent!.parents), selectedEvent]);
+  private handleDeselection(event: Event) {
+    // Second click (deselect)
+    this.selectAllParents(event, this.treeData$.value);
+    this.eventCollapse(event);
+
+    if (event.parents) {
+      this.eventService.setBreadcrumbs([...(event.parents)]);
     }
 
-    if (this.eventHasChild(selectedEvent)) {
-      this.router.navigate(['PathwayBrowser', selectedEvent.stId], {
-        queryParamsHandling: "preserve" // Keep existing query params
-      });
+    //pathway
+    if (this.eventHasChild(event) && event.hasDiagram) {
+      const parents = [...event.parents].reverse();
+      const parent = parents.find(p => p.hasDiagram);
+      this.diagramId = parent!.stId;
+      this.navigateToPathway(event);
+    }
+
+    //subpathway
+    if (this.eventHasChild(event) && !event.hasDiagram) {
+      const parents = [...event.parents].reverse();
+      const parent = event.parents[event.parents.length - 1]
+      const diagram = parents.find(p => p.hasDiagram);
+      this.diagramId = diagram!.stId;
+      this.navigateToPathway(parent);
     }
 
   }
 
-  private toggleEventCollapseExpand(event: Event) {
+  private updateSelectedEvent(event: Event) {
+
+    this.setDiagramId(event);
+
+    if (this.diagramId) {
+      // const selectedEvent = this.eventHasChild(event) && event.hasDiagram ? '' : event
+      //this.state.set('select', selectedId);
+      //
+      // this.router.navigate(['PathwayBrowser', this.diagramId], {
+      //   queryParamsHandling: "preserve" // Keep existing query params
+      // }).then(() => {
+      //   this.state.set('select', selectedId);
+      //   this.eventService.setCurrentEvent(selectedEvent);
+      // }).catch(err => {
+      //   console.error('Navigation error:', err);
+      // });
+
+      this.navigateToPathway(event);
+    }
+
+  }
+
+  private eventExpand(event: Event) {
+    // Collapse all events when selecting any tlps
+    if (event.schemaClass === 'TopLevelPathway') {
+      this.eventService.setBreadcrumbs([]);
+      this.treeControl.collapseAll();
+    }
+    if (!this.treeControl.isExpanded(event)) {
+      this.treeControl.expand(event);
+      this.loadChildEvents(event);
+    }
+    this.collapseSiblingEvent(event);
+  }
+
+  private eventCollapse(event: Event) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
       this.eventService.setBreadcrumbs([]);
       this.treeControl.collapseAll();
     }
 
-    if (!this.treeControl.isExpanded(event)) {
-      this.treeControl.expand(event);
-      this.loadChildEvents(event);
-    } else {
+    if (this.treeControl.isExpanded(event)) {
       this.treeControl.collapse(event);
+      this.treeControl.collapseDescendants(event);
       event.isSelected = false;
     }
-
     this.collapseSiblingEvent(event);
   }
 
 
-  private collapseSiblingEvent(event: Event){
+  private collapseSiblingEvent(event: Event) {
     if (event.parents) {
       // Get 1st parent
       let directParent = event.parents[event.parents.length - 1];
@@ -253,6 +330,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       directParent.hasEvent?.forEach(childEvent => {
         if (childEvent !== event && this.treeControl.isExpanded(childEvent)) {
           this.treeControl.collapse(childEvent);
+          this.treeControl.collapseDescendants(childEvent);
           childEvent.isSelected = false;
         }
       })
@@ -277,6 +355,36 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       if (event.hasEvent) {
         this.clearAllSelectedEvents(event.hasEvent);
       }
+    });
+  }
+
+
+  private setDiagramId(selectedEvent: Event): void {
+    // Pathway
+    if (this.eventHasChild(selectedEvent) && selectedEvent.hasDiagram) {
+      this.diagramId = selectedEvent.stId;
+    } else {
+      // Subpathway and reaction
+      const parents = [...selectedEvent.parents].reverse();
+      const parent = parents.find(p => p.hasDiagram);
+      if (parent) {
+        this.diagramId = parent.stId;
+      }
+    }
+  }
+
+
+  private navigateToPathway(event: Event): void {
+
+    const selectedEventId = this.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
+
+    this.router.navigate(['PathwayBrowser', this.diagramId], {
+      queryParamsHandling: "preserve" // Keep existing query params
+    }).then(() => {
+      this.state.set('select', selectedEventId);
+      this.eventService.setCurrentEvent(event);
+    }).catch(err => {
+      console.error('Navigation error:', err);
     });
   }
 
@@ -329,7 +437,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   onTagHoverLeave(event: Event) {
     event.isHovered = false;
   }
-
 
 
   onNameHover($event: MouseEvent, event: Event) {
