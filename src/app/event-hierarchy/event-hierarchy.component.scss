@@ -160,7 +160,7 @@
  * Branch line helper
  */
 ul {
-  margin: 10px;
+  margin: 8px;
   padding: 0;
   border-left: 1px solid var(--outline-variant);
 }
@@ -244,6 +244,22 @@ ul {
   .disease {
     background: var(--error) !important;
   }
+
+  .subpathway {
+    --diameter: 16px;
+    --padding: 4px;
+    background: pink;
+    width: calc(var(--diameter) - 2 * var(--padding));
+    height: var(--diameter);
+    max-height: var(--diameter);
+    border-radius: var(--diameter);
+    line-height: normal;
+    color: var(--on-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 var(--padding);
+  }
 }
 
 .tag-font {
@@ -312,4 +328,8 @@ ul {
 
 ::ng-deep .mat-mdc-button .mdc-button__label.add-overflowX {
   overflow-x: scroll;
+}
+
+.has-sibling {
+  margin-left: 12px;
 }
