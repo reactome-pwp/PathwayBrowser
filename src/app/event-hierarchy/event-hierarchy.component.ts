@@ -9,6 +9,7 @@ import {DiagramStateService} from "../services/diagram-state.service";
 import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {Router} from "@angular/router";
+import {isNumber, isString} from "lodash";
 
 
 @Component({
@@ -40,7 +41,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   private _SCROLL_SPEED = 50; // pixels per second
-  selectedIdFromUrl = this.state.get('select') || null;
+  selectedIdFromUrl = this.state.get('select') || '';
   selectedEvent!: Event;
 
   // Get latest selected id from URL
@@ -102,7 +103,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return this.hasChild(0, event);
   }
 
-  hasLeafSibling(event: Event): boolean {
+  hasParentSibling(event: Event): boolean {
     if (!event.parents || event.parents.length === 0) {
       return false;
     }
@@ -176,7 +177,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   buildNestedTree(roots: Event[], ancestors: Event[][]) {
     console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
     const tree = [...roots];
-    const nestedTree = ancestors[0].reduce((acc, event) => {
+    const nestedTree = ancestors[0].reduce((acc, event, index, array) => {
+      const isLast = index === array.length - 1;
       return acc.pipe(
         mergeMap(currentLevel => {
           let existingEvent = currentLevel.find(e => e.dbId === event.dbId);
@@ -199,6 +201,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                 }
                 // Highlight selected event's parent when loading from URL
                 existingEvent!.isSelected = true;
+                if (isLast) {
+                  this.eventService.setCurrentEvent(existingEvent!);
+                }
+
                 return existingEvent!.hasEvent!;
               })
             );
