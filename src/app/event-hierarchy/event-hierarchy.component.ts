@@ -241,89 +241,54 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     // First click
     this.clearAllSelectedEvents(this.treeData$.value);
     this.selectAllParents(event, this.treeData$.value);
-    this.eventExpand(event);
+    this.toggleEventExpansion(event, true);
 
     if (event.parents) {
       this.eventService.setBreadcrumbs([...(event.parents), event]);
     }
-    this.updateSelectedEvent(event);
+
+    this.setDiagramId(event);
+    this.navigateToPathway(event);
   }
 
   private handleDeselection(event: Event) {
     // Second click (deselect)
     this.selectAllParents(event, this.treeData$.value);
-    this.eventCollapse(event);
+    this.toggleEventExpansion(event, false);
 
     if (event.parents) {
       this.eventService.setBreadcrumbs([...(event.parents)]);
     }
 
-    //pathway
-    if (this.eventHasChild(event) && event.hasDiagram) {
-      const parents = [...event.parents].reverse();
-      const parent = parents.find(p => p.hasDiagram);
-      this.diagramId = parent!.stId;
-      this.navigateToPathway(event);
-    }
-
-    //subpathway
-    if (this.eventHasChild(event) && !event.hasDiagram) {
-      const parents = [...event.parents].reverse();
+    //pathway and subpathway
+    if (this.eventHasChild(event)) {
       const parent = event.parents[event.parents.length - 1]
-      const diagram = parents.find(p => p.hasDiagram);
-      this.diagramId = diagram!.stId;
+      const parentWithDiagram = this.findParentWithDiagram(event);
+      this.diagramId = parentWithDiagram!.stId;
       this.navigateToPathway(parent);
     }
-
   }
 
-  private updateSelectedEvent(event: Event) {
-
-    this.setDiagramId(event);
-
-    if (this.diagramId) {
-      // const selectedEvent = this.eventHasChild(event) && event.hasDiagram ? '' : event
-      //this.state.set('select', selectedId);
-      //
-      // this.router.navigate(['PathwayBrowser', this.diagramId], {
-      //   queryParamsHandling: "preserve" // Keep existing query params
-      // }).then(() => {
-      //   this.state.set('select', selectedId);
-      //   this.eventService.setCurrentEvent(selectedEvent);
-      // }).catch(err => {
-      //   console.error('Navigation error:', err);
-      // });
-
-      this.navigateToPathway(event);
-    }
-
-  }
-
-  private eventExpand(event: Event) {
-    // Collapse all events when selecting any tlps
-    if (event.schemaClass === 'TopLevelPathway') {
-      this.eventService.setBreadcrumbs([]);
-      this.treeControl.collapseAll();
-    }
-    if (!this.treeControl.isExpanded(event)) {
-      this.treeControl.expand(event);
-      this.loadChildEvents(event);
-    }
-    this.collapseSiblingEvent(event);
-  }
-
-  private eventCollapse(event: Event) {
+  private toggleEventExpansion(event: Event, expand: boolean) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
       this.eventService.setBreadcrumbs([]);
       this.treeControl.collapseAll();
     }
 
-    if (this.treeControl.isExpanded(event)) {
-      this.treeControl.collapse(event);
-      this.treeControl.collapseDescendants(event);
-      event.isSelected = false;
+    if (expand) {
+      if (!this.treeControl.isExpanded(event)) {
+        this.treeControl.expand(event);
+        this.loadChildEvents(event);
+      }
+    } else {
+      if (this.treeControl.isExpanded(event)) {
+        this.treeControl.collapse(event);
+        this.treeControl.collapseDescendants(event);
+        event.isSelected = false;
+      }
     }
+
     this.collapseSiblingEvent(event);
   }
 
@@ -365,32 +330,32 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  private setDiagramId(selectedEvent: Event): void {
+  private setDiagramId(event: Event): void {
     // Pathway
-    if (this.eventHasChild(selectedEvent) && selectedEvent.hasDiagram) {
-      this.diagramId = selectedEvent.stId;
+    if (this.eventHasChild(event) && event.hasDiagram) {
+      this.diagramId = event.stId;
     } else {
       // Subpathway and reaction
-      const parents = [...selectedEvent.parents].reverse();
-      const parent = parents.find(p => p.hasDiagram);
-      if (parent) {
-        this.diagramId = parent.stId;
-      }
+      const parentWithDiagram = this.findParentWithDiagram(event);
+      this.diagramId = parentWithDiagram!.stId;
     }
+  }
+
+  private findParentWithDiagram(event: Event): Event | undefined {
+    const parents = [...event.parents].reverse();
+    return parents.find(p => p.hasDiagram);
   }
 
 
   private navigateToPathway(event: Event): void {
-
     const selectedEventId = this.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
-
     this.router.navigate(['PathwayBrowser', this.diagramId], {
       queryParamsHandling: "preserve" // Keep existing query params
     }).then(() => {
       this.state.set('select', selectedEventId);
       this.eventService.setCurrentEvent(event);
     }).catch(err => {
-      console.error('Navigation error:', err);
+      throw new Error('Navigation error:', err);
     });
   }
 
@@ -516,4 +481,54 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     labelSpan.classList.remove('add-overflowX');
     el.classList.remove('no-transition');
   }
+
+
+  private flattenTree(data: Event[]): Event[] {
+    const flatTreeData: Event[] = [];
+
+    const flatten = (nodes: Event[]) => {
+      nodes.forEach(node => {
+        flatTreeData.push(node);
+        if (node.hasEvent) {
+          flatten(node.hasEvent);
+        }
+      });
+    };
+
+    flatten(data);
+    return flatTreeData;
+  }
+
+  private findSelectedEvent(data: Event[], id: string | number): Event | null {
+    for (let event of data) {
+      if (isNumber(id) && event.dbId === id) {
+        return event;
+      }
+      if (isString(id) && event.stId === id) {
+        return event;
+      }
+      if (event.hasEvent) {
+        const found = this.findSelectedEvent(event.hasEvent, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+
+  findEvent(stId: string | number) {
+    const flatData = this.flattenTree(this.treeData$.value);
+
+    if (isString(stId)) {
+      return flatData.find(node => node.stId === stId);
+    }
+    if (isNumber(stId)) {
+      return flatData.find(node => node.dbId === stId);
+    }
+    return null;
+  }
+
+
 }

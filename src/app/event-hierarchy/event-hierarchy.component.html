@@ -117,6 +117,12 @@
                 <span class="body">NFERRED</span>
               </div>
 
+              <div class="tag subpathway" *ngIf="!node.hasDiagram" (mouseover)="onTagHover(node)"
+                   (mouseleave)="onTagHoverLeave(node)">
+                <span class='initial'>S</span>
+                <span class="body">UBPATHWAY</span>
+              </div>
+
             </div>
           </div>
         </div>
