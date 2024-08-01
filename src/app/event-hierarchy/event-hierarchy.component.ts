@@ -223,7 +223,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   onEventSelect(event: Event) {
-    if (this.eventHasChild(event)) {
+    if (this.eventHasChild(event) && event.schemaClass !== 'TopLevelPathway') {
       // Toggle isSelected property if it has children for pathway
       event.isSelected = !event.isSelected;
     } else {
@@ -236,6 +236,27 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.handleDeselection(event)
     }
   }
+
+
+  onBreadcrumbSelect(navEvent: Event) {
+    this.clearAllSelectedEvents(this.treeData$.value);
+    this.selectAllParents(navEvent, this.treeData$.value);
+    navEvent.isSelected = true;
+    // Collapse all nodes except the selected path if it has child events
+    this.treeControl.collapseDescendants(navEvent);
+    // Expand the path to the selected event
+    this.treeControl.expand(navEvent);
+
+    if (navEvent.schemaClass !== 'TopLevelPathway' && navEvent.parents) {
+      this.eventService.setBreadcrumbs([...(navEvent.parents), navEvent]);
+    } else {
+      this.eventService.setBreadcrumbs([])
+    }
+
+    this.setDiagramId(navEvent);
+    this.navigateToPathway(navEvent);
+  }
+
 
   private handleSelection(event: Event) {
     // First click
@@ -262,10 +283,15 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     //pathway and subpathway
     if (this.eventHasChild(event)) {
-      const parent = event.parents[event.parents.length - 1]
-      const parentWithDiagram = this.findParentWithDiagram(event);
-      this.diagramId = parentWithDiagram!.stId;
-      this.navigateToPathway(parent);
+      if (event.schemaClass !== 'TopLevelPathway') {
+        const parent = event.parents[event.parents.length - 1]
+        const parentWithDiagram = this.findParentWithDiagram(event);
+        this.diagramId = parentWithDiagram!.stId;
+        this.navigateToPathway(parent);
+      } else {
+        this.diagramId = event.stId;
+        this.navigateToPathway(event);
+      }
     }
   }
 

@@ -1,18 +1,25 @@
 <div id="hierarchy-container">
-  <div id="breadcrumb-container" *ngIf="this.diagramId">
-    <div>
+  <div id="breadcrumb-container" *ngIf="this.breadcrumbs.length > 0">
+    <ng-container class="icon-container">
       <mat-icon class='home-icon' svgIcon="home"></mat-icon>
-    </div>
+    </ng-container>
+    <div class="gradient-holder-left"></div>
     <nav class="breadcrumb">
       <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
-        <ng-container *ngIf="!last">
-          <a [routerLink]="['/PathwayBrowser', breadcrumb.stId]"> > {{ breadcrumb.displayName }}</a>
+        <!--        <span class="gutter">></span>-->
+        <ng-container  *ngIf="!last">
+          <a class="breadcrumb-item" [routerLink]="['/PathwayBrowser', breadcrumb.stId]"
+             (click)="onBreadcrumbSelect(breadcrumb)">
+             <span>{{ breadcrumb.displayName }}</span>
+          </a>
         </ng-container>
         <ng-container *ngIf="last">
-          > {{ breadcrumb.displayName }}
+          <!--          <span class="gutter">></span>-->
+          <span class="breadcrumb-item"> {{ breadcrumb.displayName }}</span>
         </ng-container>
       </ng-container>
     </nav>
+    <div class="gradient-holder-right"></div>
   </div>
 
   <div id="events-container">
