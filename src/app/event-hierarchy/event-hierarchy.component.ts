@@ -10,6 +10,7 @@ import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {Router} from "@angular/router";
 import {isNumber, isString} from "lodash";
+import {DiagramComponent} from "../diagram/diagram.component";
 
 
 @Component({
@@ -21,10 +22,10 @@ import {isNumber, isString} from "lodash";
 export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
-  @Input('eventSplit') split!: SplitComponent
+  @Input('eventSplit') split!: SplitComponent;
+  @Input('diagram') diagram!: DiagramComponent;
   @ViewChild('treeControlButton', {read: ElementRef}) treeControlButton!: ElementRef;
   @ViewChild('eventIcon', {read: ElementRef}) eventIcon!: ElementRef;
-  //@ViewChild('displayNameDiv', {read: ElementRef, static: false}) displayNameDiv!: ElementRef;
 
 
   splitSynchronized!: Subscription
@@ -32,7 +33,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   treeDataSubscription!: Subscription;
   currentEventSubscription!: Subscription;
   breadcrumbsSubscription!: Subscription;
-  scrollSubscription!: Subscription;
   windowResizeSubscription!: Subscription;
 
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
@@ -46,7 +46,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   // Get latest selected id from URL
   selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
-      this.selectedIdFromUrl = this.state.get('select')
+      if (this.diagram) {
+        this.diagram.fit = true;
+        this.selectedIdFromUrl = value;
+      }
     }
   )
 
