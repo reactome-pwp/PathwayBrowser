@@ -121,7 +121,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.setCurrentTreeData(this.treeData$.value);
       return;
     }
-    this.eventService.fetchChildEvents(event.stId).subscribe(children => {
+    this.eventService.fetchEnhancedEventData(event.stId).subscribe(children => {
       if (children.hasEvent) {
         event.hasEvent = children.hasEvent.map(child => {
           child.parents = [...(event.parents || []), event];
@@ -183,7 +183,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         mergeMap(currentLevel => {
           let existingEvent = currentLevel.find(e => e.dbId === event.dbId);
           if (existingEvent) {
-            return this.eventService.fetchChildEvents(event.stId).pipe(
+            return this.eventService.fetchEnhancedEventData(event.stId).pipe(
               map(children => {
                 existingEvent!.hasEvent = children.hasEvent?.map(child => {
                   child.parents = [...(existingEvent!.parents || []), existingEvent!];
