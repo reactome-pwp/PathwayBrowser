@@ -41,6 +41,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   private _SCROLL_SPEED = 50; // pixels per second
+  private _ICON_PADDING = 16;
+  private _GRADIENT_WIDTH = 10;
   selectedIdFromUrl = this.state.get('select') || '';
   selectedEvent!: Event;
 
@@ -110,9 +112,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     if (!event.parents || event.parents.length === 0) {
       return false;
     }
-    // Direct parent
-    const parent = event.parents[event.parents.length - 1];
-    return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
+
+    const directParent = event.parents[event.parents.length - 1];
+    return !!directParent.hasEvent && directParent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
   }
 
 
@@ -131,8 +133,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
           return child;
         });
         this.setCurrentTreeData(this.treeData$.value);
-      } else {
-        console.log('No children found'); //todo: delete it
       }
     });
   }
@@ -226,38 +226,36 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   onEventSelect(event: Event) {
-    if (this.eventHasChild(event) && event.schemaClass !== 'TopLevelPathway') {
-      // Toggle isSelected property if it has children for pathway
-      event.isSelected = !event.isSelected;
-    } else {
-      // Select without toggle if it doesn't have children for reaction
-      event.isSelected = true;
-    }
-    if (event.isSelected) {
-      this.handleSelection(event)
-    } else {
-      this.handleDeselection(event)
-    }
+    const isTLP = event.schemaClass === 'TopLevelPathway';
+    const hasChild = this.eventHasChild(event);
+    // Toggle isSelected property if it has children for pathway
+    event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
+
+    this.handleEventSelection(event);
   }
 
+  private handleEventSelection(event: Event) {
+    if (event.isSelected) {
+      this.handleSelection(event);
+    } else {
+      this.handleDeselection(event);
+    }
+  }
 
   onBreadcrumbSelect(navEvent: Event) {
     this.clearAllSelectedEvents(this.treeData$.value);
     this.selectAllParents(navEvent, this.treeData$.value);
     navEvent.isSelected = true;
-    // Collapse all nodes except the selected path if it has child events
+    // Collapse all descendant nodes except the selected path if it has child events
     this.treeControl.collapseDescendants(navEvent);
     // Expand the path to the selected event
     this.treeControl.expand(navEvent);
-
-    if (navEvent.schemaClass !== 'TopLevelPathway' && navEvent.parents) {
-      this.eventService.setBreadcrumbs([...(navEvent.parents), navEvent]);
-    } else {
-      this.eventService.setBreadcrumbs([])
-    }
+    this.updateBreadcrumbs(navEvent);
 
     this.setDiagramId(navEvent);
-    this.navigateToPathway(navEvent);
+    const selectedEventId = this.eventHasChild(navEvent) && navEvent.hasDiagram ? '' : navEvent.stId;
+    this.state.set('select', selectedEventId);
+    this.eventService.setCurrentEvent(navEvent);
   }
 
 
@@ -266,31 +264,25 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.clearAllSelectedEvents(this.treeData$.value);
     this.selectAllParents(event, this.treeData$.value);
     this.toggleEventExpansion(event, true);
-
-    if (event.parents) {
-      this.eventService.setBreadcrumbs([...(event.parents), event]);
-    }
-
+    this.updateBreadcrumbs(event);
     this.setDiagramId(event);
     this.navigateToPathway(event);
   }
+
 
   private handleDeselection(event: Event) {
     // Second click (deselect)
     this.selectAllParents(event, this.treeData$.value);
     this.toggleEventExpansion(event, false);
-
-    if (event.parents) {
-      this.eventService.setBreadcrumbs([...(event.parents)]);
-    }
-
-    //pathway and subpathway
+    // Update breadcrumb based on the last parent in the parents
+    this.updateBreadcrumbs(event.parents?.[event.parents.length - 1]);
+    // pathway and subpathway
     if (this.eventHasChild(event)) {
       if (event.schemaClass !== 'TopLevelPathway') {
-        const parent = event.parents[event.parents.length - 1]
+        const directParent = event.parents[event.parents.length - 1]
         const parentWithDiagram = this.findParentWithDiagram(event);
         this.diagramId = parentWithDiagram!.stId;
-        this.navigateToPathway(parent);
+        this.navigateToPathway(directParent);
       } else {
         this.diagramId = event.stId;
         this.navigateToPathway(event);
@@ -301,7 +293,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private toggleEventExpansion(event: Event, expand: boolean) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
-      this.eventService.setBreadcrumbs([]);
+     this.updateBreadcrumbs(event);
       this.treeControl.collapseAll();
     }
 
@@ -339,10 +331,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
-      if (selectedEvent.parents) {
-        const parentIds = selectedEvent.parents.map(parent => parent.stId);
-        event.isSelected = parentIds.includes(event.stId)
-      }
+      event.isSelected = selectedEvent.parents?.some(parent => parent.stId === event.stId) || false;
       if (event.hasEvent) {
         this.selectAllParents(selectedEvent, event.hasEvent);
       }
@@ -357,7 +346,15 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       }
     });
   }
-
+  private updateBreadcrumbs(event: Event) {
+    if (event.schemaClass === 'TopLevelPathway') {
+      // If the event is a 'TopLevelPathway', set breadcrumbs to an empty array
+      this.eventService.setBreadcrumbs([]);
+    } else if (event.parents) {
+      // Set breadcrumbs including the event and its parents
+      this.eventService.setBreadcrumbs([...(event.parents), event]);
+    }
+  }
 
   private setDiagramId(event: Event): void {
     // Pathway
@@ -377,6 +374,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   private navigateToPathway(event: Event): void {
+    // Determine if we should include the selectedEventId in the URL
     const selectedEventId = this.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
     this.router.navigate(['PathwayBrowser', this.diagramId], {
       queryParamsHandling: "preserve" // Keep existing query params
@@ -423,7 +421,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     const left = node.querySelector('.left') as HTMLElement;
     const right = node.querySelector('.right') as HTMLElement;
     const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
-    const rightWidth = hasEvents ? right.offsetWidth : right.offsetWidth + 10; // 10 is the width of the gradient
+    const rightWidth = hasEvents ? right.offsetWidth : right.offsetWidth + this._GRADIENT_WIDTH; // 10 is the width of the gradient
     left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
     return parentWidth - rightWidth;
   }
@@ -454,7 +452,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   private calculateContentWidth(targetElement: HTMLElement, event: Event): number {
-    const iconWidth = this.eventIcon.nativeElement.getBoundingClientRect().width + 16; // width and padding
+    const iconWidth = this.eventIcon.nativeElement.getBoundingClientRect().width + this._ICON_PADDING; // width and padding
     const treeControlButtonWidth = this.treeControlButton.nativeElement.getBoundingClientRect().width;
     const baseWidth = targetElement.offsetWidth + iconWidth;
     return this.eventHasChild(event) ? baseWidth + treeControlButtonWidth : baseWidth;

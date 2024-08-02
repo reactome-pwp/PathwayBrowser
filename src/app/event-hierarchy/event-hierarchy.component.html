@@ -8,7 +8,7 @@
       <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
         <!--        <span class="gutter">></span>-->
         <ng-container  *ngIf="!last">
-          <a class="breadcrumb-item" [routerLink]="['/PathwayBrowser', breadcrumb.stId]"
+          <a class="breadcrumb-item" queryParamsHandling="preserve" [routerLink]="['/PathwayBrowser', this.diagramId]"
              (click)="onBreadcrumbSelect(breadcrumb)">
              <span>{{ breadcrumb.displayName }}</span>
           </a>
