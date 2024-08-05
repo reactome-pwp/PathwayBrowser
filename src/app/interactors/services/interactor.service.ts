@@ -215,7 +215,7 @@ export class InteractorService {
           ...targetNode.data(),
           id: id,
           displayName: displayName.replace(/([/,:;-])/g, "$1\u200b"),
-          html: this.diagramService.getStructureVideoHtml({id, type: interactor.type}, width, height, interactor.acc),
+          html: this.diagramService.getStructureVideoHtml({id, type: interactor.type || "Protein"}, width, height, interactor.acc),
           width: width,
           height: height,
           accURL: interactor.accURL,
