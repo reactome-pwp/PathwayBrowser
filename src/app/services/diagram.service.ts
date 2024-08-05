@@ -236,7 +236,7 @@ export class DiagramService {
           .filter(entry => subpathwayIds.has(entry[1]))) as [number, number][] || [])
 
         const subpathwayIdToEventIds = new Map<number, number[]>(graph.subpathways?.map(subpathway => [subpathway.dbId, subpathway.events]));
-
+        const subpathwayStIdToEventIds = new Map<string, number[]>(graph.subpathways?.map(subpathway => [subpathway.stId, subpathway.events]));
         // create a node id - graph node mapping
         const dbIdToGraphNode = new Map<number, Graph.Node>(graph.nodes.map(node => ([node.dbId, node]) || []))
         const mappingList: [number, Graph.Node][] = graph.nodes.flatMap(node => {
@@ -346,6 +346,8 @@ export class DiagramService {
           if (!item.isFadeOut) {
             replacement = posToNormalEdge.get(pointToStr(item.position))?.id.toString() || normalEdges.find(edge => squaredDist(scale(edge.position), scale(item.position)) < 5 ** 2)?.id.toString();
           }
+          let subpathways = [...subpathwayStIdToEventIds.entries()].flatMap(([subpathwayId, events]) => events.includes(item.reactomeId) ? [subpathwayId] : []);
+
           return ({
             data: {
               id: item.id + '',
@@ -357,6 +359,7 @@ export class DiagramService {
               reactomeId: item.reactomeId,
               reactionId: item.id,
               graph: idToGraphEdges.get(item.reactomeId),
+              subpathways: subpathways,
               replacement, replacedBy
             },
             classes: this.reactionTypeMap.get(item.reactionType),

@@ -35,14 +35,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   fit = true;
 
 
-
   constructor(private diagram: DiagramService,
               public dark: DarkService,
               private interactorsService: InteractorService,
               private state: DiagramStateService,
               private analysis: AnalysisService,
               private router: Router
-              ) {
+  ) {
   }
 
   cy!: cytoscape.Core;
@@ -212,6 +211,16 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       if (typeof token === 'string') {
         if (token.startsWith('R-')) {
           elements = elements.or(`[graph.stId="${token}"]`)
+          // Consider it as a subpathway when there are no elements found and get all reactions
+          if (elements.length === 0) {
+            let allSubpathwaysElements = elements.or('[subpathways]');
+            allSubpathwaysElements.forEach(node => {
+              let subpathwaystIds = node.data('subpathways');
+              if (subpathwaystIds.includes(token)) {
+                elements.merge(node);
+              }
+            });
+          }
         } else {
           const matchArray = token.match(this.classRegex);
           if (matchArray) {
@@ -508,6 +517,12 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   private _ignore = false;
 
+  avoidSideEffect(m: () => any) {
+    this._ignore = true;
+    m();
+    this._ignore = false;
+  }
+
   @Output()
   public reactomeEvents$: Observable<ReactomeEvent> = this._reactomeEvents$.asObservable().pipe(
     distinctUntilChanged((prev, current) => prev.type === current.type && prev.detail.reactomeId === current.detail.reactomeId),
@@ -516,10 +531,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     share()
   );
 
-  flagging = this.state.onChange.flag$.subscribe((value) => this.cys.forEach(cy => this.flag(value, cy)))
-  selecting = this.state.onChange.select$.subscribe((value) => this.cys.forEach(cy => this.select(value, cy)))
+  flagging = this.state.onChange.flag$.subscribe((value) => this.avoidSideEffect(() => this.cys.forEach(cy => this.flag(value, cy))));
+  selecting = this.state.onChange.select$.subscribe((value) => this.avoidSideEffect(() => this.cys.forEach(cy => this.select(value, cy))));
   //interactoring = this.state.onChange.overlay$.subscribe((value) => this.interactorsComponent?.getInteractors(value));
-  analysing = this.state.onChange.analysis$.subscribe((value) => this.loadAnalysis(value));
+  analysing = this.state.onChange.analysis$.subscribe((value) => this.avoidSideEffect(() => this.loadAnalysis(value)));
 
 
   // stateToDiagramSub = this.state.state$.subscribe(() => this.stateToDiagram());
