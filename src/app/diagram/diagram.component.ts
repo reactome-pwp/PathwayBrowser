@@ -120,7 +120,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
         this.loadCompare(elements, container);
 
-        this.stateToDiagram();
+        this.avoidSideEffect( () => this.stateToDiagram());
       })
   }
 
@@ -214,10 +214,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           // Consider it as a subpathway when there are no elements found and get all reactions
           if (elements.length === 0) {
             let allSubpathwaysElements = elements.or('[subpathways]');
-            allSubpathwaysElements.forEach(node => {
-              let subpathwaystIds = node.data('subpathways');
-              if (subpathwaystIds.includes(token)) {
-                elements.merge(node);
+            allSubpathwaysElements.forEach(ele => {
+              let pathwayList = ele.data('subpathways');
+              if (pathwayList.includes(token)) {
+                elements.merge(ele);
               }
             });
           }
