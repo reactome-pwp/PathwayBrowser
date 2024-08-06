@@ -496,9 +496,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     this.compareDragging = false;
   }
 
-  dragMove($event: MouseEvent, compareContainer: HTMLDivElement) {
+  dragMove($event: MouseEvent, compareContainer: HTMLDivElement, container: HTMLDivElement) {
     if (!this.compareDragging) return;
-    compareContainer.style['left'] = $event.x + 'px';
+    compareContainer.style['left'] = $event.x - container.getBoundingClientRect().x + 'px';
     this.cyCompare.resize()
     this.syncViewports(this.cy!, this.cytoscapeContainer!.nativeElement, this.cyCompare!, this.compareContainer!.nativeElement);
   }
