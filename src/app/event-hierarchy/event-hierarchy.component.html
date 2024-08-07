@@ -26,7 +26,7 @@
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node"
-                     [ngClass]="hasParentSibling(node)? 'has-sibling' : 'has-no-sibling '">
+                     [ngClass]="hasRootSiblingForLeafNode(node)? 'has-sibling' : 'has-no-sibling '">
         <!-- use a disabled button to provide padding for table leaf -->
         <!--    <button mat-icon-button disabled class="button-size"></button>-->
         <div class="left">
@@ -36,7 +36,7 @@
                       [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
                       [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
             <div class="name-container">
-              <div class="font name" #displayNameDiv
+              <div class="font name"
                    (mouseover)="onNameHover($event ,node)"
                    (mouseleave)="onNameHoverLeave($event, node)"
                    (wheel)="onScroll($event, node)">

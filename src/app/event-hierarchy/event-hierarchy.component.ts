@@ -108,13 +108,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return this.hasChild(0, event);
   }
 
-  hasParentSibling(event: Event): boolean {
-    if (!event.parents || event.parents.length === 0) {
+  // if a leaf node has sibling which is a root node
+  hasRootSiblingForLeafNode(event: Event): boolean {
+    if (!event.ancestors || event.ancestors.length === 0) {
       return false;
     }
-
-    const directParent = event.parents[event.parents.length - 1];
-    return !!directParent.hasEvent && directParent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
+    const parent = event.parent;
+    return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
   }
 
 
@@ -129,7 +129,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.fetchEnhancedEventData(event.stId).subscribe(children => {
       if (children.hasEvent) {
         event.hasEvent = children.hasEvent.map(child => {
-          child.parents = [...(event.parents || []), event];
+          child.ancestors = [...(event.ancestors || []), event];
+          child.parent = event;
           return child;
         });
         this.setCurrentTreeData(this.treeData$.value);
@@ -184,28 +185,29 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       const isLast = index === array.length - 1;
       return acc.pipe(
         mergeMap(currentLevel => {
-          let existingEvent = currentLevel.find(e => e.dbId === event.dbId);
+          const existingEvent = currentLevel.find(e => e.dbId === event.dbId);
           if (existingEvent) {
             return this.eventService.fetchEnhancedEventData(event.stId).pipe(
               map(children => {
-                existingEvent!.hasEvent = children.hasEvent?.map(child => {
-                  child.parents = [...(existingEvent!.parents || []), existingEvent!];
-                  this.eventService.setBreadcrumbs([...child.parents])
+                existingEvent.hasEvent = children.hasEvent?.map(child => {
+                  child.ancestors = [...(existingEvent.ancestors || []), existingEvent];
+                  child.parent = existingEvent;
+                  this.eventService.setBreadcrumbs([...child.ancestors])
                   return child;
                 });
                 // Highlight selected event
                 if (this.selectedIdFromUrl) {
-                  existingEvent!.hasEvent?.forEach(event => {
-                    if (this.selectedIdFromUrl === event.stId) {
-                      event.isSelected = true;
-                      this.eventService.setBreadcrumbs([...(event!.parents), event]) //todo: when not loading from URL
+                  existingEvent.hasEvent?.forEach(child => {
+                    if (this.selectedIdFromUrl === child.stId) {
+                      child.isSelected = true;
+                      this.eventService.setBreadcrumbs([...(child!.ancestors), child]) //todo: when not loading from URL
                     }
                   })
                 }
                 // Highlight selected event's parent when loading from URL
-                existingEvent!.isSelected = true;
+                existingEvent.isSelected = true;
                 if (isLast) {
-                  this.eventService.setCurrentEvent(existingEvent!);
+                  this.eventService.setCurrentEvent(existingEvent);
                 }
 
                 return existingEvent!.hasEvent!;
@@ -275,14 +277,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.selectAllParents(event, this.treeData$.value);
     this.toggleEventExpansion(event, false);
     // Update breadcrumb based on the last parent in the parents
-    this.updateBreadcrumbs(event.parents?.[event.parents.length - 1]);
+    this.updateBreadcrumbs(event.ancestors?.[event.ancestors.length - 1]);
     // pathway and subpathway
     if (this.eventHasChild(event)) {
       if (event.schemaClass !== 'TopLevelPathway') {
-        const directParent = event.parents[event.parents.length - 1]
+        const eventParent = event.parent;
         const parentWithDiagram = this.findParentWithDiagram(event);
         this.diagramId = parentWithDiagram!.stId;
-        this.navigateToPathway(directParent);
+        this.navigateToPathway(eventParent);
       } else {
         this.diagramId = event.stId;
         this.navigateToPathway(event);
@@ -315,11 +317,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   private collapseSiblingEvent(event: Event) {
-    if (event.parents) {
+    if (event.ancestors) {
       // Get 1st parent
-      let directParent = event.parents[event.parents.length - 1];
+      let eventParent = event.parent;
       // Loop through the parent's children to collapse any expanded siblings
-      directParent.hasEvent?.forEach(childEvent => {
+      eventParent.hasEvent?.forEach(childEvent => {
         if (childEvent !== event && this.treeControl.isExpanded(childEvent)) {
           this.treeControl.collapse(childEvent);
           this.treeControl.collapseDescendants(childEvent);
@@ -331,7 +333,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private selectAllParents(selectedEvent: Event, events: Event[]) {
     events.forEach(event => {
-      event.isSelected = selectedEvent.parents?.some(parent => parent.stId === event.stId) || false;
+      event.isSelected = selectedEvent.ancestors?.some(parent => parent.stId === event.stId) || false;
       if (event.hasEvent) {
         this.selectAllParents(selectedEvent, event.hasEvent);
       }
@@ -350,9 +352,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     if (event.schemaClass === 'TopLevelPathway') {
       // If the event is a 'TopLevelPathway', set breadcrumbs to an empty array
       this.eventService.setBreadcrumbs([]);
-    } else if (event.parents) {
+    } else if (event.ancestors) {
       // Set breadcrumbs including the event and its parents
-      this.eventService.setBreadcrumbs([...(event.parents), event]);
+      this.eventService.setBreadcrumbs([...(event.ancestors), event]);
     }
   }
 
@@ -368,7 +370,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   private findParentWithDiagram(event: Event): Event | undefined {
-    const parents = [...event.parents].reverse();
+    const parents = [...event.ancestors].reverse();
     return parents.find(p => p.hasDiagram);
   }
 

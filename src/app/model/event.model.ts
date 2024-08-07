@@ -14,7 +14,8 @@ export interface Event extends DatabaseObject {
   isInferred?: boolean;
   releaseStatus: string;
   isInDisease: boolean;
-  parents: Event[];
+  ancestors: Event[];
+  parent: Event;
   test: Event;
   regulatedBy?: Regulation[];
 }
