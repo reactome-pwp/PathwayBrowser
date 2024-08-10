@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {map, Observable, Subject} from "rxjs";
+import {BehaviorSubject, map, Observable, Subject} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 
 @Injectable({
@@ -21,6 +21,12 @@ export class EventService {
 
   private _breadcrumbsSubject = new Subject<Event[]>();
   breadcrumbs$ = this._breadcrumbsSubject.asObservable();
+
+
+  private _subpathwaysColors = new BehaviorSubject<Map<number, string>>(new Map<number, string>());
+  subpathwaysColors$ = this._subpathwaysColors.asObservable();
+
+
 
   constructor(private http: HttpClient) {
   }

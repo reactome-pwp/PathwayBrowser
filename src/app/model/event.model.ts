@@ -18,6 +18,7 @@ export interface Event extends DatabaseObject {
   parent: Event;
   test: Event;
   regulatedBy?: Regulation[];
+  color?: string;
 }
 
 export interface Regulation extends Event {

@@ -16,6 +16,7 @@ import {isDefined} from "../services/utils";
 import {Analysis} from "../model/analysis.model";
 import {Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
+import {EventService} from "../services/event.service";
 
 
 @UntilDestroy({checkProperties: true})
@@ -40,6 +41,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               private interactorsService: InteractorService,
               private state: DiagramStateService,
               private analysis: AnalysisService,
+              private event: EventService,
               private router: Router
   ) {
   }
@@ -117,6 +119,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
         this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([e.target.data('graph.stId')], {queryParamsHandling: "preserve"}))
+
+        this.event.setSubpathwaysColors(new Map(
+          this.cy?.nodes('.Shadow').map(node => [node.data('reactomeId'), node.data('color')])
+        ));
 
         this.loadCompare(elements, container);
 

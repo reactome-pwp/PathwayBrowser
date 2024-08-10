@@ -125,6 +125,7 @@
 #events-container {
   overflow-y: scroll;
   height: 100%;
+  overflow-x: hidden;
 }
 
 
@@ -330,17 +331,16 @@ ul {
   .subpathway {
     --diameter: 16px;
     --padding: 4px;
-    background: pink;
     width: calc(var(--diameter) - 2 * var(--padding));
     height: var(--diameter);
     max-height: var(--diameter);
     border-radius: var(--diameter);
-    line-height: normal;
-    color: var(--on-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    //line-height: normal;
+    //display: flex;
+    //justify-content: center;
+    //align-items: center;
     padding: 0 var(--padding);
+    opacity: 0.4;
   }
 }
 

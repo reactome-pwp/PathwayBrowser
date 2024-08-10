@@ -2,7 +2,18 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from 
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {BehaviorSubject, forkJoin, fromEvent, map, mergeMap, of, Subscription, switchMap, tap} from "rxjs";
+import {
+  BehaviorSubject,
+  combineLatest, filter,
+  forkJoin,
+  fromEvent,
+  map,
+  mergeMap,
+  of,
+  Subscription,
+  switchMap,
+  tap
+} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
@@ -34,6 +45,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   currentEventSubscription!: Subscription;
   breadcrumbsSubscription!: Subscription;
   windowResizeSubscription!: Subscription;
+  subpathwayColorsSubscription!: Subscription;
 
   treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
@@ -45,6 +57,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private _GRADIENT_WIDTH = 10;
   selectedIdFromUrl = this.state.get('select') || '';
   selectedEvent!: Event;
+  subpathwayColors: Map<number, string> = new Map<number, string>();
+
+
 
   // Get latest selected id from URL
   selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
@@ -92,6 +107,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => {
       this.adjustWidths();
     });
+
+    this.subpathwayColorsSubscription = this.eventService.subpathwaysColors$.subscribe(colors =>{
+      this.subpathwayColors = colors;
+    })
   }
 
   getTopLevelPathways(taxId: string): void {
@@ -133,9 +152,34 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
           child.parent = event;
           return child;
         });
+
         this.setCurrentTreeData(this.treeData$.value);
+
+        if (event.stId === this.diagramId) {
+          this.setSubpathwayColorsWhenReady(event);
+        }
       }
     });
+  }
+
+  setSubpathwayColorsWhenReady(event: Event) {
+    combineLatest([this.treeData$, this.eventService.subpathwaysColors$]).pipe(
+      filter(([events, colors]) => !!events && !!colors),
+      untilDestroyed(this)
+    ).subscribe(([events, colors]) => {
+      this.subpathwayColors = colors;
+      this.setSubpathwayColors(event);
+    });
+  }
+
+  setSubpathwayColors(event: Event) {
+    if (this.subpathwayColors && event.hasEvent) {
+      event.hasEvent.forEach(e => {
+        if (e.schemaClass === 'Pathway' && !e.hasDiagram) {
+          e.color = this.subpathwayColors.get(e.dbId);
+        }
+      })
+    }
   }
 
   buildTree(stId: string | number) {
@@ -164,6 +208,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.splitSynchronized.unsubscribe();
     this.breadcrumbsSubscription.unsubscribe();
     this.windowResizeSubscription.unsubscribe();
+    this.subpathwayColorsSubscription.unsubscribe();
     clearTimeout(this.scrollTimeout);
   }
 
@@ -210,7 +255,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                   this.eventService.setCurrentEvent(existingEvent);
                 }
 
-                return existingEvent!.hasEvent!;
+                if (existingEvent.stId === this.diagramId) {
+                  this.setSubpathwayColors(existingEvent!);
+                }
+
+                return existingEvent.hasEvent!;
               })
             );
           } else {

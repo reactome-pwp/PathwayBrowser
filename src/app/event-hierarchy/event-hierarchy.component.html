@@ -124,11 +124,9 @@
                 <span class='initial'>I</span>
                 <span class="body">NFERRED</span>
               </div>
-
-              <div class="tag subpathway" *ngIf="!node.hasDiagram" (mouseover)="onTagHover(node)"
+              <!--Only provide this subpathway tag for the first layer, ignore the nested subpathways-->
+              <div class="subpathway" *ngIf="!node.hasDiagram && node.parent.stId === this.diagramId" [style.background]="node.color" (mouseover)="onTagHover(node)"
                    (mouseleave)="onTagHoverLeave(node)">
-                <span class='initial'>S</span>
-                <span class="body">UBPATHWAY</span>
               </div>
 
             </div>
