@@ -280,8 +280,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     const isTLP = event.schemaClass === 'TopLevelPathway';
     const hasChild = this.eventHasChild(event);
     // Toggle isSelected property if it has children for pathway
-    event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
-
+    //event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
+    event.isSelected = !event.isSelected;
+    console.log('event ' , event.isSelected)
     this.handleEventSelection(event);
   }
 
@@ -325,26 +326,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     // Second click (deselect)
     this.selectAllParents(event, this.treeData$.value);
     this.toggleEventExpansion(event, false);
-    // Update breadcrumb based on the last parent in the parents
-    this.updateBreadcrumbs(event.ancestors?.[event.ancestors.length - 1]);
-    // pathway and subpathway
-    if (this.eventHasChild(event)) {
-      if (event.schemaClass !== 'TopLevelPathway') {
-        const eventParent = event.parent;
-        const parentWithDiagram = this.findParentWithDiagram(event);
-        this.diagramId = parentWithDiagram!.stId;
-        this.navigateToPathway(eventParent);
-      } else {
-        this.diagramId = event.stId;
-        this.navigateToPathway(event);
-      }
-    }
+    this.updateBreadcrumbsForEventDeselection(event);
+    this.handlePathwayNavigationOnDeselection(event);
   }
 
   private toggleEventExpansion(event: Event, expand: boolean) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
-     this.updateBreadcrumbs(event);
       this.treeControl.collapseAll();
     }
 
@@ -397,13 +385,37 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       }
     });
   }
-  private updateBreadcrumbs(event: Event) {
+  private updateBreadcrumbs(event: Event  ) {
     if (event.schemaClass === 'TopLevelPathway') {
       // If the event is a 'TopLevelPathway', set breadcrumbs to an empty array
-      this.eventService.setBreadcrumbs([]);
+      this.eventService.setBreadcrumbs([event]);
     } else if (event.ancestors) {
       // Set breadcrumbs including the event and its parents
       this.eventService.setBreadcrumbs([...(event.ancestors), event]);
+    }
+  }
+
+  private updateBreadcrumbsForEventDeselection(event: Event) {
+    if (event.schemaClass === "TopLevelPathway") {
+      this.eventService.setBreadcrumbs([]);
+    } else if (event.ancestors?.length) {
+      // Update breadcrumb based on the last parent in the parents
+      this.updateBreadcrumbs(event.ancestors[event.ancestors.length - 1]);
+    }
+  }
+
+  private handlePathwayNavigationOnDeselection(event: Event) {
+    // pathway and subpathway
+    if (this.eventHasChild(event)) {
+      if (event.schemaClass !== 'TopLevelPathway') {
+        const eventParent = event.parent;
+        const parentWithDiagram = this.getPathwayWithDiagram(event);
+        this.diagramId = parentWithDiagram!.stId;
+        this.navigateToPathway(eventParent);
+      } else {
+        this.diagramId = event.stId;
+        this.navigateToPathway(event);
+      }
     }
   }
 
@@ -413,12 +425,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.diagramId = event.stId;
     } else {
       // Subpathway and reaction
-      const parentWithDiagram = this.findParentWithDiagram(event);
+      const parentWithDiagram = this.getPathwayWithDiagram(event);
       this.diagramId = parentWithDiagram!.stId;
     }
   }
 
-  private findParentWithDiagram(event: Event): Event | undefined {
+  private getPathwayWithDiagram(event: Event): Event | undefined {
     const parents = [...event.ancestors].reverse();
     return parents.find(p => p.hasDiagram);
   }
