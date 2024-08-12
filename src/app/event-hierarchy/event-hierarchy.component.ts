@@ -145,53 +145,54 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.setCurrentTreeData(this.treeData$.value);
       return;
     }
-    this.eventService.fetchEnhancedEventData(event.stId).subscribe(children => {
-      if (children.hasEvent) {
-        event.hasEvent = children.hasEvent.map(child => {
-          child.ancestors = [...(event.ancestors || []), event];
-          child.parent = event;
-          return child;
-        });
-
-        this.setCurrentTreeData(this.treeData$.value);
-
-        if (event.stId === this.diagramId) {
-          this.setSubpathwayColorsWhenReady(event);
+    this.eventService.fetchEnhancedEventData(event.stId).pipe(
+      switchMap(children => {
+        if (children.hasEvent) {
+          event.hasEvent = children.hasEvent.map(child => {
+            child.ancestors = [...(event.ancestors || []), event];
+            child.parent = event;
+            return child;
+          });
+          this.setCurrentTreeData(this.treeData$.value);
+          // Return the observable for subpathway colors
+          return this.eventService.subpathwaysColors$.pipe(
+            // If there's no color data, return an empty map
+            map(colors => colors || new Map<number, string>())
+          );
         }
-      }
-    });
-  }
-
-  setSubpathwayColorsWhenReady(event: Event) {
-    combineLatest([this.treeData$, this.eventService.subpathwaysColors$]).pipe(
-      filter(([events, colors]) => !!events && !!colors),
+        return EMPTY;
+      }),
+      tap((colors) => {
+        this.subpathwayColors = colors;
+        this.setSubpathwayColors(event, colors);
+      }),
       untilDestroyed(this)
-    ).subscribe(([events, colors]) => {
-      this.subpathwayColors = colors;
-      this.setSubpathwayColors(event);
-    });
+    ).subscribe();
   }
 
-  setSubpathwayColors(event: Event) {
-    if (this.subpathwayColors && event.hasEvent) {
+
+  setSubpathwayColors(event: Event, colors: Map<number, string>) {
+    if (colors && event.hasEvent) {
       event.hasEvent.forEach(e => {
         if (e.schemaClass === 'Pathway' && !e.hasDiagram) {
-          e.color = this.subpathwayColors.get(e.dbId);
+          e.color = colors.get(e.dbId);
         }
-      })
+      });
     }
   }
 
   buildTree(stId: string | number) {
-    this.eventService.fetchEventAncestors(stId)
-      .pipe(
+    this.eventService.fetchEventAncestors(stId).pipe(
         tap(ancestors => {
           this.expandAllAncestors(ancestors);
         }),
         switchMap(ancestors => {
-          return this.buildNestedTree(this.treeData$.value, ancestors)
+          return combineLatest([
+            this.eventService.subpathwaysColors$,
+            this.buildNestedTree(this.treeData$.value, ancestors)
+          ]);
         })
-      ).subscribe((tree) => {
+      ).subscribe(([colors, tree]) => {
       this.setCurrentTreeData(tree);
       this.adjustWidths();
     })
@@ -256,7 +257,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                 }
 
                 if (existingEvent.stId === this.diagramId) {
-                  this.setSubpathwayColors(existingEvent!);
+                  this.setSubpathwayColors(existingEvent, this.subpathwayColors);
                 }
 
                 return existingEvent.hasEvent!;

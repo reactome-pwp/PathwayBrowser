@@ -39,6 +39,11 @@ export class EventService {
     this._breadcrumbsSubject.next(events);
   }
 
+  setSubpathwaysColors(colorMap: Map<number, string>) {
+    this._subpathwaysColors.next(colorMap);
+  }
+
+
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
     let url = this._TOP_LEVEL_PATHWAYS + taxId;
     return this.http.get<Event[]>(url);
