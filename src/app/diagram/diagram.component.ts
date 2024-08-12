@@ -33,7 +33,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @Input('interactor') interactorsComponent?: InteractorsComponent;
 
   comparing: boolean = false;
-  fit = true;
+
 
 
   constructor(private diagram: DiagramService,
@@ -258,9 +258,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
       selected = selected.add(selected.connectedNodes());
     }
 
-    if (this.fit) {
-      cy.fit(selected, 100)
-      this.fit = false;
+    if (this._ignore) {
+      cy.animate({
+        fit: {
+          eles: selected,
+          padding: 100
+        },
+        duration: 1000,
+        easing: "ease-in-out"
+      })
     }
 
     return selected;

@@ -64,7 +64,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   // Get latest selected id from URL
   selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
       if (this.diagram) {
-        this.diagram.fit = true;
         this.selectedIdFromUrl = value;
       }
     }
