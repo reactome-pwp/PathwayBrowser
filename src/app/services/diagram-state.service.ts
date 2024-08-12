@@ -1,7 +1,9 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject, distinctUntilChanged, map, Observable, tap} from "rxjs";
-import {isArray, isBoolean} from "lodash";
+import {BehaviorSubject, distinctUntilChanged, firstValueFrom, map, Observable, tap} from "rxjs";
+import {isArray, isBoolean, isNumber} from "lodash";
+import {HttpClient} from "@angular/common/http";
+import {environment} from "../../environments/environment";
 
 
 export interface UrlParam<T> {
@@ -11,8 +13,8 @@ export interface UrlParam<T> {
 
 export type State = {
   [token: string]: UrlParam<any>
-  select: UrlParam<(string | number)>
-  flag: UrlParam<(string | number)[]>
+  select: UrlParam<string>
+  flag: UrlParam<string[]>
   flagInteractors: UrlParam<boolean>
   overlay: UrlParam<string | null>
   analysis: UrlParam<string | null>
@@ -51,26 +53,42 @@ export class DiagramStateService {
       return properties;
     }, {} as ObservableState);
 
-  constructor(route: ActivatedRoute, private router: Router) {
-    route.queryParamMap.subscribe(params => {
+  constructor(route: ActivatedRoute, private router: Router, private http: HttpClient) {
+    route.queryParamMap.subscribe(async params => {
       for (const mainToken in this.state) {
         const param = this.state[mainToken];
         const tokens: string[] = [mainToken, ...param.otherTokens || []];
         const token = tokens.find(token => params.has(token));
         if (token) {
           const formerValue = param.value;
+          let value = params.get(token)!;
           if (isArray(param.value)) {
-            const rawValue = params.get(token)!;
-            param.value = rawValue.split(',').map(v => v.charAt(0).match(/d/) ? parseInt(v) : v);
+            const rawValue = value!;
+            param.value = rawValue.split(',').map(v => v.charAt(0).match(/\d/) ? parseInt(v) : v);
+            const hasDbIds = param.value.some(isNumber);
+            if (hasDbIds) {
+              param.value = await Promise.all(param.value.map((v: string | number) => this.ensureStId(v)));
+              this.set(mainToken, param.value);
+            }
           } else if (isBoolean(param.value)) {
-            param.value = params.get(token) === 'true';
+            param.value = value === 'true';
+          } else if (value.charAt(0).match(/\d/)) {
+            this.set(mainToken, await this.dbIdToStId(parseInt(value)))
           } else {
-            param.value = params.get(token)!;
+            param.value = value
           }
         }
       }
       if (this.propagate) this._state$.next(this.state);
     })
+  }
+
+  async ensureStId(id: string | number): Promise<string> {
+    return isNumber(id) ? this.dbIdToStId(id) : id;
+  }
+
+  async dbIdToStId(dbId: number): Promise<string> {
+    return firstValueFrom(this.http.get(`${environment.host}/ContentService/data/query/${dbId}/stId`, {responseType: "text"}))
   }
 
   get<T extends keyof State>(token: T): State[T]['value'] {
