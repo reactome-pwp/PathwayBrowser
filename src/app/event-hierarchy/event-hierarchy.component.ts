@@ -4,11 +4,12 @@ import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
 import {
   BehaviorSubject,
-  combineLatest, filter,
+  combineLatest,
+  EMPTY,
   forkJoin,
   fromEvent,
   map,
-  mergeMap,
+  mergeMap, Observable,
   of,
   Subscription,
   switchMap,
@@ -34,7 +35,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   @Input('id') diagramId: string = '';
   @Input('eventSplit') split!: SplitComponent;
-  @Input('diagram') diagram!: DiagramComponent;
   @ViewChild('treeControlButton', {read: ElementRef}) treeControlButton!: ElementRef;
   @ViewChild('eventIcon', {read: ElementRef}) eventIcon!: ElementRef;
 
@@ -43,6 +43,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   speciesSubscription!: Subscription;
   treeDataSubscription!: Subscription;
   currentEventSubscription!: Subscription;
+  currentObjSubscription!: Subscription;
   breadcrumbsSubscription!: Subscription;
   windowResizeSubscription!: Subscription;
   subpathwayColorsSubscription!: Subscription;
@@ -57,19 +58,21 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private _GRADIENT_WIDTH = 10;
   selectedIdFromUrl = this.state.get('select') || '';
   selectedEvent!: Event;
+  selectedObj!: Event;
   subpathwayColors: Map<number, string> = new Map<number, string>();
 
 
 
   // Get latest selected id from URL
-  selecting = this.state.onChange.select$.pipe(untilDestroyed(this)).subscribe((value) => {
-      if (this.diagram) {
-        this.selectedIdFromUrl = value;
-      }
-    }
-  )
+  selecting = this.state.onChange.select$.pipe(
+    untilDestroyed(this),
+    tap(value => this.selectedIdFromUrl = value), // Set selectedIdFromUrl
+    switchMap(value => this.eventService.fetchEnhancedEventData(value)), // Switch to the new observable
+    tap(data => this.eventService.setCurrentObj(data))
+  ).subscribe();
 
-  constructor(private eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
+
+  constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
 
   setCurrentTreeData(events: Event[]) {
@@ -79,7 +82,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       const taxId = species ? species.taxId : '9606';
-      this.getTopLevelPathways(taxId);
+      // this.getTopLevelPathways(taxId);
+      this.handleSpeciesChange(taxId);
     });
 
     this.treeDataSubscription = this.treeData$.subscribe(events => {
@@ -94,6 +98,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.selectedEvent = event;
     });
 
+    this.currentObjSubscription = this.eventService.selectedObj$.subscribe(event => {
+      this.selectedObj = event;
+    });
 
     this.breadcrumbsSubscription = this.eventService.breadcrumbs$.subscribe(events => {
       this.breadcrumbs = events;
@@ -107,23 +114,28 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.adjustWidths();
     });
 
-    this.subpathwayColorsSubscription = this.eventService.subpathwaysColors$.subscribe(colors =>{
+    this.subpathwayColorsSubscription = this.eventService.subpathwaysColors$.subscribe(colors => {
       this.subpathwayColors = colors;
     })
   }
 
-  getTopLevelPathways(taxId: string): void {
-    this.eventService.fetchTlpBySpecies(taxId).subscribe(results => {
-      this.setCurrentTreeData(results);
-      const id = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
-      this.buildTree(id);
+  private handleSpeciesChange(taxId: string): void {
+    this.getTopLevelPathways(taxId).pipe(
+      switchMap(() => this.eventService.getSelectedTreeEvent(this.selectedIdFromUrl, this.diagramId))
+    ).subscribe(event => {
+      this.buildTree(event);
     });
   }
 
-  hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
+  private getTopLevelPathways(taxId: string): Observable<Event[]> {
+    return this.eventService.fetchTlpBySpecies(taxId).pipe(
+      tap(results => this.setCurrentTreeData(results))
+    );
+  }
 
-  eventHasChild(event: Event): boolean {
-    return this.hasChild(0, event);
+
+  private hasValidAncestors(): boolean {
+    return !!(this.ancestors && this.ancestors.length);
   }
 
   // if a leaf node has sibling which is a root node
@@ -132,9 +144,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       return false;
     }
     const parent = event.parent;
-    return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventHasChild(sibling));
+    return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventService.eventHasChild(sibling));
   }
-
 
   loadChildEvents(event: Event) {
     event.isSelected = this.treeControl.isExpanded(event);
@@ -162,7 +173,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         return EMPTY;
       }),
       tap((colors) => {
-        this.subpathwayColors = colors;
         this.setSubpathwayColors(event, colors);
       }),
       untilDestroyed(this)
@@ -180,18 +190,18 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  buildTree(stId: string | number) {
-    this.eventService.fetchEventAncestors(stId).pipe(
-        tap(ancestors => {
-          this.expandAllAncestors(ancestors);
-        }),
-        switchMap(ancestors => {
-          return combineLatest([
-            this.eventService.subpathwaysColors$,
-            this.buildNestedTree(this.treeData$.value, ancestors)
-          ]);
-        })
-      ).subscribe(([colors, tree]) => {
+  buildTree(event: Event) {
+    this.eventService.fetchEventAncestors(event.stId).pipe(
+      tap(ancestors => {
+        this.expandAllAncestors(ancestors);
+      }),
+      switchMap(ancestors => {
+        return combineLatest([
+          this.eventService.subpathwaysColors$,
+          this.buildNestedTree(this.treeData$.value, ancestors)
+        ]);
+      })
+    ).subscribe(([colors, tree]) => {
       this.setCurrentTreeData(tree);
       this.adjustWidths();
     })
@@ -251,9 +261,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
                 }
                 // Highlight selected event's parent when loading from URL
                 existingEvent.isSelected = true;
-                if (isLast) {
-                  this.eventService.setCurrentEvent(existingEvent);
-                }
 
                 if (existingEvent.stId === this.diagramId) {
                   this.setSubpathwayColors(existingEvent, this.subpathwayColors);
@@ -278,7 +285,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   onEventSelect(event: Event) {
     const isTLP = event.schemaClass === 'TopLevelPathway';
-    const hasChild = this.eventHasChild(event);
+    const hasChild = this.eventService.eventHasChild(event);
     // Toggle isSelected property if it has children for pathway
     //event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
     event.isSelected = !event.isSelected;
@@ -305,9 +312,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.updateBreadcrumbs(navEvent);
 
     this.setDiagramId(navEvent);
-    const selectedEventId = this.eventHasChild(navEvent) && navEvent.hasDiagram ? '' : navEvent.stId;
+    const selectedEventId = this.eventService.eventHasChild(navEvent) && navEvent.hasDiagram ? '' : navEvent.stId;
     this.state.set('select', selectedEventId);
-    this.eventService.setCurrentEvent(navEvent);
+    this.eventService.setCurrentObj(navEvent);
   }
 
 
@@ -385,7 +392,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       }
     });
   }
-  private updateBreadcrumbs(event: Event  ) {
+
+  private updateBreadcrumbs(event: Event) {
     if (event.schemaClass === 'TopLevelPathway') {
       // If the event is a 'TopLevelPathway', set breadcrumbs to an empty array
       this.eventService.setBreadcrumbs([event]);
@@ -406,7 +414,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private handlePathwayNavigationOnDeselection(event: Event) {
     // pathway and subpathway
-    if (this.eventHasChild(event)) {
+    if (this.eventService.eventHasChild(event)) {
       if (event.schemaClass !== 'TopLevelPathway') {
         const eventParent = event.parent;
         const parentWithDiagram = this.getPathwayWithDiagram(event);
@@ -421,7 +429,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private setDiagramId(event: Event): void {
     // Pathway
-    if (this.eventHasChild(event) && event.hasDiagram) {
+    if (this.eventService.eventHasChild(event) && event.hasDiagram) {
       this.diagramId = event.stId;
     } else {
       // Subpathway and reaction
@@ -438,12 +446,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private navigateToPathway(event: Event): void {
     // Determine if we should include the selectedEventId in the URL
-    const selectedEventId = this.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
+    const selectedEventId = this.eventService.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
     this.router.navigate(['PathwayBrowser', this.diagramId], {
       queryParamsHandling: "preserve" // Keep existing query params
     }).then(() => {
       this.state.set('select', selectedEventId);
-      this.eventService.setCurrentEvent(event);
+      this.eventService.setCurrentObj(event);
     }).catch(err => {
       throw new Error('Navigation error:', err);
     });
@@ -475,7 +483,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   getLeftDivElWidth(node: HTMLElement, event: Event) {
-    const hasEvents = this.eventHasChild(event);
+    const hasEvents = this.eventService.eventHasChild(event);
     return this.calculateAndSetWidth(node, hasEvents);
   }
 
@@ -518,7 +526,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     const iconWidth = this.eventIcon.nativeElement.getBoundingClientRect().width + this._ICON_PADDING; // width and padding
     const treeControlButtonWidth = this.treeControlButton.nativeElement.getBoundingClientRect().width;
     const baseWidth = targetElement.offsetWidth + iconWidth;
-    return this.eventHasChild(event) ? baseWidth + treeControlButtonWidth : baseWidth;
+    return this.eventService.eventHasChild(event) ? baseWidth + treeControlButtonWidth : baseWidth;
   }
 
   private setScrollStyles(targetElement: HTMLElement, distanceToScroll: number): void {
@@ -571,54 +579,4 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     labelSpan.classList.remove('add-overflowX');
     el.classList.remove('no-transition');
   }
-
-
-  private flattenTree(data: Event[]): Event[] {
-    const flatTreeData: Event[] = [];
-
-    const flatten = (nodes: Event[]) => {
-      nodes.forEach(node => {
-        flatTreeData.push(node);
-        if (node.hasEvent) {
-          flatten(node.hasEvent);
-        }
-      });
-    };
-
-    flatten(data);
-    return flatTreeData;
-  }
-
-  private findSelectedEvent(data: Event[], id: string | number): Event | null {
-    for (let event of data) {
-      if (isNumber(id) && event.dbId === id) {
-        return event;
-      }
-      if (isString(id) && event.stId === id) {
-        return event;
-      }
-      if (event.hasEvent) {
-        const found = this.findSelectedEvent(event.hasEvent, id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
-  }
-
-
-  findEvent(stId: string | number) {
-    const flatData = this.flattenTree(this.treeData$.value);
-
-    if (isString(stId)) {
-      return flatData.find(node => node.stId === stId);
-    }
-    if (isNumber(stId)) {
-      return flatData.find(node => node.dbId === stId);
-    }
-    return null;
-  }
-
-
 }
