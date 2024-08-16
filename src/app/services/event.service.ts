@@ -7,6 +7,7 @@ import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {Species} from "../model/species.model";
 import {DiagramStateService} from "./diagram-state.service";
 import {isNumber, isString} from "lodash";
+import {NestedTreeControl} from "@angular/cdk/tree";
 
 
 @Injectable({
@@ -61,7 +62,7 @@ export class EventService {
   }
 
 
-  fetchEventAncestors(stId: string | number): Observable<Event[][]> {
+  fetchEventAncestors(stId: string): Observable<Event[][]> {
     let url = `${this._ANCESTORS}${stId}/ancestors`;
     return this.http.get<Event[][]>(url)
   }
@@ -89,38 +90,21 @@ export class EventService {
     )
   }
 
+  getVisibleTreeNodes(treeControl: NestedTreeControl<Event, string>, treeNodes: Event[],): Event[] {
+    const visibleTreeNodes: Event[] = [];
+    const addVisibleNodes = (node: Event) => {
+      // Add the current node to the visible nodes
+      visibleTreeNodes.push(node);
+      // If the node is expanded, recursively check its children
+      if (treeControl.isExpanded(node) && node.hasEvent) {
+        node.hasEvent.forEach(child => addVisibleNodes(child));
+      }
+    };
+    // Start from the root nodes
+    treeNodes.forEach(rootNode => addVisibleNodes(rootNode));
 
-  getSelectedTreeEvent(selectedIdFromUrl: string, diagramId: string): Observable<Event> {
-    const id = selectedIdFromUrl || diagramId;
-
-    if (selectedIdFromUrl) {
-      return this.fetchEnhancedEventData(selectedIdFromUrl).pipe(
-        switchMap(event => this.processFetchedEvent(event, diagramId))
-      );
-    }
-
-    return this.fetchEnhancedEventData(id).pipe(
-      tap(event => {
-        this.setCurrentEvent(event);
-        this.setCurrentObj(event);
-      })
-    );
+    return visibleTreeNodes;
   }
-
-  private processFetchedEvent(event: Event, diagramId: string): Observable<Event> {
-    // When it's an entity
-    if (this.isEntity(event)) {
-      this.setCurrentObj(event);
-      return this.fetchEnhancedEventData(diagramId).pipe(
-        tap(diagramEvent => this.setCurrentEvent(diagramEvent))
-      );
-    }
-
-    this.setCurrentEvent(event);
-    this.setCurrentObj(event);
-    return of(event);
-  }
-
 
   hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
 
@@ -144,11 +128,11 @@ export class EventService {
   }
 
 
-  private hasValidAncestors(ancestors:Event[]): boolean {
+  private hasValidAncestors(ancestors: Event[]): boolean {
     return !!(ancestors && ancestors.length);
   }
 
-  getOrthologyEventStId(taxId: string, id: string, selectedIdFromUrl: string, diagramId: string, ancestors:Event[], allSpecies: Species[]): Observable<string> {
+  getOrthologyEventStId(taxId: string, id: string, selectedIdFromUrl: string, diagramId: string, ancestors: Event[], allSpecies: Species[]): Observable<string> {
     if (!this.hasValidAncestors(ancestors)) {
       return of(id);
     }

@@ -65,12 +65,28 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   // Get latest selected id from URL
   selecting = this.state.onChange.select$.pipe(
-    untilDestroyed(this),
     tap(value => this.selectedIdFromUrl = value), // Set selectedIdFromUrl
-    switchMap(value => this.eventService.fetchEnhancedEventData(value)), // Switch to the new observable
-    tap(data => this.eventService.setCurrentObj(data))
-  ).subscribe();
+    switchMap(id => this.eventService.fetchEnhancedEventData(id)),
+  ).subscribe((event) => {
+      // Rebuild the tree if we couldn't find it in all visible tree nodes
 
+      const allTreeNodes = this.eventService.getVisibleTreeNodes(this.treeControl, this.treeData$.value);
+      if (!allTreeNodes.map(e => e.stId).includes(event.stId)) {
+        this.buildTree(event, this.diagramId);
+      } else {
+        // If find it in the tree, then set currentObj as this event
+        console.log('fount but set obj and reselect to it', event)
+        this.eventService.setCurrentObj(event);
+        const siblingEvents = this.selectedEvent.parent?.hasEvent;
+        if (siblingEvents) {
+          siblingEvents.forEach(siblingEvent => {
+            // SiblingEvent's stId matches the target event's stId, select it, otherwise, deselect it
+            siblingEvent.isSelected = siblingEvent.stId === event.stId;
+          });
+        }
+      }
+    }
+  );
 
   constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
@@ -82,8 +98,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
       const taxId = species ? species.taxId : '9606';
-      // this.getTopLevelPathways(taxId);
-      this.handleSpeciesChange(taxId);
+      this.getTopLevelPathways(taxId);
+      //this.handleSpeciesChange(taxId);
     });
 
     this.treeDataSubscription = this.treeData$.subscribe(events => {
@@ -119,20 +135,80 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  private handleSpeciesChange(taxId: string): void {
-    this.getTopLevelPathways(taxId).pipe(
-      switchMap(() => this.eventService.getSelectedTreeEvent(this.selectedIdFromUrl, this.diagramId))
+  // private handleSpeciesChange(taxId: string): void {
+  //   this.getTopLevelPathways(taxId).pipe(
+  //     switchMap(() => this.eventService.getSelectedTreeEvent(this.selectedIdFromUrl, this.diagramId))
+  //   ).subscribe(event => {
+  //     this.buildTree(event);
+  //   });
+  // }
+
+  // private getTopLevelPathways(taxId: string): Observable<Event[]> {
+  //   return this.eventService.fetchTlpBySpecies(taxId).pipe(
+  //     tap(results => this.setCurrentTreeData(results))
+  //   );
+  // }
+
+  getTopLevelPathways(taxId: string): void {
+    this.eventService.fetchTlpBySpecies(taxId).pipe(
+      tap(results => this.setCurrentTreeData(results)),
+      switchMap(() => {
+        const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
+        return this.eventService.fetchEnhancedEventData(idToUse);
+      })
     ).subscribe(event => {
-      this.buildTree(event);
+      this.buildTree(event, this.diagramId);
     });
   }
 
-  private getTopLevelPathways(taxId: string): Observable<Event[]> {
-    return this.eventService.fetchTlpBySpecies(taxId).pipe(
-      tap(results => this.setCurrentTreeData(results))
-    );
+  buildTree(event: Event, diagramId: string) {
+    if (this.eventService.isEntity(event)) {
+      this.handleEntity(event, diagramId);
+    } else {
+      this.handleEvent(event);
+    }
   }
 
+  private handleEntity(event: Event, diagramId: string) {
+    this.eventService.setCurrentObj(event);
+    this.eventService.fetchEnhancedEventData(diagramId).pipe(
+    //  tap(treeEvent => this.eventService.setCurrentEvent(treeEvent)),
+      switchMap(() => this.eventService.fetchEventAncestors(diagramId)),
+      tap(ancestors => this.processAncestors(ancestors)),
+      switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
+    ).subscribe(([colors, tree]) => {
+      this.setCurrentTreeData(tree);
+      this.adjustWidths();
+      this.eventService.getVisibleTreeNodes(this.treeControl, this.treeData$.value);
+    });
+  }
+
+  private handleEvent(event: Event) {
+    this.eventService.fetchEventAncestors(event.stId).pipe(
+      tap(ancestors => this.processAncestors(ancestors)),
+      tap(() => {
+        this.eventService.setCurrentObj(event);
+      //  this.eventService.setCurrentEvent(event);
+      }),
+      switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
+    ).subscribe(([colors, tree]) => {
+      this.setCurrentTreeData(tree);
+      this.adjustWidths();
+      this.eventService.getVisibleTreeNodes(this.treeControl, this.treeData$.value);
+    });
+  }
+
+  private processAncestors(ancestors: Event[][]) {
+    this.ancestors = ancestors[0];
+    this.expandAllAncestors(ancestors);
+  }
+
+  private buildTreeFromAncestors(ancestors: Event[][]) {
+    return combineLatest([
+      this.eventService.subpathwaysColors$,
+      this.buildNestedTree(this.treeData$.value, ancestors)
+    ]);
+  }
 
   private hasValidAncestors(): boolean {
     return !!(this.ancestors && this.ancestors.length);
@@ -188,23 +264,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         }
       });
     }
-  }
-
-  buildTree(event: Event) {
-    this.eventService.fetchEventAncestors(event.stId).pipe(
-      tap(ancestors => {
-        this.expandAllAncestors(ancestors);
-      }),
-      switchMap(ancestors => {
-        return combineLatest([
-          this.eventService.subpathwaysColors$,
-          this.buildNestedTree(this.treeData$.value, ancestors)
-        ]);
-      })
-    ).subscribe(([colors, tree]) => {
-      this.setCurrentTreeData(tree);
-      this.adjustWidths();
-    })
   }
 
   expandAllAncestors(ancestors: Event[][]) {
@@ -264,6 +323,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
                 if (existingEvent.stId === this.diagramId) {
                   this.setSubpathwayColors(existingEvent, this.subpathwayColors);
+                }
+
+                if (isLast) {
+                 // console.log('existing event , ' ,existingEvent)
+                  this.eventService.setCurrentEvent(existingEvent);
                 }
 
                 return existingEvent.hasEvent!;
