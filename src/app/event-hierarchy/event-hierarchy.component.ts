@@ -3,13 +3,13 @@ import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
 import {
-  BehaviorSubject,
   combineLatest,
   EMPTY,
   forkJoin,
   fromEvent,
   map,
-  mergeMap, Observable,
+  mergeMap,
+  Observable,
   of,
   Subscription,
   switchMap,
@@ -48,9 +48,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   windowResizeSubscription!: Subscription;
   subpathwayColorsSubscription!: Subscription;
 
-  treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
-  dataSource = new MatTreeNestedDataSource<Event>();
+  treeDataSource = new MatTreeNestedDataSource<Event>();
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   private _SCROLL_SPEED = 50; // pixels per second
@@ -66,9 +65,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
 
-  setCurrentTreeData(events: Event[]) {
-    this.treeData$.next(events);
-  }
+
 
   ngAfterViewInit(): void {
 
@@ -81,7 +78,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       untilDestroyed(this),
     ).subscribe((event) => {
         // Rebuild the tree if we couldn't find it in all visible tree nodes
-        const allTreeNodes = this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.dataSource.data);
+        const allTreeNodes = this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
         console.log('allTreeNodes', allTreeNodes);
         if (!allTreeNodes.map(e => e.stId).includes(event.stId)) {
           console.log("build tree with new event ", event.stId)
@@ -107,12 +104,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       //this.handleSpeciesChange(taxId);
     });
 
-    this.treeDataSubscription = this.treeData$.subscribe(events => {
+    this.treeDataSubscription = this.eventService.treeData$.subscribe(events => {
       // @ts-ignore
       // Mat tree has a bug causing children to not be rendered in the UI without first setting the data to null
       // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
-      this.dataSource.data = null; //todo: check performance issue
-      this.dataSource.data = events;
+      this.treeDataSource.data = null; //todo: check performance issue
+      this.treeDataSource.data = events;
     });
 
     this.currentEventSubscription = this.eventService.selectedEvent$.subscribe(event => {
@@ -156,7 +153,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).pipe(
-      tap(results => this.setCurrentTreeData(results)),
+      tap(results => this.eventService.setCurrentTreeData(results)),
       switchMap(() => {
         const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
         return this.eventService.fetchEnhancedEventData(idToUse);
@@ -181,9 +178,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       tap(ancestors => this.processAncestors(ancestors)),
       switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
     ).subscribe(([colors, tree]) => {
-      this.setCurrentTreeData(tree);
+      this.eventService.setCurrentTreeData(tree);
       this.adjustWidths();
-      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.dataSource.data);
+      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
     });
   }
 
@@ -195,9 +192,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       }),
       switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
     ).subscribe(([colors, tree]) => {
-      this.setCurrentTreeData(tree);
+      this.eventService.setCurrentTreeData(tree);
       this.adjustWidths();
-      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeData$.value);
+      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
     });
   }
 
@@ -209,7 +206,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private buildTreeFromAncestors(ancestors: Event[][]) {
     return combineLatest([
       this.eventService.subpathwaysColors$,
-      this.buildNestedTree(this.treeData$.value, ancestors)
+      this.buildNestedTree(this.treeDataSource.data, ancestors)
     ]);
   }
 
@@ -231,7 +228,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.collapseSiblingEvent(event);
     // Check if children are already loaded
     if (event.hasEvent && event.hasEvent.length > 0) {
-      this.setCurrentTreeData(this.treeData$.value);
+      this.eventService.setCurrentTreeData(this.treeDataSource.data);
       return;
     }
     this.eventService.fetchEnhancedEventData(event.stId).pipe(
@@ -242,7 +239,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
             child.parent = event;
             return child;
           });
-          this.setCurrentTreeData(this.treeData$.value);
+          this.eventService.setCurrentTreeData(this.treeDataSource.data);
           // Return the observable for subpathway colors
           return this.eventService.subpathwaysColors$.pipe(
             // If there's no color data, return an empty map
@@ -367,8 +364,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   onBreadcrumbSelect(navEvent: Event) {
-    this.clearAllSelectedEvents(this.treeData$.value);
-    this.selectAllParents(navEvent, this.treeData$.value);
+    this.clearAllSelectedEvents(this.treeDataSource.data);
+    this.selectAllParents(navEvent, this.treeDataSource.data);
     navEvent.isSelected = true;
     // Collapse all descendant nodes except the selected path if it has child events
     this.treeControl.collapseDescendants(navEvent);
@@ -385,8 +382,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private handleSelection(event: Event) {
     // First click
-    this.clearAllSelectedEvents(this.treeData$.value);
-    this.selectAllParents(event, this.treeData$.value);
+    this.clearAllSelectedEvents(this.treeDataSource.data);
+    this.selectAllParents(event, this.treeDataSource.data);
     this.toggleEventExpansion(event, true);
     this.updateBreadcrumbs(event);
     this.setDiagramId(event);
@@ -396,7 +393,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private handleDeselection(event: Event) {
     // Second click (deselect)
-    this.selectAllParents(event, this.treeData$.value);
+    this.selectAllParents(event, this.treeDataSource.data);
     this.toggleEventExpansion(event, false);
     this.updateBreadcrumbsForEventDeselection(event);
     this.handlePathwayNavigationOnDeselection(event);

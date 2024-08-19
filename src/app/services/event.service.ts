@@ -19,6 +19,7 @@ export class EventService {
   private readonly _DATA_QUERY = `${environment.host}/ContentService/data/query/`
   private readonly _ANCESTORS = `${environment.host}/ContentService/data/event/`
 
+  treeData$: BehaviorSubject<Event[]> = new BehaviorSubject<Event[]>([]);
 
   private _selectedEvent: Subject<Event> = new Subject<Event>();
   public selectedEvent$ = this._selectedEvent.asObservable();
@@ -36,6 +37,10 @@ export class EventService {
 
 
   constructor(private http: HttpClient) {
+  }
+
+  setCurrentTreeData(events: Event[]) {
+    this.treeData$.next(events);
   }
 
   setCurrentEvent(event: Event) {
