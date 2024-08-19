@@ -2,11 +2,10 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Event, OrthologousMap} from "../model/event.model";
-import {BehaviorSubject, map, Observable, of, Subject, switchMap, tap} from "rxjs";
+import {BehaviorSubject, map, Observable, of, Subject, tap} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {Species} from "../model/species.model";
 import {DiagramStateService} from "./diagram-state.service";
-import {isNumber, isString} from "lodash";
 import {NestedTreeControl} from "@angular/cdk/tree";
 
 
@@ -104,6 +103,41 @@ export class EventService {
     treeNodes.forEach(rootNode => addVisibleNodes(rootNode));
 
     return visibleTreeNodes;
+  }
+
+  getExpandedTreeWithChildrenNodes(treeControl: NestedTreeControl<Event, string>, treeNodes: Event[]) {
+    const expandedTreeNodes: Event[] = [];
+    const tlpstId = treeControl.expansionModel.selected[0];
+    const addVisibleNodes = (node: Event) => {
+      expandedTreeNodes.push(node);
+      if (treeControl.isExpanded(node) && node.hasEvent) {
+        node.hasEvent.forEach(child => addVisibleNodes(child));
+      }
+    };
+    const rootTree = treeNodes.find(node => node.stId === tlpstId);
+    if (rootTree) {
+      addVisibleNodes(rootTree);
+    }
+    return expandedTreeNodes;
+  }
+
+  private flattenTree(data: Event[]): Event[] {
+    const flatTreeData: Event[] = [];
+    const flatten = (nodes: Event[]) => {
+      nodes.forEach(node => {
+        flatTreeData.push(node);
+        if (node.hasEvent) {
+          flatten(node.hasEvent);
+        }
+      });
+    };
+    flatten(data);
+    return flatTreeData;
+  }
+
+  findEvent(stId: string, events: Event[]): Event | undefined {
+    const flatData = this.flattenTree(events);
+    return flatData.find(node => node.stId === stId);
   }
 
   hasChild = (_: number, event: Event) => !!event.hasEvent && event.hasEvent.length > 0 || ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
