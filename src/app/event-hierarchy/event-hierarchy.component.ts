@@ -2,27 +2,14 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from 
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {
-  combineLatest,
-  EMPTY,
-  forkJoin,
-  fromEvent,
-  map,
-  mergeMap,
-  Observable,
-  of,
-  Subscription,
-  switchMap,
-  tap
-} from "rxjs";
+import {fromEvent, map, Observable, of, switchMap, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {Router} from "@angular/router";
-import {isNumber, isString} from "lodash";
-import {DiagramComponent} from "../diagram/diagram.component";
+import {Species} from "../model/species.model";
 
 
 @Component({
@@ -39,24 +26,17 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('eventIcon', {read: ElementRef}) eventIcon!: ElementRef;
 
 
-  splitSynchronized!: Subscription
-  speciesSubscription!: Subscription;
-  treeDataSubscription!: Subscription;
-  currentEventSubscription!: Subscription;
-  currentObjSubscription!: Subscription;
-  breadcrumbsSubscription!: Subscription;
-  windowResizeSubscription!: Subscription;
-  subpathwayColorsSubscription!: Subscription;
-
-  treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
-  treeDataSource = new MatTreeNestedDataSource<Event>();
-  breadcrumbs: Event[] = [];
-  scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   private _SCROLL_SPEED = 50; // pixels per second
   private _ICON_PADDING = 16;
   private _GRADIENT_WIDTH = 10;
+
+  treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
+  treeDataSource = new MatTreeNestedDataSource<Event>();
+
+  breadcrumbs: Event[] = [];
+  scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   selectedIdFromUrl = this.state.get('select') || '';
-  selectedEvent!: Event;
+  selectedTreeNode!: Event;
   selectedObj!: Event;
   subpathwayColors: Map<number, string> = new Map<number, string>();
 
@@ -64,8 +44,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
-
-
 
   ngAfterViewInit(): void {
 
@@ -98,13 +76,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       }
     );
 
-    this.speciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
+    this.speciesService.currentSpecies$.pipe(untilDestroyed(this)).subscribe(species => {
       const taxId = species ? species.taxId : '9606';
       this.getTopLevelPathways(taxId);
       //this.handleSpeciesChange(taxId);
     });
 
-    this.treeDataSubscription = this.eventService.treeData$.subscribe(events => {
+    this.eventService.treeData$.pipe(untilDestroyed(this)).subscribe(events => {
       // @ts-ignore
       // Mat tree has a bug causing children to not be rendered in the UI without first setting the data to null
       // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
@@ -112,27 +90,27 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.treeDataSource.data = events;
     });
 
-    this.currentEventSubscription = this.eventService.selectedEvent$.subscribe(event => {
-      this.selectedEvent = event;
+    this.eventService.selectedEvent$.pipe(untilDestroyed(this)).subscribe(event => {
+      this.selectedTreeNode = event;
     });
 
-    this.currentObjSubscription = this.eventService.selectedObj$.subscribe(event => {
+    this.eventService.selectedObj$.pipe(untilDestroyed(this)).subscribe(event => {
       this.selectedObj = event;
     });
 
-    this.breadcrumbsSubscription = this.eventService.breadcrumbs$.subscribe(events => {
+    this.eventService.breadcrumbs$.pipe(untilDestroyed(this)).subscribe(events => {
       this.breadcrumbs = events;
     });
 
-    this.splitSynchronized = this.split.dragProgress$.subscribe(data => {
+    this.split.dragProgress$.pipe(untilDestroyed(this)).subscribe(data => {
       this.adjustWidths();
     });
 
-    this.windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => {
+    fromEvent(window, 'resize').pipe(untilDestroyed(this)).subscribe(() => {
       this.adjustWidths();
     });
 
-    this.subpathwayColorsSubscription = this.eventService.subpathwaysColors$.subscribe(colors => {
+    this.eventService.subpathwaysColors$.pipe(untilDestroyed(this)).subscribe(colors => {
       this.subpathwayColors = colors;
     })
   }
@@ -271,13 +249,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.speciesSubscription.unsubscribe();
-    this.treeDataSubscription.unsubscribe();
-    this.currentEventSubscription.unsubscribe();
-    this.splitSynchronized.unsubscribe();
-    this.breadcrumbsSubscription.unsubscribe();
-    this.windowResizeSubscription.unsubscribe();
-    this.subpathwayColorsSubscription.unsubscribe();
+    // this.speciesSubscription.unsubscribe();
+    // this.treeDataSubscription.unsubscribe();
+    // this.currentTreeEventSubscription.unsubscribe();
+    // this.splitSynchronized.unsubscribe();
+    // this.breadcrumbsSubscription.unsubscribe();
+    // this.windowResizeSubscription.unsubscribe();
+    // this.subpathwayColorsSubscription.unsubscribe();
+    // this.allSpeciesSubscription.unsubscribe();
     clearTimeout(this.scrollTimeout);
   }
 
