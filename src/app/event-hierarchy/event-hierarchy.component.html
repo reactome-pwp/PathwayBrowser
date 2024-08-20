@@ -23,7 +23,7 @@
   </div>
 
   <div id="events-container">
-    <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
+    <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node"
                      [ngClass]="hasRootSiblingForLeafNode(node)? 'has-sibling' : 'has-no-sibling '">
@@ -80,7 +80,7 @@
         <div class="mat-tree-node">
           <div class="left">
             <button #treeControlButton mat-icon-button matTreeNodeToggle class="button-size no-hover-effect"
-                    [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildEvents(node)">
+                    [attr.aria-label]="'Toggle ' + node.name" (click)="loadChildrenTreeEvents(node)">
               <mat-icon class="mat-icon-rtl-mirror"
                         [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
             </button>

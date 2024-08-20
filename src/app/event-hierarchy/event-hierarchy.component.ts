@@ -54,25 +54,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         return this.eventService.fetchEnhancedEventData(idToUse)
       }),
       untilDestroyed(this),
-    ).subscribe((event) => {
-        // Rebuild the tree if we couldn't find it in all visible tree nodes
-        const allTreeNodes = this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
-        console.log('allTreeNodes', allTreeNodes);
-        if (!allTreeNodes.map(e => e.stId).includes(event.stId)) {
-          console.log("build tree with new event ", event.stId)
-          this.buildTree(event, this.diagramId);
-        } else {
-          // If find it in the tree, then set currentObj as this event
-          console.log('fount but set obj and reselect to it', event)
-          this.eventService.setCurrentObj(event);
-          const siblingEvents = this.selectedEvent.parent?.hasEvent;
-          if (siblingEvents) {
-            siblingEvents.forEach(siblingEvent => {
-              // SiblingEvent's stId matches the target event's stId, select it, otherwise, deselect it
-              siblingEvent.isSelected = siblingEvent.stId === event.stId;
-            });
-          }
-        }
+    ).subscribe((obj) => {
+        this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeNode, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
       }
     );
 
@@ -88,6 +71,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
       this.treeDataSource.data = null; //todo: check performance issue
       this.treeDataSource.data = events;
+      this.adjustWidths();
     });
 
     this.eventService.selectedEvent$.pipe(untilDestroyed(this)).subscribe(event => {
@@ -131,61 +115,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).pipe(
-      tap(results => this.eventService.setCurrentTreeData(results)),
+      tap(results => this.eventService.setTreeData(results)),
       switchMap(() => {
         const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
         return this.eventService.fetchEnhancedEventData(idToUse);
       })
     ).subscribe(event => {
-      this.buildTree(event, this.diagramId);
+      this.eventService.buildTree(event, this.diagramId, this.treeControl, this.subpathwayColors);
     });
-  }
-
-  buildTree(event: Event, diagramId: string) {
-    if (this.eventService.isEntity(event)) {
-      this.handleEntity(event, diagramId);
-    } else {
-      this.handleEvent(event);
-    }
-  }
-
-  private handleEntity(event: Event, diagramId: string) {
-    this.eventService.setCurrentObj(event);
-    this.eventService.fetchEnhancedEventData(diagramId).pipe(
-      switchMap(() => this.eventService.fetchEventAncestors(diagramId)),
-      tap(ancestors => this.processAncestors(ancestors)),
-      switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
-    ).subscribe(([colors, tree]) => {
-      this.eventService.setCurrentTreeData(tree);
-      this.adjustWidths();
-      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
-    });
-  }
-
-  private handleEvent(event: Event) {
-    this.eventService.fetchEventAncestors(event.stId).pipe(
-      tap(ancestors => this.processAncestors(ancestors)),
-      tap(() => {
-        this.eventService.setCurrentObj(event);
-      }),
-      switchMap(ancestors => this.buildTreeFromAncestors(ancestors))
-    ).subscribe(([colors, tree]) => {
-      this.eventService.setCurrentTreeData(tree);
-      this.adjustWidths();
-      this.eventService.getExpandedTreeWithChildrenNodes(this.treeControl, this.treeDataSource.data);
-    });
-  }
-
-  private processAncestors(ancestors: Event[][]) {
-    this.ancestors = ancestors[0];
-    this.expandAllAncestors(ancestors);
-  }
-
-  private buildTreeFromAncestors(ancestors: Event[][]) {
-    return combineLatest([
-      this.eventService.subpathwaysColors$,
-      this.buildNestedTree(this.treeDataSource.data, ancestors)
-    ]);
   }
 
   private hasValidAncestors(): boolean {
@@ -201,62 +138,18 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventService.eventHasChild(sibling));
   }
 
-  loadChildEvents(event: Event) {
+  loadChildrenTreeEvents(event: Event) {
     event.isSelected = this.treeControl.isExpanded(event);
     this.collapseSiblingEvent(event);
     // Check if children are already loaded
     if (event.hasEvent && event.hasEvent.length > 0) {
-      this.eventService.setCurrentTreeData(this.treeDataSource.data);
+      this.eventService.setTreeData(this.treeDataSource.data);
       return;
     }
-    this.eventService.fetchEnhancedEventData(event.stId).pipe(
-      switchMap(children => {
-        if (children.hasEvent) {
-          event.hasEvent = children.hasEvent.map(child => {
-            child.ancestors = [...(event.ancestors || []), event];
-            child.parent = event;
-            return child;
-          });
-          this.eventService.setCurrentTreeData(this.treeDataSource.data);
-          // Return the observable for subpathway colors
-          return this.eventService.subpathwaysColors$.pipe(
-            // If there's no color data, return an empty map
-            map(colors => colors || new Map<number, string>())
-          );
-        }
-        return EMPTY;
-      }),
-      tap((colors) => {
-        this.setSubpathwayColors(event, colors);
-      }),
-      untilDestroyed(this)
-    ).subscribe();
-  }
-
-
-  setSubpathwayColors(event: Event, colors: Map<number, string>) {
-    if (colors && event.hasEvent) {
-      event.hasEvent.forEach(e => {
-        if (e.schemaClass === 'Pathway' && !e.hasDiagram) {
-          e.color = colors.get(e.dbId);
-        }
-      });
-    }
-  }
-
-  expandAllAncestors(ancestors: Event[][]) {
-    ancestors[0].reverse().forEach(ancestor => this.treeControl.expand(ancestor))
+    this.eventService.fetchChildrenEvents(event, this.treeDataSource.data).pipe(untilDestroyed(this)).subscribe();
   }
 
   ngOnDestroy(): void {
-    // this.speciesSubscription.unsubscribe();
-    // this.treeDataSubscription.unsubscribe();
-    // this.currentTreeEventSubscription.unsubscribe();
-    // this.splitSynchronized.unsubscribe();
-    // this.breadcrumbsSubscription.unsubscribe();
-    // this.windowResizeSubscription.unsubscribe();
-    // this.subpathwayColorsSubscription.unsubscribe();
-    // this.allSpeciesSubscription.unsubscribe();
     clearTimeout(this.scrollTimeout);
   }
 
@@ -271,59 +164,59 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
    *                  The ancestors is a list of events from child to parent in the API calls,
    *                  But here is from parent to child,no need to use reverse() with ancestors[0]
    */
-  buildNestedTree(roots: Event[], ancestors: Event[][]) {
-    console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
-    const tree = [...roots];
-    const nestedTree = ancestors[0].reduce((acc, event, index, array) => {
-      const isLast = index === array.length - 1;
-      return acc.pipe(
-        mergeMap(currentLevel => {
-          const existingEvent = currentLevel.find(e => e.dbId === event.dbId);
-          if (existingEvent) {
-            return this.eventService.fetchEnhancedEventData(event.stId).pipe(
-              map(children => {
-                existingEvent.hasEvent = children.hasEvent?.map(child => {
-                  child.ancestors = [...(existingEvent.ancestors || []), existingEvent];
-                  child.parent = existingEvent;
-                  this.eventService.setBreadcrumbs([...child.ancestors])
-                  return child;
-                });
-                // Highlight selected event
-                if (this.selectedIdFromUrl) {
-                  existingEvent.hasEvent?.forEach(child => {
-                    if (this.selectedIdFromUrl === child.stId) {
-                      child.isSelected = true;
-                      this.eventService.setBreadcrumbs([...(child!.ancestors), child]) //todo: when not loading from URL
-                    }
-                  })
-                }
-                // Highlight selected event's parent when loading from URL
-                existingEvent.isSelected = true;
-
-                if (existingEvent.stId === this.diagramId) {
-                  this.setSubpathwayColors(existingEvent, this.subpathwayColors);
-                }
-
-                if (isLast) {
-                  this.eventService.setCurrentEvent(existingEvent);
-                }
-
-                return existingEvent.hasEvent!;
-              })
-            );
-          } else {
-            return of([]);
-          }
-        })
-      );
-    }, of(tree))
-
-    return forkJoin([nestedTree]).pipe(
-      map(() => {
-        return tree;
-      })
-    );
-  }
+  // buildNestedTree(roots: Event[], ancestors: Event[][]) {
+  //   console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
+  //   const tree = [...roots];
+  //   const nestedTree = ancestors[0].reduce((acc, event, index, array) => {
+  //     const isLast = index === array.length - 1;
+  //     return acc.pipe(
+  //       mergeMap(currentLevel => {
+  //         const existingEvent = currentLevel.find(e => e.dbId === event.dbId);
+  //         if (existingEvent) {
+  //           return this.eventService.fetchEnhancedEventData(event.stId).pipe(
+  //             map(children => {
+  //               existingEvent.hasEvent = children.hasEvent?.map(child => {
+  //                 child.ancestors = [...(existingEvent.ancestors || []), existingEvent];
+  //                 child.parent = existingEvent;
+  //                 this.eventService.setBreadcrumbs([...child.ancestors])
+  //                 return child;
+  //               });
+  //               // Highlight selected event
+  //               if (this.selectedIdFromUrl) {
+  //                 existingEvent.hasEvent?.forEach(child => {
+  //                   if (this.selectedIdFromUrl === child.stId) {
+  //                     child.isSelected = true;
+  //                     this.eventService.setBreadcrumbs([...(child!.ancestors), child]) //todo: when not loading from URL
+  //                   }
+  //                 })
+  //               }
+  //               // Highlight selected event's parent when loading from URL
+  //               existingEvent.isSelected = true;
+  //
+  //               if (existingEvent.stId === this.diagramId) {
+  //                 this.setSubpathwayColors(existingEvent, this.subpathwayColors);
+  //               }
+  //
+  //               if (isLast) {
+  //                 this.eventService.setCurrentEvent(existingEvent);
+  //               }
+  //
+  //               return existingEvent.hasEvent!;
+  //             })
+  //           );
+  //         } else {
+  //           return of([]);
+  //         }
+  //       })
+  //     );
+  //   }, of(tree))
+  //
+  //   return forkJoin([nestedTree]).pipe(
+  //     map(() => {
+  //       return tree;
+  //     })
+  //   );
+  // }
 
   onEventSelect(event: Event) {
     const isTLP = event.schemaClass === 'TopLevelPathway';
@@ -387,7 +280,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     if (expand) {
       if (!this.treeControl.isExpanded(event)) {
         this.treeControl.expand(event);
-        this.loadChildEvents(event);
+        this.loadChildrenTreeEvents(event);
       }
     } else {
       if (this.treeControl.isExpanded(event)) {
@@ -498,13 +391,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-
   trackById(index: number, event: Event): string {
-    //todo: test it
-    // No need to render again to improve performance
     return event.stId;
   }
-
 
   /**
    * Adjust widths when loading mat tree data at the initialization.
