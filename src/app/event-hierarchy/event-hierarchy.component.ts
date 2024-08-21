@@ -29,6 +29,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private _SCROLL_SPEED = 50; // pixels per second
   private _ICON_PADDING = 16;
   private _GRADIENT_WIDTH = 10;
+  private _ignore = false;
 
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   treeDataSource = new MatTreeNestedDataSource<Event>();
@@ -48,6 +49,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
 
     this.state.onChange.select$.pipe(
+      filter(value => !this._ignore), // Ignore the changes from Tree itself
       tap(value => this.selectedIdFromUrl = value), // Set selectedIdFromUrl
       switchMap(id => {
         const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
@@ -316,11 +318,20 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private navigateToPathway(event: Event): void {
     // Determine if we should include the selectedEventId in the URL
     const selectedEventId = this.eventService.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
+    this._ignore = true;
     this.router.navigate(['PathwayBrowser', this.diagramId], {
       queryParamsHandling: "preserve" // Keep existing query params
     }).then(() => {
       this.state.set('select', selectedEventId);
       this.eventService.setCurrentObj(event);
+      // Listen for NavigationEnd event to reset _ignore
+      this.router.events.pipe(
+        filter(routerEvent => routerEvent instanceof NavigationEnd),
+        take(1) // Take the first NavigationEnd event and unsubscribe automatically
+      ).subscribe(() => {
+        this._ignore = false;
+      });
+
     }).catch(err => {
       throw new Error('Navigation error:', err);
     });
