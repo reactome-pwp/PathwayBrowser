@@ -2,13 +2,13 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from 
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {fromEvent, map, Observable, of, switchMap, tap} from "rxjs";
+import {filter, fromEvent, map, Observable, of, switchMap, take, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
-import {Router} from "@angular/router";
+import {NavigationEnd, Router} from "@angular/router";
 import {Species} from "../model/species.model";
 
 
@@ -153,85 +153,20 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     clearTimeout(this.scrollTimeout);
   }
 
-
-  /**
-   * This method is building a nested tree dynamically by giving the roots and ancestors,
-   * the currentLevel will always be the TLPs at very beginning,and we find the matched event in ancestors,
-   * build the hierarchy structure from parent to child. At the same time, it sends another API call to get children for each item in
-   * ancestors.
-   * @param roots  TLPs
-   * @param ancestors A list of lists of Events, it only contains one list, so we take [0].
-   *                  The ancestors is a list of events from child to parent in the API calls,
-   *                  But here is from parent to child,no need to use reverse() with ancestors[0]
-   */
-  // buildNestedTree(roots: Event[], ancestors: Event[][]) {
-  //   console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
-  //   const tree = [...roots];
-  //   const nestedTree = ancestors[0].reduce((acc, event, index, array) => {
-  //     const isLast = index === array.length - 1;
-  //     return acc.pipe(
-  //       mergeMap(currentLevel => {
-  //         const existingEvent = currentLevel.find(e => e.dbId === event.dbId);
-  //         if (existingEvent) {
-  //           return this.eventService.fetchEnhancedEventData(event.stId).pipe(
-  //             map(children => {
-  //               existingEvent.hasEvent = children.hasEvent?.map(child => {
-  //                 child.ancestors = [...(existingEvent.ancestors || []), existingEvent];
-  //                 child.parent = existingEvent;
-  //                 this.eventService.setBreadcrumbs([...child.ancestors])
-  //                 return child;
-  //               });
-  //               // Highlight selected event
-  //               if (this.selectedIdFromUrl) {
-  //                 existingEvent.hasEvent?.forEach(child => {
-  //                   if (this.selectedIdFromUrl === child.stId) {
-  //                     child.isSelected = true;
-  //                     this.eventService.setBreadcrumbs([...(child!.ancestors), child]) //todo: when not loading from URL
-  //                   }
-  //                 })
-  //               }
-  //               // Highlight selected event's parent when loading from URL
-  //               existingEvent.isSelected = true;
-  //
-  //               if (existingEvent.stId === this.diagramId) {
-  //                 this.setSubpathwayColors(existingEvent, this.subpathwayColors);
-  //               }
-  //
-  //               if (isLast) {
-  //                 this.eventService.setCurrentEvent(existingEvent);
-  //               }
-  //
-  //               return existingEvent.hasEvent!;
-  //             })
-  //           );
-  //         } else {
-  //           return of([]);
-  //         }
-  //       })
-  //     );
-  //   }, of(tree))
-  //
-  //   return forkJoin([nestedTree]).pipe(
-  //     map(() => {
-  //       return tree;
-  //     })
-  //   );
-  // }
-
   onEventSelect(event: Event) {
     const isTLP = event.schemaClass === 'TopLevelPathway';
     const hasChild = this.eventService.eventHasChild(event);
     // Toggle isSelected property if it has children for pathway
     //event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
     event.isSelected = !event.isSelected;
-    this.handleEventSelection(event);
+    this.handleEventSelectionFromTree(event);
   }
 
-  private handleEventSelection(event: Event) {
+  private handleEventSelectionFromTree(event: Event) {
     if (event.isSelected) {
-      this.handleSelection(event);
+      this.handleSelectionFromTree(event);
     } else {
-      this.handleDeselection(event);
+      this.handleDeselectionFromTree(event);
     }
   }
 
@@ -252,7 +187,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  private handleSelection(event: Event) {
+  private handleSelectionFromTree(event: Event) {
     // First click
     this.clearAllSelectedEvents(this.treeDataSource.data);
     this.selectAllParents(event, this.treeDataSource.data);
@@ -263,7 +198,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  private handleDeselection(event: Event) {
+  private handleDeselectionFromTree(event: Event) {
     // Second click (deselect)
     this.selectAllParents(event, this.treeDataSource.data);
     this.toggleEventExpansion(event, false);
