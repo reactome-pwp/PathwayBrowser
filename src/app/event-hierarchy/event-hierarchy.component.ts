@@ -29,7 +29,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private _SCROLL_SPEED = 50; // pixels per second
   private _ICON_PADDING = 16;
   private _GRADIENT_WIDTH = 10;
-  private _ignore = false;
+  private _ignore = false; // ignore the changes from the tree
+  private _isInitialLoad = true; // skip the first load
 
   treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
   treeDataSource = new MatTreeNestedDataSource<Event>();
@@ -49,7 +50,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
 
     this.state.onChange.select$.pipe(
-      filter(value => !this._ignore), // Ignore the changes from Tree itself
+      filter(value => !this._ignore && !this._isInitialLoad), // Ignore the changes from Tree itself and first load
       tap(value => this.selectedIdFromUrl = value), // Set selectedIdFromUrl
       switchMap(id => {
         const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
@@ -60,6 +61,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeNode, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
       }
     );
+
+    setTimeout(() => {
+      this._isInitialLoad = false; // Allow future changes to be processed after first load
+    }, 100);
 
     this.speciesService.currentSpecies$.pipe(untilDestroyed(this)).subscribe(species => {
       const taxId = species ? species.taxId : '9606';
@@ -184,7 +189,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     this.setDiagramId(navEvent);
     const selectedEventId = this.eventService.eventHasChild(navEvent) && navEvent.hasDiagram ? '' : navEvent.stId;
+    this._ignore = true;
     this.state.set('select', selectedEventId);
+    this._ignore = false;
     this.eventService.setCurrentObj(navEvent);
   }
 
