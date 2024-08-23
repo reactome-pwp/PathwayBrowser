@@ -37,7 +37,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
-  selectedIdFromUrl = this.state.get('select') || '';
+  selectedIdFromUrl = '';
   selectedTreeNode!: Event;
   selectedObj!: Event;
   subpathwayColors: Map<number, string> = new Map<number, string>();
@@ -47,20 +47,20 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
 
-  ngAfterViewInit(): void {
+  selecting = this.state.onChange.select$.pipe(
+    tap(value => this.selectedIdFromUrl = value),
+    filter(value => !this._ignore && !this._isInitialLoad),// Ignore the changes from Tree itself and first load
+    switchMap(id => {
+      const idToUse = id ? id : this.diagramId;
+      return this.eventService.fetchEnhancedEventData(idToUse)
+    }),
+    untilDestroyed(this),
+  ).subscribe((obj) => {
+      this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeNode, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
+    }
+  );
 
-    this.state.onChange.select$.pipe(
-      filter(value => !this._ignore && !this._isInitialLoad), // Ignore the changes from Tree itself and first load
-      tap(value => this.selectedIdFromUrl = value), // Set selectedIdFromUrl
-      switchMap(id => {
-        const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
-        return this.eventService.fetchEnhancedEventData(idToUse)
-      }),
-      untilDestroyed(this),
-    ).subscribe((obj) => {
-        this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeNode, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
-      }
-    );
+  ngAfterViewInit(): void {
 
     setTimeout(() => {
       this._isInitialLoad = false; // Allow future changes to be processed after first load
@@ -69,7 +69,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.speciesService.currentSpecies$.pipe(untilDestroyed(this)).subscribe(species => {
       const taxId = species ? species.taxId : '9606';
       this.getTopLevelPathways(taxId);
-      //this.handleSpeciesChange(taxId);
+      // this.handleSpeciesChange(taxId);
     });
 
     this.eventService.treeData$.pipe(untilDestroyed(this)).subscribe(events => {
@@ -114,11 +114,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   //   });
   // }
 
-  // private getTopLevelPathways(taxId: string): Observable<Event[]> {
-  //   return this.eventService.fetchTlpBySpecies(taxId).pipe(
-  //     tap(results => this.setCurrentTreeData(results))
-  //   );
-  // }
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).pipe(
@@ -337,7 +332,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       queryParamsHandling: "preserve" // Keep existing query params
     }).then(() => {
       this.state.set('select', selectedEventId);
-      this.eventService.setCurrentObj(event);
+      this.eventService.setCurrentEventAndObj(event, event);
       // Listen for NavigationEnd event to reset _ignore
       this.router.events.pipe(
         filter(routerEvent => routerEvent instanceof NavigationEnd),
