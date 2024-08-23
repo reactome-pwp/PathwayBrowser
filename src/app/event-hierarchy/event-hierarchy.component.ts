@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from 
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {filter, fromEvent, map, Observable, of, switchMap, take, tap} from "rxjs";
+import {filter, fromEvent, switchMap, take, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";

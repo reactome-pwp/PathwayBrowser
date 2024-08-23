@@ -220,7 +220,7 @@ export class EventService {
     this.setCurrentObj(event);
     this.fetchEnhancedEventData(diagramId).pipe(
       switchMap(() => this.fetchEventAncestors(diagramId)),
-      tap(ancestors => this.processAncestors(ancestors, treeControl)),
+      map(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
       switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors))
     ).subscribe(([colors, tree]) => {
       this.setTreeData(tree);
@@ -240,16 +240,17 @@ export class EventService {
     const idToBuild = isFromDiagram ? event.stId : (this.isPathwayWithDiagram(event) ? diagramId : event.stId);
     this.setCurrentObj(event);
     this.fetchEventAncestors(idToBuild).pipe(
-      tap(ancestors => this.processAncestors(ancestors, treeControl)),
+      map(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
       switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors))
     ).subscribe(([colors, tree]) => {
       this.setTreeData(tree);
     });
   }
 
+  // Select any reaction, subpathway and interacting pathway from diagram
   private handleExistingEventSelection(event: Event, treeControl: NestedTreeControl<Event, string>, flatTreeNodes: Event[]) {
     this.fetchEventAncestors(event.stId).pipe(
-      tap(ancestors => this.processAncestors(ancestors, treeControl)),
+      tap(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
     ).subscribe(([ancestors]) => {
       // Create a Set to store the stIds from ancestors for quick lookup
       const ancestorStIds = new Set(ancestors.map(ancestor => ancestor.stId));
@@ -262,7 +263,7 @@ export class EventService {
     });
   }
 
-  private buildTreeWithAncestors(ancestors: Event[][], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
+  private buildTreeWithAncestors(ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
     return combineLatest([
       this.subpathwaysColors$,
       this.buildNestedTree(this.treeData$.value, ancestors, diagramId, selectedIdFromUrl, subpathwayColors)
@@ -283,10 +284,10 @@ export class EventService {
    * @param subpathwayColors colors maps, dbId as key, colors as value, `{69481 => "#cc0000"}`
    *
    */
-  buildNestedTree(roots: Event[], ancestors: Event[][], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
+  buildNestedTree(roots: Event[], ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
     console.log('BuildNestedTree with data ', roots, 'and ancestors ');
     const tree = [...roots];
-    const nestedTree = ancestors[0].reduce((acc, event, index, array) => {
+    const nestedTree = ancestors.reduce((acc, event, index, array) => {
       const isLast = index === array.length - 1;
       return acc.pipe(
         mergeMap(currentLevel => {
@@ -365,8 +366,23 @@ export class EventService {
     return finalAncestor;
   }
 
-  expandAllAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
-    ancestors[0].reverse().forEach(ancestor => treeControl.expand(ancestor))
+
+  findMatchingAncestor(ancestors: Event[][], pathIds: string[]): Event[]{
+    for (const ancestorArray of ancestors) {
+      const allIdsFromAncestor = ancestorArray.map(event => event.stId);
+      // Check if pathIds are in the current ancestor array
+      const containsAll = pathIds.every(id => allIdsFromAncestor.includes(id));
+      if (containsAll) {
+        return ancestorArray;
+      }
+    }
+    // Use first ancestor if returns null
+    return ancestors[0];
+  }
+
+
+  expandAllAncestors(ancestors: Event[], treeControl: NestedTreeControl<Event, string>) {
+    ancestors.reverse().forEach(ancestor => treeControl.expand(ancestor));
   }
 
 
