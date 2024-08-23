@@ -192,7 +192,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this._ignore = true;
     this.state.set('select', selectedEventId);
     this._ignore = false;
-    this.eventService.setCurrentObj(navEvent);
+    this.eventService.setCurrentEventAndObj(navEvent, navEvent);
+
+    const ancestors = navEvent.ancestors ? navEvent.ancestors : [];
+    this.eventService.setPath(this.diagramId, ancestors);
   }
 
 
@@ -323,6 +326,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   private navigateToPathway(event: Event): void {
+
+    const ancestors = event.ancestors ? event.ancestors : [];
+    this.eventService.setPath(this.diagramId, ancestors);
+
     // Determine if we should include the selectedEventId in the URL
     const selectedEventId = this.eventService.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
     this._ignore = true;

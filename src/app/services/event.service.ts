@@ -348,15 +348,43 @@ export class EventService {
     }
   }
 
-
-  private processAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
-    //this.ancestors = ancestors[0];
-    this.expandAllAncestors(ancestors, treeControl);
+  private getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
+    const pathIds = this.state.get('path');
+    let finalAncestor: Event[];
+    // When path is given through URL, this link is from Location in PWB on detail page
+    if (pathIds && ancestors.length > 1) {
+      finalAncestor = this.findMatchingAncestor(ancestors, pathIds)
+      if (finalAncestor) {
+        this.expandAllAncestors(finalAncestor, treeControl);
+      }
+    } else {
+      // take the first ancestor if no path is given
+      finalAncestor = ancestors[0];
+      this.expandAllAncestors(ancestors[0], treeControl);
+    }
+    return finalAncestor;
   }
 
   expandAllAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
     ancestors[0].reverse().forEach(ancestor => treeControl.expand(ancestor))
   }
+
+
+  getPathIds(diagramId: string, ancestors: Event[]) {
+    const stIds: string[] = [];
+    for (const a of ancestors) {
+      if (a.stId === diagramId) {
+        break; // Stop before adding the target event to the result
+      }
+      stIds.push(a.stId);
+    }
+    return stIds;
+  }
+  setPath(diagramId: string, ancestors: Event[]){
+    const ids = this.getPathIds(diagramId, ancestors);
+    this.state.set('path', ids);
+  }
+
 
   // Flatten tree and return all visible tree nodes
   getAllVisibleTreeNodes(treeControl: NestedTreeControl<Event, string>, treeNodes: Event[]): Event[] {
@@ -467,7 +495,6 @@ export class EventService {
       map(() => id)
     );
   }
-
 
 
   // todo: add comments here to explain why

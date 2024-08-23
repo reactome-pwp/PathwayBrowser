@@ -15,6 +15,7 @@ export type State = {
   [token: string]: UrlParam<any>
   select: UrlParam<string>
   flag: UrlParam<string[]>
+  path: UrlParam<string[]>
   flagInteractors: UrlParam<boolean>
   overlay: UrlParam<string | null>
   analysis: UrlParam<string | null>
@@ -34,6 +35,7 @@ export class DiagramStateService {
   private state: State = {
     select: {otherTokens: ['SEL'], value: ''},
     flag: {otherTokens: ['FLG'], value: []},
+    path: {otherTokens: ['PATH'], value: []},
     flagInteractors: {otherTokens: ['FLGINT'], value: false},
     overlay: {value: ''},
     analysis: {value: null, otherTokens: ['ANALYSIS']},
