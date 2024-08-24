@@ -1,5 +1,5 @@
 export interface Species {
-  dbId?: number;
+  dbId: number;
   displayName: string;
   shortName: string;
   taxId: string;
