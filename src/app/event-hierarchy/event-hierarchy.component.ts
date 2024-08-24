@@ -9,7 +9,6 @@ import {DiagramStateService} from "../services/diagram-state.service";
 import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {NavigationEnd, Router} from "@angular/router";
-import {Species} from "../model/species.model";
 
 
 @Component({
@@ -38,9 +37,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   breadcrumbs: Event[] = [];
   scrollTimeout: undefined | ReturnType<typeof setTimeout>;
   selectedIdFromUrl = '';
-  selectedTreeNode!: Event;
+  selectedTreeEvent!: Event;
   selectedObj!: Event;
   subpathwayColors: Map<number, string> = new Map<number, string>();
+  ancestors: Event[] = [];
 
 
 
@@ -56,7 +56,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     }),
     untilDestroyed(this),
   ).subscribe((obj) => {
-      this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeNode, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
+      this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeEvent, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
     }
   );
 
@@ -81,8 +81,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.adjustWidths();
     });
 
-    this.eventService.selectedEvent$.pipe(untilDestroyed(this)).subscribe(event => {
-      this.selectedTreeNode = event;
+    this.eventService.selectedTreeEvent$.pipe(untilDestroyed(this)).subscribe(event => {
+      this.selectedTreeEvent = event;
     });
 
     this.eventService.selectedObj$.pipe(untilDestroyed(this)).subscribe(event => {
@@ -104,16 +104,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.subpathwaysColors$.pipe(untilDestroyed(this)).subscribe(colors => {
       this.subpathwayColors = colors;
     })
+
   }
-
-  // private handleSpeciesChange(taxId: string): void {
-  //   this.getTopLevelPathways(taxId).pipe(
-  //     switchMap(() => this.eventService.getSelectedTreeEvent(this.selectedIdFromUrl, this.diagramId))
-  //   ).subscribe(event => {
-  //     this.buildTree(event);
-  //   });
-  // }
-
 
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).pipe(
@@ -125,10 +117,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     ).subscribe(event => {
       this.eventService.buildTree(event, this.diagramId, this.treeControl, this.subpathwayColors);
     });
-  }
-
-  private hasValidAncestors(): boolean {
-    return !!(this.ancestors && this.ancestors.length);
   }
 
   // if a leaf node has sibling which is a root node
