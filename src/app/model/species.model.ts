@@ -1,3 +1,5 @@
+import {Event} from "./event.model";
+
 export interface Species {
   dbId: number;
   displayName: string;
@@ -7,4 +9,8 @@ export interface Species {
   schemaClass?: string;
   abbreviation?: string
   className?: string;
+}
+
+export interface OrthologousMap {
+  [identifier: string]: Event;
 }

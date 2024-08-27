@@ -1,20 +1,25 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, map, Observable, tap} from "rxjs";
 import {environment} from "../../environments/environment";
-import {Species} from "../model/species.model";
+import {OrthologousMap, Species} from "../model/species.model";
+import {Event} from "../model/event.model";
+import {DiagramStateService} from "./diagram-state.service";
+import {ActivatedRoute} from "@angular/router";
 
 @Injectable({
   providedIn: 'root'
 })
 export class SpeciesService {
 
-  private readonly _MAIN_SPECIES =`${environment.host}/ContentService/data/species/main`
+  private readonly _MAIN_SPECIES = `${environment.host}/ContentService/data/species/main`;
+  private readonly _ORTHOLOGIES = `${environment.host}/ContentService/data/orthologies/ids/species/`
 
   defaultSpecies = {displayName: 'Homo sapiens', taxId: '9606', dbId: 48887, shortName: 'H.sapiens'};
   private _currentSpeciesSubject = new BehaviorSubject<Species>(this.defaultSpecies);
   public currentSpecies$ = this._currentSpeciesSubject.asObservable();
 
+  orthologousMap: OrthologousMap = {};
 
   /**
    * This map is to help get current species value from the diagramId string when loading data. For instance:
@@ -40,7 +45,7 @@ export class SpeciesService {
   ]);
 
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private state: DiagramStateService) {
   }
 
   getSpecies(): Observable<Species[]> {
@@ -59,6 +64,7 @@ export class SpeciesService {
     const species = parts[1];
     s.shortName = `${genus.charAt(0)}.${species}`;
   }
+
   setCurrentSpecies(species: Species) {
     this._currentSpeciesSubject.next(species);
   }
@@ -74,6 +80,74 @@ export class SpeciesService {
         this.setCurrentSpecies(species);
       }
     }
+  }
+
+
+  getOrthologyEventStId(species: Species, selectedId: number, ancestors: Event[], ids: string[]): Observable<string> {
+    // Only need to post all ids from URL, however the API call requires dbId as content, that's why ancestors is here
+    const idsToPost: number[] = [];
+    ancestors.forEach(a => {
+      if (ids.includes(a.stId)) {
+        idsToPost.push(a.dbId);
+      }
+    });
+
+    const speciesDbId = species.dbId;
+    let newSelectedId: string = '';
+    return this.getOrthologousMap(idsToPost.join(','), speciesDbId).pipe( // can't send array to API call
+      tap(response => {
+        this.orthologousMap = response;
+        if (this.orthologousMap[selectedId]) {
+          newSelectedId = this.orthologousMap[selectedId].stId;
+        } else {
+          newSelectedId = '';
+        }
+      }),
+      map(() => newSelectedId)
+    );
+  }
+
+  getIdsFromURL(diagramId: string) {
+    let ids: string[] = []
+    ids.push(diagramId);
+    if (this.state.get('select')) {
+      ids.push(this.state.get('select'));
+    }
+    if (this.state.get('path')) {
+      ids = ids.concat(this.state.get('path'));
+    }
+    return ids;
+  }
+
+
+  updateQueryParams(paramNames: string[], selectedId: string, abbreviation: string, route: ActivatedRoute ) {
+    // Create a new params object from the current query parameters
+    const newParams = {...route.snapshot.queryParams};
+    paramNames.forEach(param => {
+      const value = newParams[param];
+      if (value) {
+        if (param === 'select') {
+          if (selectedId) {
+            // Update 'select' with new abbreviation
+            newParams[param] = value.replace(/-(.*?)-/, `-${abbreviation}-`);
+          } else {
+            // Remove 'select' if selectedId is empty
+            // delete newParams[param];
+            newParams[param] = '';
+          }
+        } else if (param === 'path') {
+          // Handle 'path' as a comma-separated string
+          newParams[param] = value
+            .split(',') // Split into an array
+            .map((s: string) => s.replace(/-(.*?)-/, `-${abbreviation}-`)) // Update each part
+            .join(','); // Join back into a comma-separated string
+        } else {
+          // Handle other parameters as simple strings
+          newParams[param] = value.replace(/-(.*?)-/, `-${abbreviation}-`);
+        }
+      }
+    });
+    return newParams;
   }
 
 }

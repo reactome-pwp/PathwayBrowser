@@ -69,7 +69,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.speciesService.currentSpecies$.pipe(untilDestroyed(this)).subscribe(species => {
       const taxId = species ? species.taxId : '9606';
       this.getTopLevelPathways(taxId);
-      // this.handleSpeciesChange(taxId);
     });
 
     this.eventService.treeData$.pipe(untilDestroyed(this)).subscribe(events => {
