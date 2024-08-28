@@ -1,4 +1,4 @@
-export interface DatabaseObject{
+export interface DatabaseObject {
   dbId: number
 }
 
@@ -16,11 +16,18 @@ export interface Event extends DatabaseObject {
   isInDisease: boolean;
   ancestors: Event[];
   parent: Event;
-  test: Event;
-  regulatedBy?: Regulation[];
+  created: InstanceEdit;
+  summation:Summation[]
   color?: string;
 }
 
-export interface Regulation extends Event {
-  regulatedEntity?: Event[]
+
+export interface InstanceEdit {
+  displayName: string;
+  dateTime: string;
+}
+
+export interface Summation{
+  displayName: string;
+  text: string
 }
