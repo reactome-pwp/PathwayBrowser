@@ -46,8 +46,6 @@ export class EventService {
   subpathwaysColors$ = this._subpathwaysColors.asObservable();
 
 
-
-
   constructor(private http: HttpClient, private state: DiagramStateService) {
   }
 
@@ -473,34 +471,5 @@ export class EventService {
   isReaction(event: Event) {
     return (['Reaction', 'BlackBoxEvent', 'CellDevelopmentStep'].includes(event.schemaClass));
   }
-
-  // todo: add comments here to explain why
-  // fetchData(stId: string): Observable<Event> {
-  //   const data = this.http.get<Event>(this._DATA_QUERY + stId);
-  //   const enhancedData = this.http.get<Event>(this._ENHANCED_QUERY + stId);
-  //   return forkJoin({
-  //     data: data,
-  //     enhancedData: enhancedData
-  //   }).pipe(
-  //       map((results) => {
-  //         const result = results.data;
-  //         const enhancedResult = results.enhancedData;
-  //         const mergedEvent = {...result};
-  //         for (const key in enhancedResult) {
-  //           if (enhancedData.hasOwnProperty(key) && !data.hasOwnProperty(key)) {
-  //             mergedEvent[key] = enhancedResult[key];
-  //           }
-  //         }
-  //         return mergedEvent;
-  //       })
-  //     )
-  // }
-
-
-  getEventsHierarchy(taxId: string): Observable<Event[]> {
-    let url = `${environment.host}/ContentService/data/eventsHierarchy/` + taxId + `?pathwaysOnly=false&resource=TOTAL&interactors=false`;
-    return this.http.get<Event[]>(url)
-  }
-
 
 }

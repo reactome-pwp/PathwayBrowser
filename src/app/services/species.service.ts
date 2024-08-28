@@ -21,6 +21,7 @@ export class SpeciesService {
 
   orthologousMap: OrthologousMap = {};
 
+  private _ignore = false; // ignore the changes from species
   /**
    * This map is to help get current species value from the diagramId string when loading data. For instance:
    *  diagramId = R-HSA-4090294 then current species is H.sapiens, and then it will be selected in the species list
@@ -48,11 +49,25 @@ export class SpeciesService {
   constructor(private http: HttpClient, private state: DiagramStateService) {
   }
 
+  setIgnore(value: boolean) {
+    this._ignore = value;
+  }
+
+  getIgnore(): boolean {
+    return this._ignore;
+  }
+
   getSpecies(): Observable<Species[]> {
     return this.http.get<Species[]>(this._MAIN_SPECIES, {
       headers: new HttpHeaders({'Content-Type': 'application/json;charset=UTF-8'})
     });
   }
+
+  getOrthologousMap(identifiers: string, speciesDbId: number): Observable<OrthologousMap> {
+    const url = `${this._ORTHOLOGIES}${speciesDbId}`;
+    return this.http.post<OrthologousMap>(url, identifiers, {headers: new HttpHeaders({'Content-Type': 'text/plain'})});
+  }
+
 
   setShortName(s: Species) {
     const parts = s.displayName.split(' ');
@@ -120,30 +135,28 @@ export class SpeciesService {
   }
 
 
-  updateQueryParams(paramNames: string[], selectedId: string, abbreviation: string, route: ActivatedRoute ) {
+  updateQueryParams(paramNames: string[], selectedId: string, abbreviation: string, route: ActivatedRoute) {
     // Create a new params object from the current query parameters
     const newParams = {...route.snapshot.queryParams};
     paramNames.forEach(param => {
       const value = newParams[param];
+      const updateValue = (str: string) => str.replace(/-(.*?)-/, `-${abbreviation}-`);
       if (value) {
         if (param === 'select') {
           if (selectedId) {
-            // Update 'select' with new abbreviation
-            newParams[param] = value.replace(/-(.*?)-/, `-${abbreviation}-`);
+            newParams[param] = updateValue(value);
           } else {
             // Remove 'select' if selectedId is empty
             // delete newParams[param];
             newParams[param] = '';
           }
         } else if (param === 'path') {
-          // Handle 'path' as a comma-separated string
           newParams[param] = value
-            .split(',') // Split into an array
-            .map((s: string) => s.replace(/-(.*?)-/, `-${abbreviation}-`)) // Update each part
-            .join(','); // Join back into a comma-separated string
+            .split(',')
+            .map((s: string) => updateValue(s))
+            .join(',');
         } else {
-          // Handle other parameters as simple strings
-          newParams[param] = value.replace(/-(.*?)-/, `-${abbreviation}-`);
+          newParams[param] = updateValue(value);
         }
       }
     });

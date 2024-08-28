@@ -49,7 +49,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   selecting = this.state.onChange.select$.pipe(
     tap(value => this.selectedIdFromUrl = value),
-    filter(value => !this._ignore && !this._isInitialLoad),// Ignore the changes from Tree itself and first load
+    filter(value => !this._ignore && !this._isInitialLoad && !this.speciesService.getIgnore()),// Ignore the changes from Tree itself , first load and species changes
     switchMap(id => {
       const idToUse = id ? id : this.diagramId;
       return this.eventService.fetchEnhancedEventData(idToUse)

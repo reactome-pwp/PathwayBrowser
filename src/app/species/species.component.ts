@@ -80,29 +80,18 @@ export class SpeciesComponent implements AfterViewInit {
 
     this.speciesService.getOrthologyEventStId(species, this.selectedObj.dbId, ancestors, ids)
       .subscribe((newSelectedStId) => {
+
         const updatedParams = this.speciesService.updateQueryParams(['select', 'flag', 'path'], newSelectedStId, abbreviation!, this.route);
-
-        // Remove the parameters with empty or null values
-        // const updatedParamsFilter = {};
-        // Object.keys(params).forEach(key => {
-        //   if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
-        //     updatedParams[key] = params[key];
-        //   }
-        // });
-
-
+        this.speciesService.setIgnore(true);
         this.router.navigate(['PathwayBrowser', this.diagramId], {
-          queryParamsHandling: "preserve" // Merges with the existing query params
+          queryParamsHandling: "preserve"
         }).then(() => {
-          console.log('test ', {...this.route.snapshot.queryParams})
-          console.log('updatedParams', updatedParams);
           if (updatedParams['select']) {
-            console.log("exists and setting ", updatedParams['select']);
             this.state.set('select', updatedParams['select']);
           } else {
-            console.log("no selected value")
             this.state.set('select', '');
           }
+          this.speciesService.setIgnore(true);
           if (updatedParams['flag']) this.state.set('flag', updatedParams['flag']);
           if (updatedParams['path']) this.state.set('path', updatedParams['path'].split(','));
           // Close the species panel after navigating
