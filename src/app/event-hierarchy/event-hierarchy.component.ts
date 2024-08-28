@@ -56,7 +56,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     }),
     untilDestroyed(this),
   ).subscribe((obj) => {
-      this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.selectedTreeEvent, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
+      this.eventService.adjustTreeFromDiagramSelection(obj, this.diagramId, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
     }
   );
 
@@ -130,11 +130,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   loadChildrenTreeEvents(event: Event) {
     event.isSelected = this.treeControl.isExpanded(event);
     this.collapseSiblingEvent(event);
-    // Check if children are already loaded
-    if (event.hasEvent && event.hasEvent.length > 0) {
-      this.eventService.setTreeData(this.treeDataSource.data);
-      return;
-    }
     this.eventService.fetchChildrenEvents(event, this.treeDataSource.data).pipe(untilDestroyed(this)).subscribe();
   }
 
@@ -142,16 +137,16 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     clearTimeout(this.scrollTimeout);
   }
 
-  onEventSelect(event: Event) {
-    const isTLP = event.schemaClass === 'TopLevelPathway';
-    const hasChild = this.eventService.eventHasChild(event);
+  onTreeEventSelect(treeEvent: Event) {
+    const isTLP = treeEvent.schemaClass === 'TopLevelPathway';
+    const hasChild = this.eventService.eventHasChild(treeEvent);
     // Toggle isSelected property if it has children for pathway
     //event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
-    event.isSelected = !event.isSelected;
-    this.handleEventSelectionFromTree(event);
+    treeEvent.isSelected = !treeEvent.isSelected;
+    this.handleTreeEventSelection(treeEvent);
   }
 
-  private handleEventSelectionFromTree(event: Event) {
+  private handleTreeEventSelection(event: Event) {
     if (event.isSelected) {
       this.handleSelectionFromTree(event);
     } else {
@@ -174,10 +169,14 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this._ignore = true;
     this.state.set('select', selectedEventId);
     this._ignore = false;
-    this.eventService.setCurrentEventAndObj(navEvent, navEvent);
 
     const ancestors = navEvent.ancestors ? navEvent.ancestors : [];
     this.eventService.setPath(this.diagramId, ancestors);
+
+    this.eventService.fetchEnhancedEventData(navEvent.stId).pipe(untilDestroyed(this)).subscribe(result => {
+      this.eventService.setCurrentEventAndObj(navEvent, result);
+    })
+
   }
 
 
@@ -216,6 +215,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
         this.treeControl.collapse(event);
         this.treeControl.collapseDescendants(event);
         event.isSelected = false;
+        this.eventService.fetchEnhancedEventData(event.parent.stId).pipe(untilDestroyed(this)).subscribe(result => {
+          this.eventService.setCurrentObj(result);
+        })
       }
     }
 
@@ -307,19 +309,19 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  private navigateToPathway(event: Event): void {
+  private navigateToPathway(treeEvent: Event): void {
 
-    const ancestors = event.ancestors ? event.ancestors : [];
+    const ancestors = treeEvent.ancestors ? treeEvent.ancestors : [];
     this.eventService.setPath(this.diagramId, ancestors);
 
     // Determine if we should include the selectedEventId in the URL
-    const selectedEventId = this.eventService.eventHasChild(event) && event.hasDiagram ? '' : event.stId;
+    const selectedEventId = this.eventService.eventHasChild(treeEvent) && treeEvent.hasDiagram ? '' : treeEvent.stId;
     this._ignore = true;
     this.router.navigate(['PathwayBrowser', this.diagramId], {
       queryParamsHandling: "preserve" // Keep existing query params
     }).then(() => {
       this.state.set('select', selectedEventId);
-      this.eventService.setCurrentEventAndObj(event, event);
+      this.eventService.setCurrentTreeEvent(treeEvent);
       // Listen for NavigationEnd event to reset _ignore
       this.router.events.pipe(
         filter(routerEvent => routerEvent instanceof NavigationEnd),
