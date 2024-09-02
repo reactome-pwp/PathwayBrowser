@@ -43,7 +43,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   ancestors: Event[] = [];
 
 
-
   constructor(protected eventService: EventService, private speciesService: SpeciesService, private state: DiagramStateService, private el: ElementRef, private router: Router) {
   }
 
@@ -131,8 +130,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.collapseSiblingEvent(treeEvent);
     this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data).pipe(
       untilDestroyed(this)
-    ).subscribe(([event, result, colors]) => {
-        this.eventService.setCurrentEventAndObj(event, result); // Moved here from fetchChildrenEvents
+    ).subscribe(([event, enhancedResult, colors]) => {
+        this.eventService.setCurrentEventAndObj(event, enhancedResult); // Moved here from fetchChildrenEvents
         this.eventService.setSubpathwayColors(event, colors);
         console.log('Subscription triggered for event:', event);
       }
@@ -217,8 +216,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     if (isSelected) {
       event.isSelected = true;
-      this.treeControl.toggle(event);
       this.loadChildrenTreeEvents(event);
+      this.treeControl.toggle(event);
     } else {
       event.isSelected = false;
       this.treeControl.toggle(event);
