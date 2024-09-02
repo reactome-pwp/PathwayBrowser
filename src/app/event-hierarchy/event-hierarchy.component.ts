@@ -199,6 +199,10 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
   private handleDeselectionFromTree(event: Event) {
     // Second click (deselect)
+
+    // Disable unselected status for TLP for having a selected obj in details panel
+    if (event.schemaClass === 'TopLevelPathway') return;
+
     this.selectAllParents(event, this.treeDataSource.data);
     this.toggleEventExpansion(event, false);
     this.updateBreadcrumbsForEventDeselection(event);

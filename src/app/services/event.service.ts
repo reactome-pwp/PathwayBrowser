@@ -2,19 +2,7 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {
-  BehaviorSubject, catchError,
-  combineLatest,
-  EMPTY, finalize,
-  forkJoin,
-  map,
-  mergeMap,
-  Observable,
-  of,
-  Subject,
-  switchMap,
-  tap
-} from "rxjs";
+import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {DiagramStateService} from "./diagram-state.service";
 import {NestedTreeControl} from "@angular/cdk/tree";
@@ -276,9 +264,11 @@ export class EventService {
   private handleExistingEventSelection(event: Event, treeControl: NestedTreeControl<Event, string>, flatTreeNodes: Event[]): Observable<[Event[], Event]> {
     return this.fetchEventAncestors(event.stId).pipe(
       map(ancestors => {
+        console.log('ancestors in handleExisting Event selection', ancestors);
         const finalAncestor = this.getAndExpandAncestors(ancestors, treeControl);
         // Create a Set to store the stIds from ancestors for quick lookup
         const ancestorStIds = new Set(finalAncestor.map(ancestor => ancestor.stId));
+        console.log('ancestorStIds ', ancestorStIds);
         // Loop through the treeNodes and check if the stId exists in the Set
         flatTreeNodes.forEach(treeNode => {
           treeNode.isSelected = ancestorStIds.has(treeNode.stId);
@@ -315,7 +305,7 @@ export class EventService {
    *
    */
   buildNestedTree(roots: Event[], ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
-    console.log('BuildNestedTree with data ', roots, 'and ancestors ');
+    console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
     const tree = [...roots];
     const nestedTree = ancestors.reduce((acc, event, index, array) => {
       const isLast = index === array.length - 1;
