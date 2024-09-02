@@ -25,7 +25,7 @@
   <div id="events-container">
     <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl" [trackBy]="trackById" class="example-tree">
       <!-- This is the tree node template for leaf nodes -->
-      <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle class="leaf-node"
+      <mat-tree-node *matTreeNodeDef="let node"  class="leaf-node"
                      [ngClass]="{'has-sibling': hasRootSiblingForLeafNode(node)}">
         <!-- use a disabled button to provide padding for table leaf -->
         <!--    <button mat-icon-button disabled class="button-size"></button>-->
@@ -85,7 +85,7 @@
                         [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
             </button>
 
-            <button mat-button (click)="onEventSelect(node)" class="button"
+            <button mat-button (click)="onTreeEventSelect(node)" class="button"
                     [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}">
               <mat-icon #eventIcon class='custom-icon'
                         [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"

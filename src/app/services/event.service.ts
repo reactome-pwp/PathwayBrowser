@@ -3,9 +3,9 @@ import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
 import {
-  BehaviorSubject,
+  BehaviorSubject, catchError,
   combineLatest,
-  EMPTY,
+  EMPTY, finalize,
   forkJoin,
   map,
   mergeMap,
@@ -109,7 +109,7 @@ export class EventService {
     )
   }
 
-  fetchChildrenEvents(event: Event, treeNodes: Event[]) {
+  fetchChildrenEvents(event: Event, treeNodes: Event[]): Observable<[Event, Event, Map<number, string>]> {
     return this.fetchEnhancedEventData(event.stId).pipe(
       switchMap(result => {
         if (result.hasEvent) {
@@ -118,17 +118,13 @@ export class EventService {
             child.parent = event;
             return child;
           });
-          this.setTreeData(treeNodes);
-          this.setCurrentEventAndObj(event, result);
+          this.setTreeData(treeNodes); // Update tree data
           return this.subpathwaysColors$.pipe(
-            map(colors => colors || new Map<number, string>())
+            map(colors => [event, result, colors || new Map<number, string>()] as [Event, Event, Map<number, string>])
           );
+        } else {
+          return of([event, result, new Map<number, string>()] as [Event, Event, Map<number, string>]);
         }
-        this.setCurrentEventAndObj(event, result);
-        return EMPTY;
-      }),
-      tap(colors => {
-        this.setSubpathwayColors(event, colors);
       })
     );
   }
@@ -243,8 +239,7 @@ export class EventService {
   // Build tree with diagram event ancestors
   private buildTreeWithSelectedEntity(event: Event, diagramId: string, treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
     this.setCurrentObj(event);
-    this.fetchEnhancedEventData(diagramId).pipe(
-    return this.fetchEnhancedEventData(diagramId).pipe(
+    return  this.fetchEnhancedEventData(diagramId).pipe(
       switchMap(() => this.fetchEventAncestors(diagramId)),
       map(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
       switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors)),
@@ -374,7 +369,7 @@ export class EventService {
   }
 
 
-  setSubpathwayColors(event: Event, colors: Map<number, string>) {
+  setSubpathwayColors(event: Event, colors: Map<number, string> | null) {
     if (colors && event.hasEvent) {
       event.hasEvent.forEach(e => {
         if (e.schemaClass === 'Pathway' && !e.hasDiagram) {

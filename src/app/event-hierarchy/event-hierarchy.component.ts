@@ -126,10 +126,17 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventService.eventHasChild(sibling));
   }
 
-  loadChildrenTreeEvents(event: Event) {
-    event.isSelected = this.treeControl.isExpanded(event);
-    this.collapseSiblingEvent(event);
-    this.eventService.fetchChildrenEvents(event, this.treeDataSource.data).pipe(untilDestroyed(this)).subscribe();
+
+  loadChildrenTreeEvents(treeEvent: Event) {
+    this.collapseSiblingEvent(treeEvent);
+    this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data).pipe(
+      untilDestroyed(this)
+    ).subscribe(([event, result, colors]) => {
+        this.eventService.setCurrentEventAndObj(event, result); // Moved here from fetchChildrenEvents
+        this.eventService.setSubpathwayColors(event, colors);
+        console.log('Subscription triggered for event:', event);
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -141,12 +148,12 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     const hasChild = this.eventService.eventHasChild(treeEvent);
     // Toggle isSelected property if it has children for pathway
     //event.isSelected = hasChild && !isTLP ? !event.isSelected : true;
-    treeEvent.isSelected = !treeEvent.isSelected;
-    this.handleTreeEventSelection(treeEvent);
+    const isSelected = !treeEvent.isSelected;
+    this.handleTreeEventSelection(treeEvent, isSelected);
   }
 
-  private handleTreeEventSelection(event: Event) {
-    if (event.isSelected) {
+  private handleTreeEventSelection(event: Event, isSelected: boolean) {
+    if (isSelected) {
       this.handleSelectionFromTree(event);
     } else {
       this.handleDeselectionFromTree(event);
@@ -198,26 +205,23 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.handlePathwayNavigationOnDeselection(event);
   }
 
-  private toggleEventExpansion(event: Event, expand: boolean) {
+  private toggleEventExpansion(event: Event, isSelected: boolean) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === 'TopLevelPathway') {
       this.treeControl.collapseAll();
     }
 
-    if (expand) {
-      if (!this.treeControl.isExpanded(event)) {
-        this.treeControl.expand(event);
-        this.loadChildrenTreeEvents(event);
-      }
+    if (isSelected) {
+      event.isSelected = true;
+      this.treeControl.toggle(event);
+      this.loadChildrenTreeEvents(event);
     } else {
-      if (this.treeControl.isExpanded(event)) {
-        this.treeControl.collapse(event);
-        this.treeControl.collapseDescendants(event);
-        event.isSelected = false;
-        this.eventService.fetchEnhancedEventData(event.parent.stId).pipe(untilDestroyed(this)).subscribe(result => {
-          this.eventService.setCurrentObj(result);
-        })
-      }
+      event.isSelected = false;
+      this.treeControl.toggle(event);
+      this.treeControl.collapseDescendants(event);
+      this.eventService.fetchEnhancedEventData(event.parent.stId).pipe(untilDestroyed(this)).subscribe(result => {
+        this.eventService.setCurrentObj(result);
+      })
     }
 
     this.collapseSiblingEvent(event);
