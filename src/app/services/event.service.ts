@@ -33,6 +33,8 @@ export class EventService {
   private _subpathwaysColors = new BehaviorSubject<Map<number, string>>(new Map<number, string>());
   subpathwaysColors$ = this._subpathwaysColors.asObservable();
 
+  private _loadTreeEvent = new Subject<Event>();
+  loadTreeEvent$ = this._loadTreeEvent.asObservable();
 
   constructor(private http: HttpClient, private state: DiagramStateService) {
   }
@@ -62,6 +64,9 @@ export class EventService {
     this._subpathwaysColors.next(colorMap);
   }
 
+  loadTreeEvent(event: Event) {
+    this._loadTreeEvent.next(event);
+  }
 
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
     let url = `${this._TOP_LEVEL_PATHWAYS}${taxId}`;

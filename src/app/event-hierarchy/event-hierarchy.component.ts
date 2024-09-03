@@ -103,6 +103,17 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.subpathwayColors = colors;
     })
 
+    this.eventService.loadTreeEvent$.pipe(
+      switchMap(treeEvent => {
+        this.collapseSiblingEvent(treeEvent);
+        return this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data);
+      }),
+      untilDestroyed(this)
+    ).subscribe(([event, enhancedResult, colors]) => {
+      this.eventService.setCurrentEventAndObj(event, enhancedResult);
+      this.eventService.setSubpathwayColors(event, colors);
+    });
+
   }
 
   getTopLevelPathways(taxId: string): void {
@@ -127,15 +138,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   loadChildrenTreeEvents(treeEvent: Event) {
-    this.collapseSiblingEvent(treeEvent);
-    this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data).pipe(
-      untilDestroyed(this)
-    ).subscribe(([event, enhancedResult, colors]) => {
-        this.eventService.setCurrentEventAndObj(event, enhancedResult); // Moved here from fetchChildrenEvents
-        this.eventService.setSubpathwayColors(event, colors);
-        console.log('Subscription triggered for event:', event);
-      }
-    );
+    this.eventService.loadTreeEvent(treeEvent);
   }
 
   ngOnDestroy(): void {
