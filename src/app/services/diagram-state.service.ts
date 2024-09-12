@@ -103,6 +103,7 @@ export class DiagramStateService {
     this.onPropertyModified();
   }
 
+  // TODO make unselect remove select from state
   onPropertyModified() {
     return this.router.navigate([], {
       queryParams: {

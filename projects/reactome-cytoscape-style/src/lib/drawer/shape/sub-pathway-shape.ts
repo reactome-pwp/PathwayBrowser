@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const subPathway: DrawerProvider = (properties, {width, height, disease, gradient}) => {
+export const subPathway: DrawerProvider = (properties, {width, height, disease}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -59,7 +59,8 @@ export const subPathway: DrawerProvider = (properties, {width, height, disease, 
       "background-width": width + 2 * thick,
     },
     analysis: {
-      "background-image": `${gradient}<rect x="${thick}" y="${thick}" width="${width - 2 * thick}" height="${height - 2 * thick}" rx="${(height - 2 * thick) / 2}" fill="url(#gradient)"/>`
+      "background-image": `<rect class="gradient" x="${thick}" y="${thick}" width="${width - 2 * thick}" height="${height - 2 * thick}" rx="${(height - 2 * thick) / 2}"/>`,
+      requireGradient: true
     }
   }
 }

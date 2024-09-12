@@ -28,13 +28,14 @@
     "@angular/router": "^16.2.0",
     "@ngneat/until-destroy": "^10.0.0",
     "angular-split": "^17.2.0",
-    "cytoscape": "file:.yalc/cytoscape",
+    "cytoscape": "3.29.3",
     "cytoscape-fcose": "^2.2.0",
     "cytoscape-layers": "^2.4.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "vectorious": "^6.1.12",
-    "zone.js": "~0.13.0"
+    "zone.js": "~0.13.0",
+    "chroma-js": "^2.4.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^16.2.6",
@@ -44,6 +45,7 @@
     "@types/cytoscape-fcose": "^2.2.4",
     "@types/jasmine": "~4.3.0",
     "@types/lodash": "^4.14.202",
+    "@types/chroma-js": "^2.4.4",
     "angular-cli-ghpages": "^1.0.6",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",

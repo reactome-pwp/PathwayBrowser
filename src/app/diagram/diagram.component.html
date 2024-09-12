@@ -7,25 +7,25 @@
       <span id="disease-handle" class="drag-handle" (mousedown)="dragStart()"></span>
     </div>
 
-      <div id="cytoscape-compare" #cytoscapeCompare class="drag-content"></div>
-    </div>
+    <div id="cytoscape-compare" #cytoscapeCompare class="drag-content"></div>
+  </div>
 
-  <div id="legend-boundary" [ngStyle]="{'--legend-width': ratio  * container.clientHeight + 'px'}">
-    <div cdkDrag cdkDragLockAxis="x" cdkDragBoundary="#legend-boundary" id="legend-container" (cdkDragMoved)="updateLegend()"
+  <div id="legend-boundary" [style.--legend-width.px]="ratio  * container.clientHeight">
+    <div cdkDrag cdkDragLockAxis="x" cdkDragBoundary="#legend-boundary" id="legend-container"
+         (cdkDragMoved)="updateLegend()"
          [style.height]="container.clientHeight + 'px'">
       <button id="legend-handle" cdkDragHandle>LEGEND</button>
       <div id="legend" #legend></div>
     </div>
   </div>
 
-  <form id="controls">
-    <button mat-raised-button (click)="updateStyle()">Update Style</button>
-    <button mat-raised-button (click)="logProteins()">Log Proteins</button>
-    <button mat-raised-button (click)="analyse('uniprot')">Uniprot</button>
-    <button mat-raised-button (click)="analyse('microarray')">Microarray</button>
-
-    <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>
-    <span>{{(reactomeEvents$ | async)?.detail?.reactomeId}}</span>
-  </form>
+  <!--  <form id="controls">-->
+  <!--    <button mat-raised-button (click)="updateStyle()">Update Style</button>-->
+  <!--    <button mat-raised-button (click)="logProteins()">Log Proteins</button>-->
+  <!--    <button mat-raised-button (click)="analyse('uniprot')">Uniprot</button>-->
+  <!--    <button mat-raised-button (click)="analyse('microarray')">Microarray</button>-->
+  <!--    <mat-slide-toggle [(ngModel)]="dark.isDark" name="dark">Dark mode</mat-slide-toggle>-->
+  <!--    <span>{{ (reactomeEvents$ | async)?.detail?.reactomeId }}</span>-->
+  <!--  </form>-->
 
 </div>

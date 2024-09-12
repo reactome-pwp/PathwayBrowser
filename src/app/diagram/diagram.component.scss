@@ -19,7 +19,7 @@
   --hover-edge: #04B601;
   --interactor-fill: #68297C;
   --interactor-stroke: #9f5cb5;
-  --flag: #DE75B4;
+  --flag: #ff009a;
 
 
   --compartment: #E5834A;
@@ -37,6 +37,20 @@
   --drug-contrast-2: #610B33;
   --drug-contrast-3: #7E2549;
   --drug-contrast-4: #BB557A;
+
+  --analysis-uni-palette: [
+    [0, '#FFFFE0'],
+    [1, '#00429D']
+  ];
+
+  //--analysis-bi-palette: [
+  //  [0.0, '#93003A'],
+  //  [0.5, '#FFFFE0'],
+  //  [1.0, '#00429D']
+  //];
+
+  --analysis-bi-palette: 'viridis';
+  --analysis-not-found: #001F24;
 
   &.dark {
     --opacity: 0.08;
@@ -77,18 +91,18 @@
   }
 }
 
-#controls {
-  position: absolute;
-  inset: calc(100vh - 40px) 0 0 0;
-
-  * {
-    background: var(--surface);
-    color: var(--on-surface);
-  }
-
-  background: var(--surface);
-
-}
+//#controls {
+//  position: absolute;
+//  inset: calc(100% - 40px) 0 0 0;
+//
+//  * {
+//    background: var(--surface);
+//    color: var(--on-surface);
+//  }
+//
+//  background: var(--surface);
+//
+//}
 
 #cytoscape {
   position: absolute;
@@ -225,4 +239,3 @@
     z-index: 4;
   }
 }
-

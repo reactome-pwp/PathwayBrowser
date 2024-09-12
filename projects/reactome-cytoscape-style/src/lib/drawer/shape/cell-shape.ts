@@ -1,7 +1,7 @@
 import {extract} from "../../properties-utils";
 import {DrawerProvider} from "../types";
 
-export const cell: DrawerProvider = (properties, {width, height, gradient}) => {
+export const cell: DrawerProvider = (properties, {width, height}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -17,10 +17,11 @@ export const cell: DrawerProvider = (properties, {width, height, gradient}) => {
   const oRx = Math.min(oR, width / 2)
   return {
     background: {
-      "background-image": `${gradient || ''}
-<rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
-<rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${gradient ? 'url(#gradient)' : fill}" stroke-width="0"/>
-`
+      "background-image": `
+      <rect x="${ht}" y="${ht}" width="${width - thick}" height="${height - thick}" rx="${halfHeight}" stroke="${fill}" fill="${stroke}" stroke-width="${thick}"/>
+      <rect x="${ht + cellThick}" y="${2 * thick}" width="${width - 2 * cellThick - thick}" height="${height - 4 * thick}" ry="${halfHeight}" rx="${halfHeight - cellThick}" fill="${fill}" class="gradient" stroke-width="0"/>
+      `,
+      requireGradient: true
     },
     hover: {
       "background-image": `

@@ -7,6 +7,8 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {SpeciesService} from "../services/species.service";
 import {InteractorService} from "../interactors/services/interactor.service";
 import {Subscription} from "rxjs";
+import {AnalysisService} from "../services/analysis.service";
+import {DarkService} from "../services/dark.service";
 
 
 @Component({
@@ -33,7 +35,10 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
     interactor: false
   }
 
-  constructor(private router: Router, private route: ActivatedRoute, private speciesService: SpeciesService, private interactorService: InteractorService, private cdRef: ChangeDetectorRef) {
+  constructor(private router: Router, private route: ActivatedRoute,
+              private speciesService: SpeciesService, private interactorService: InteractorService,
+              private cdRef: ChangeDetectorRef, public analysis: AnalysisService,
+              public dark: DarkService) {
   }
 
   ngAfterViewInit(): void {
@@ -65,4 +70,5 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
   }
 
 
+  protected readonly console = console;
 }

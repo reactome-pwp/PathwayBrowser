@@ -38,6 +38,8 @@ import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.compone
 import {MatTreeModule} from "@angular/material/tree";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import { DetailsComponent } from './details/details.component';
+import {MatMenuModule} from "@angular/material/menu";
+import { DiagramHomeComponent } from './diagram-home/diagram-home.component';
 
 
 @NgModule({
@@ -50,41 +52,43 @@ import { DetailsComponent } from './details/details.component';
     ViewportComponent,
     SpeciesComponent,
     EventHierarchyComponent,
-    DetailsComponent
+    DetailsComponent,
+    DiagramHomeComponent
   ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    CommonModule,
-    HttpClientModule,
-    RouterOutlet,
-    AppRoutingModule,
-    // NoopAnimationsModule,
-    MatButtonModule,
-    MatSlideToggleModule,
-    CdkDragHandle,
-    CdkDrag,
-    MatInputModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatProgressSpinnerModule,
-    BrowserAnimationsModule,
-    MatDialogModule,
-    MatTabsModule,
-    MatCheckboxModule,
-    MatRadioModule,
-    NgxMatFileInputModule,
-    MatIconModule,
-    MatListModule,
-    MatExpansionModule,
-    MatGridListModule,
-    AngularSplitModule,
-    MatCardModule,
-    MatIconModule,
-    MatRippleModule,
-    MatTreeModule,
-    MatTooltipModule
-  ],
+    imports: [
+        BrowserModule,
+        FormsModule,
+        CommonModule,
+        HttpClientModule,
+        RouterOutlet,
+        AppRoutingModule,
+        // NoopAnimationsModule,
+        MatButtonModule,
+        MatSlideToggleModule,
+        CdkDragHandle,
+        CdkDrag,
+        MatInputModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+        MatProgressSpinnerModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatTabsModule,
+        MatCheckboxModule,
+        MatRadioModule,
+        NgxMatFileInputModule,
+        MatIconModule,
+        MatListModule,
+        MatExpansionModule,
+        MatGridListModule,
+        AngularSplitModule,
+        MatCardModule,
+        MatIconModule,
+        MatRippleModule,
+        MatTreeModule,
+        MatTooltipModule,
+        MatMenuModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

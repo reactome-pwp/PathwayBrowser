@@ -3,9 +3,13 @@ import PropertyValueNode = cytoscape.Css.PropertyValueNode;
 import _ from "lodash";
 import {Properties} from "../properties";
 
-export type Image = {
-  [k in keyof BackgroundImage]: BackgroundImage[k] extends PropertyValueNode<infer X> ? X : never
+
+type BaseImage = {
+  [k in keyof BackgroundImage]: BackgroundImage[k] extends PropertyValueNode<infer X> ? X : never;
 }
+
+export type Image = BaseImage & {requireGradient?: boolean}
+
 
 export interface Drawer {
   background?: Image;
@@ -17,14 +21,14 @@ export interface Drawer {
 }
 
 export interface DrawerParameters {
+  id: number | string,
   width: number,
   height: number,
   drug?: boolean,
   disease?: boolean,
   crossed?: boolean,
   interactor?: boolean,
-  lossOfFunction?: boolean,
-  gradient?: string
+  lossOfFunction?: boolean
 }
 
 export interface DrawerProvider {

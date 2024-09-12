@@ -1,5 +1,8 @@
-<div (keydown.arrowLeft)="previous()" (keydown.arrowRight)="next()">
+<div class="diagram-container">
   <cr-diagram #diagram [id]="diagramId"></cr-diagram>
+</div>
+
+<div (keydown.arrowLeft)="previous()" (keydown.arrowRight)="next()">
 
   <button mat-raised-button (click)="previous()">Previous</button>
   <mat-form-field>

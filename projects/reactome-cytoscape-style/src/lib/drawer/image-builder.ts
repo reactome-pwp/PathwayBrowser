@@ -17,65 +17,79 @@ import {Node} from "../types";
 import {Aggregated, DrawerParameters, DrawerProvider, Image, Memo} from "./types";
 import {Properties} from "../properties";
 import {Style} from "../style";
-import {ContinuousPalette} from "../color";
-import {colors} from "ng-packagr/lib/utils/color";
+import chroma from "chroma-js";
 
 
-export const imageBuilder = (properties: Properties, style: Style) => memoize((node: cytoscape.NodeSingular): Aggregated<Image> => {
-  let layers: Image[] = [];
-  const clazz = node.classes().find(clazz => classToDrawers.has(clazz as Node)) as Node
-  if (!clazz) return aggregate(layers, defaultBg);
+export const imageBuilder = (properties: Properties, style: Style) => memoize(
+  (node: cytoscape.NodeSingular): Aggregated<Image> => {
+    console.time(`build-image-${node.id()}`)
+    let layers: Image[] = [];
+    const clazz = node.classes().find(clazz => classToDrawers.has(clazz as Node)) as Node
+    if (!clazz) return aggregate(layers, defaultBg);
 
-  const provider = classToDrawers.get(clazz)!;
-  const drawerParams: DrawerParameters = {
-    width: node.data("width"),
-    height: node.data("height"),
-    drug: node.hasClass('drug'),
-    disease: node.hasClass('disease'),
-    interactor: node.hasClass('Interactor'),
-    crossed: node.hasClass('crossed'),
-    lossOfFunction: node.hasClass('loss-of-function'),
-    gradient: expToGradient(node.data('exp'), properties, style.currentPalette)
-  };
+    const provider = classToDrawers.get(clazz)!;
+    const exps = node.data('exp');
+    const drawerParams: DrawerParameters = {
+      id: node.id(),
+      width: node.data("width"),
+      height: node.data("height"),
+      drug: node.hasClass('drug'),
+      disease: node.hasClass('disease'),
+      interactor: node.hasClass('Interactor'),
+      crossed: node.hasClass('crossed'),
+      lossOfFunction: node.hasClass('loss-of-function')
+    };
 
-  const drawer = provider(properties, drawerParams);
 
-  if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
+    const drawer = provider(properties, drawerParams);
 
-  if (drawer.background) layers.push(drawer.background);
+    if (node.hasClass('flag') && drawer.flag) layers.push(drawer.flag);
 
-  if (drawer.analysis) layers.push(drawer.analysis);
+    if (drawer.background) layers.push(drawer.background);
 
-  if (node.selected() && drawer.select) layers.push(drawer.select);
+    if (exps && drawer.analysis) layers.push(drawer.analysis);
 
-  if (node.hasClass('hover') && drawer.hover) layers.push(drawer.hover);
+    if (node.selected() && drawer.select) layers.push(drawer.select);
 
-  if (drawer.decorators) layers.push(...drawer.decorators);
+    if (node.hasClass('hover') && drawer.hover) layers.push(drawer.hover);
 
-  if (drawerParams.drug) {
-    layers.push(RX(properties, drawerParams, clazz));
-  }
+    if (drawer.decorators) layers.push(...drawer.decorators);
 
-  if (node.classes().includes('Pathway')) {
-    layers.push(Pathway(properties, drawerParams))
-  }
+    if (drawerParams.drug) {
+      layers.push(RX(properties, drawerParams, clazz));
+    }
 
-  if (drawerParams.crossed) layers.push(CROSS(properties, drawerParams))
+    if (node.classes().includes('Pathway')) {
+      layers.push(Pathway(properties, drawerParams));
+    }
 
-  // Convert raw HTML to string encoded images
-  layers = layers.map(l => ({
-      ...l,
-      "background-image": svgStr(l["background-image"] as string,
-        isNumber(l["background-width"]) ? l["background-width"] : drawerParams.width,
-        isNumber(l["background-height"]) ? l["background-height"] : drawerParams.height
-      )
-    })
-  );
+    if (drawerParams.crossed) layers.push(CROSS(properties, drawerParams));
 
-  const aggregated = aggregate(layers, defaultBg);
-  aggregated['bounds-expansion'] = [Math.max(...aggregated['bounds-expansion'] as number[], 0)]
-  return aggregated;
-}, node => `${node.id()}-${node.classes().toString()}-s:${node.selected()}`)
+    const gradient = expToGradient(node.id(), exps, properties, style.currentPalette)
+
+    // Convert raw HTML to string encoded images
+    layers = layers
+      .map(l => {
+        if (l.requireGradient && gradient) l["background-image"] = addGradient(l["background-image"] as string, gradient);
+        return l;
+      })
+      .map(l => ({
+          ...l,
+          "background-image": svgStr(l["background-image"] as string,
+            isNumber(l["background-width"]) ? l["background-width"] : drawerParams.width,
+            isNumber(l["background-height"]) ? l["background-height"] : drawerParams.height
+          )
+        })
+      );
+
+    const aggregated = aggregate(layers, defaultBg);
+    aggregated['bounds-expansion'] = [Math.max(...aggregated['bounds-expansion'] as number[], 0)]
+
+
+    console.timeEnd(`build-image-${node.id()}`)
+    return aggregated;
+  }, node => `${node.id()}-${node.classes().toString()}-s:${node.selected()}`
+)
 
 const defaultBg: Image = {
   "background-image": "",
@@ -97,62 +111,91 @@ const defaultBg: Image = {
   "bounds-expansion": 0
 }
 
+function addGradient(svgText: string, gradient: string, single: boolean = false): string {
+  // if (single) {
+  //   const s = `<style>.gradient{fill: ${gradient}!important;}</style>${svgText}`;
+  //   console.log(s)
+  //   return s;
+  // }
+  // else
+  // return gradient + svgText.replaceAll('class="gradient"', 'fill="url(#gradient)"');
+    return `<style>.gradient{fill: url(#gradient)};</style>${gradient}${svgText}`;
+}
 
-function expToGradient(exps: (number | [number, number] | undefined)[], properties: Properties, palette: ContinuousPalette): string | undefined {
+function _expToGradient(id: string, exps: (number | [number, number] | undefined)[], properties: Properties, palette: chroma.Scale): string | undefined {
   if (!exps) return;
-  const stops: { start: number, stop: number, color: string, exp: number | undefined }[] = [];
+  // console.time('exp-to-gradient')
+  const stops: { start: number, stop: number, color: string, exp: number | undefined, width: number }[] = [];
   const size = exps.reduce((l: number, e) => e !== undefined && isArray(e) ? l + e[1] : l + 1, 0);
-  const delta = 100 / size;
+  const delta = 1 / size;
+  const notFoundColor = extract(properties.analysis.notFound);
   exps.forEach((exp, i) => {
-    if (stops.length !== 0 && stops[stops.length - 1].exp === exp) stops[stops.length - 1].stop += delta;
-    else {
+    const p = stops.length - 1;
+    if (stops.length !== 0 && stops[p].exp === exp) {
+      stops[p].stop += delta;
+      stops[p].width += delta;
+    } else {
       if (isArray(exp)) {
         stops.push({
-          start: i * delta,
-          stop: (i + 1) * delta * exp[1],
-          color: exp[0] !== undefined ? palette.getColor(exp[0]) : extract(properties.analysis.notFound),
+          start: stops[p]?.stop || 0,
+          stop: (stops[p]?.stop || 0) + delta * exp[1],
+          width: delta * exp[1],
+          color: exp[0] !== undefined ? palette(exp[0]).hex() : notFoundColor,
           exp: exp[0]
         })
+        // console.log(stops, exps)
+
       } else {
         stops.push({
-          start: i * delta,
-          stop: (i + 1) * delta,
-          color: exp !== undefined ? palette.getColor(exp) : extract(properties.analysis.notFound),
+          start: stops[p]?.stop || 0,
+          stop: (stops[p]?.stop || 0) + delta,
+          color: exp !== undefined ? palette(exp).hex() : notFoundColor,
+          width: delta,
           exp: exp
         })
       }
     }
   })
-  // console.log(exps, stops)
-  return '<defs><linearGradient id="gradient">' +
+  // if (stops.length === 1) {
+  //   console.log(stops)
+  //   return stops[0].color;
+  // }
+
+  const pattern = '<defs><pattern id="gradient" patternUnits="objectBoundingBox" width="1" height="1" viewBox="0 0 1 1" preserveAspectRatio="none">' +
     stops
-      .map(stop => `<stop stop-color="${stop.color}" offset="${stop.start}%"/><stop stop-color="${stop.color}" offset="${stop.stop}%"/>`)
+      .map((stop, i) => `<rect fill="${stop.color}" x="${stop.start}" height="1" width="${stop.width + 0.01}"/>`)
       .join('') +
-    '</linearGradient></defs>'
+    '</pattern></defs>';
+
+  // const gradient = '<defs><linearGradient id="gradient">' +
+  //     stops
+  //         .map(stop => `<stop stop-color="${stop.color}" offset="${stop.start}"/><stop stop-color="${stop.color}" offset="${stop.stop}"/>`)
+  //         .join('') +
+  //     '</linearGradient></defs>'
+  // console.timeEnd('exp-to-gradient')
+
+  // console.log(exps)
+  return pattern
 }
 
+const expToGradient = memoize(_expToGradient, (id) => id)
+
+export const resetGradients = () => expToGradient.cache.clear!()
+
 function svg(svgStr: string, width = 100, height = 100) {
-  const parser = new DOMParser();
   // const cleanedStr = svgStr.replaceAll(/  {2,}|\n/g, " "); // TODO examine performance impact
-  let svgText =
-    `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='${width}' height='${height}'>${svgStr}</svg>`;
-  return parser.parseFromString(svgText, 'text/xml').documentElement;
+  const s = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='${width}' height='${height}'>${svgStr}</svg>`;
+  // console.log(s)
+  return s;
 }
 
 function svgStr(svgText: string, viewPortWidth: number, viewPortHeight: number) {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg(svgText, viewPortWidth, viewPortHeight).outerHTML);
+  // return svg(svgText, viewPortWidth, viewPortHeight);
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg(svgText, viewPortWidth, viewPortHeight));
 }
 
 
-const dim = (properties: Properties, {
-  width,
-  height,
-  drug,
-  disease,
-  crossed,
-  interactor,
-  lossOfFunction
-}: DrawerParameters) => `${width}x${height}-${drug}${disease}${crossed}${interactor}${lossOfFunction}`;
+const dim = (properties: Properties, {id}: DrawerParameters) => id;
 const classToDrawers = new Map<Node, Memo<DrawerProvider>>([
   ["Protein", memoize(protein, dim)],
   ["GenomeEncodedEntity", memoize(genomeEncodedEntity, dim)],

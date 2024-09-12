@@ -1,16 +1,16 @@
 import cytoscape from "cytoscape";
-import {clearDrawersCache, imageBuilder, OMMITED_ICON} from "./drawer/image-builder";
+import {clearDrawersCache, imageBuilder, OMMITED_ICON, resetGradients} from "./drawer/image-builder";
 import {extract, propertyExtractor, propertyMapper} from "./properties-utils";
 
 import {Properties, setDefaults, UserProperties} from "./properties";
 import {Interactivity} from "./interactivity";
-import {ContinuousPalette, HSL} from "./color";
+import chroma, {Scale} from "chroma-js";
 
 
 export class Style {
   public css: CSSStyleDeclaration;
   public properties: Properties;
-  public currentPalette!: ContinuousPalette;
+  public currentPalette!: Scale;
   public cy?: cytoscape.Core;
   private readonly imageBuilder;
   private readonly p;
@@ -41,7 +41,8 @@ export class Style {
       const edges = this.cy!.edges(`[pathway=${subPathway.data('reactomeId')}]`);
       subPathway.data('edges', edges);
 
-      const hex = new HSL(dH * i, 100, extract(this.properties.shadow.luminosity)).toHex();
+      const color = chroma.hsl(dH * i, 1, extract(this.properties.shadow.luminosity) / 100);
+      const hex = color.hex();
       subPathway.data('color', hex);
       edges.forEach(edge => {
         edge.data('color', hex)
@@ -111,13 +112,13 @@ export class Style {
         selector: 'node.Shadow',
         style: {
           'label': 'data(displayName)',
-          "font-size": this.p('shadow','fontSize'),
+          "font-size": this.p('shadow', 'fontSize'),
           "background-opacity": 0,
           "shape": "rectangle",
           "text-valign": "center",
           "text-halign": "center",
           "text-outline-color": this.p('global', 'surface'),
-          "text-outline-width": this.p('shadow','fontPadding'),
+          "text-outline-width": this.p('shadow', 'fontPadding'),
           "text-wrap": 'wrap',
           "text-max-width": "data(width)",
         }
@@ -657,13 +658,11 @@ export class Style {
       }, {
         selector: "edge[?sourceEndpoint]",
         style: {
-          // @ts-ignore
           "source-endpoint": "data(sourceEndpoint)",
         }
       }, {
         selector: "edge[?targetEndpoint]",
         style: {
-          // @ts-ignore
           "target-endpoint": "data(targetEndpoint)",
         }
       }, {
@@ -732,6 +731,12 @@ export class Style {
           "text-outline-opacity": 1,
         }
       },
+      {
+        selector: "[?exp].Molecule",
+        style: {
+          "background-color": this.p('global', 'onSurface')
+        }
+      },
 
       {
         selector: "node.Legend.Label",
@@ -783,11 +788,12 @@ export class Style {
     this.interactivity.triggerZoom();
   }
 
-  loadAnalysis(cy: cytoscape.Core, paletteType: 'unidirectional' | 'bidirectional') {
-    this.currentPalette = paletteType === 'unidirectional' ?
-      new ContinuousPalette(extract(this.properties.analysis.unidirectionalPalette)) :
-      new ContinuousPalette(extract(this.properties.analysis.bidirectionalPalette));
-    this.clearCache();
-    cy.style(this.getStyleSheet());
+  loadAnalysis(cy: cytoscape.Core, palette: Scale) {
+    console.log(cy, palette)
+
+    this.currentPalette = palette;
+
+    resetGradients()
+    this.update(cy);
   }
 }

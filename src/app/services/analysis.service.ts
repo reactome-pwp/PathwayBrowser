@@ -4,6 +4,41 @@ import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {Analysis} from "../model/analysis.model";
 import {DiagramStateService} from "./diagram-state.service";
+import {brewer, Scale, scale} from "chroma-js";
+
+
+export type Palette = keyof typeof brewer;
+
+export type PaletteGroup = 'sequential' | 'diverging' | 'continuous';
+
+// type PaletteSummary = { name: Palette, scale: Scale, gradient: string };
+
+export class PaletteSummary {
+  private readonly _scale: Scale;
+  scale: Scale;
+  gradient: string;
+
+  constructor(private name: Palette) {
+    this._scale = scale(name).mode('oklab')
+    this.scale = this._scale
+    this.gradient = `linear-gradient(to right in oklab, ${brewer[this.name].join(', ')})`
+  }
+
+  classes(n: number) {
+    if (n > 0) {
+      this.scale = this._scale.classes(n)
+      this.gradient = `linear-gradient(to right in oklab, ${this.scale.colors(n).map((c, i) => `${c} ${i / n * 100}%, ${c} ${(i + 1) / n * 100}%`).join(', ')})`
+    } else {
+      this.scale = this._scale
+      this.gradient = `linear-gradient(to right in oklab, ${brewer[this.name].join(', ')})`
+    }
+  }
+
+  domain(min: number, max: number) {
+    this.scale = this.scale.domain([min, max])
+  }
+}
+
 
 export type Examples = 'uniprot' | 'microarray';
 
@@ -12,11 +47,28 @@ export type Examples = 'uniprot' | 'microarray';
 })
 export class AnalysisService {
 
+  paletteOptions: Map<Palette, PaletteSummary> = new Map(Object.keys(brewer)
+    .filter(name => name.toLowerCase() !== name)
+    .map(name => ([name as Palette, new PaletteSummary(name as Palette)])));
+
+  palette: PaletteSummary = this.paletteOptions.get('RdBu')!;
+  palettes: { name: PaletteGroup, palettes: Palette[], valid: boolean }[] = [
+    {
+      name: 'sequential', valid: false, palettes: [
+        'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+        'BuPu', 'RdPu', 'PuRd',
+        'GnBu', 'YlGnBu', 'PuBu', 'PuBuGn',
+        'BuGn', 'YlGn',
+        'YlOrBr', 'OrRd', 'YlOrRd'
+      ]
+    },
+    {name: 'diverging', valid: true, palettes: ['RdYlGn', 'RdYlBu', 'RdGy', 'RdBu', 'PuOr', 'PRGn', 'PiYG', 'BrBG']},
+    {name: 'continuous', valid: false, palettes: ['Spectral', 'Viridis']},
+  ]
+
   result?: Analysis.Result;
 
-  result$ = this.state.state$.pipe(
-    map(state => state.analysis.value),
-    distinctUntilChanged(),
+  result$ = this.state.onChange.analysis$.pipe(
     switchMap(token =>
       token !== null ?
         (
@@ -29,6 +81,11 @@ export class AnalysisService {
   )
 
   constructor(private http: HttpClient, private state: DiagramStateService) {
+  }
+
+  clearAnalysis() {
+    this.result = undefined;
+    this.state.set('analysis', null);
   }
 
   analyse(data: string, params?: Partial<Analysis.Parameters>): Observable<Analysis.Result> {
@@ -54,10 +111,10 @@ export class AnalysisService {
       catchError(() => of({
         pathway,
         foundEntities: 0,
-        foundInteractors:0,
+        foundInteractors: 0,
         expNames: [],
         entities: [],
-        interactors:[],
+        interactors: [],
         resources: [resource]
       }))
     )
@@ -66,7 +123,7 @@ export class AnalysisService {
   pathwaysResults(pathwayIds: number[], token?: string, resource: Analysis.Resource = 'TOTAL'): Observable<Analysis.Pathway[]> {
     if (pathwayIds.length === 0) return of([]);
     return this.http.post<Analysis.Pathway[]>(`${environment.host}/AnalysisService/token/${token || this.state.get('analysis')}/filter/pathways`, pathwayIds.join(','), {
-      params:{resource}
+      params: {resource}
     }).pipe(
       catchError(() => of([]))
     )

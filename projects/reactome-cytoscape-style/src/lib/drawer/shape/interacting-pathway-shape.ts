@@ -2,7 +2,7 @@ import {DrawerProvider} from "../types";
 import {extract} from "../../properties-utils";
 
 
-export const interactingPathway: DrawerProvider = (properties, {width, height, drug, gradient}) => {
+export const interactingPathway: DrawerProvider = (properties, {width, height, drug}) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
   const flag = extract(properties.global.flag);
@@ -35,7 +35,8 @@ export const interactingPathway: DrawerProvider = (properties, {width, height, d
       "background-image-containment": "over",
     },
     analysis: {
-      "background-image": `${gradient}<rect fill="url(#gradient)" x="${t}" y="${t}" width="${width - 2 * t}" height="${height - 2 * t}"/>`
+      "background-image": `<rect class="gradient" x="${t}" y="${t}" width="${width - 2 * t}" height="${height - 2 * t}"/>`,
+      requireGradient: true
     }
   }
 }

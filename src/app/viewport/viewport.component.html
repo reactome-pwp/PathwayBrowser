@@ -45,7 +45,15 @@
     <as-split-area [size]="80">
       <div class="right-panel">
         <div class="top">
-          <p>top-panel</p>
+          <button mat-button [matMenuTriggerFor]="an">Analysis</button>
+          <mat-menu #an="matMenu">
+            <button mat-menu-item (click)="analysis.example('uniprot').subscribe()">UniProt</button>
+            <button mat-menu-item (click)="analysis.example('microarray').subscribe()">Expression</button>
+            <button mat-menu-item>GSA</button>
+          </mat-menu>
+
+          <mat-slide-toggle color="primary" [(ngModel)]=" dark.isDark">Dark mode</mat-slide-toggle>
+
         </div>
         <div class="content">
           <as-split direction="vertical" gutterSize="4">

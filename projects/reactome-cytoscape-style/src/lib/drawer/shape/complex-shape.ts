@@ -8,8 +8,7 @@ export const complex: DrawerProvider = (properties, {
   drug,
   disease,
   interactor,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -109,10 +108,11 @@ export const complex: DrawerProvider = (properties, {
     decorators: [
       {
         "background-image": `
-         ${defs}${gradient || ''}
+         ${defs}
          <use href="#octogon" fill="none" stroke="${stroke}" stroke-width="${t2}" stroke-linejoin="round" ${lossOfFunction ? `stroke-dasharray="${t2}"` : ''} />
-         <use href="#octogon" fill="${gradient ? 'url(#gradient)' : fill}"/>
-         `
+         <use href="#octogon" fill="${fill}" class="gradient"/>
+         `,
+        requireGradient: true
       }
     ],
   }

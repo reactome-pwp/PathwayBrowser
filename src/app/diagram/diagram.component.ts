@@ -1,22 +1,25 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-// @ts-ignore
-import {Interactivity, ReactomeEvent, Style} from "reactome-cytoscape-style";
+import {ReactomeEvent, ReactomeEventTypes, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
 import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
-import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
-import {AnalysisService, Examples} from "../services/analysis.service";
+import {AnalysisService, Examples, PaletteGroup} from "../services/analysis.service";
 import {Graph} from "../model/graph.model";
 import {isDefined} from "../services/utils";
 import {Analysis} from "../model/analysis.model";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {EventService} from "../services/event.service";
+
+
+import {brewer} from "chroma-js";
+import {group, style} from "@angular/animations";
+import {MatFormField} from "@angular/material/form-field";
 
 
 @UntilDestroy({checkProperties: true})
@@ -35,14 +38,14 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   comparing: boolean = false;
 
 
-
   constructor(private diagram: DiagramService,
               public dark: DarkService,
               private interactorsService: InteractorService,
               private state: DiagramStateService,
               private analysis: AnalysisService,
               private event: EventService,
-              private router: Router
+              private router: Router,
+              private route: ActivatedRoute
   ) {
   }
 
@@ -118,7 +121,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.cys[0] = this.cy;
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
-        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([e.target.data('graph.stId')], {queryParamsHandling: "preserve"}))
+        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([`../${e.target.data('graph.stId')}`], {queryParamsHandling: "preserve", relativeTo: this.route}))
 
         this.event.setSubpathwaysColors(new Map(
           this.cy?.nodes('.Shadow').map(node => [node.data('reactomeId'), node.data('color')])
@@ -420,6 +423,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           })
         })
       });
+      this.reactomeStyle?.loadAnalysis(this.cy, this.analysis.palette.scale);
       return
     }
 
@@ -457,10 +461,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
           cy.nodes('.PhysicalEntity').forEach(node => {
             const leaves: Graph.Node[] = node.data('graph.leaves');
-            let exp = leaves
+            const exp = leaves
               .map(leaf => analysisEntityMap.get(leaf.identifier))
-              .sort((a, b) => a !== undefined ? (b !== undefined ? a - b : -1) : 1)
-              .map(exp => exp !== undefined ? normalize(exp, min, max) : undefined);
+              .sort((a, b) => a !== undefined ? (b !== undefined ? a - b : -1) : 1);
+
+            // console.log(node.data('reactomeId'), leaves, exp)
 
             // if (hasExpression) exp = exp.map(e => e !== undefined ? 1 - e : undefined);
             node.data('exp', exp);
@@ -470,11 +475,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             const pathwayData = analysisPathwayMap.get(dbId);
             if (!pathwayData) {
               node.data('exp', [undefined]);
-            }
-            else {
+            } else {
               console.log(dbId, normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max))
               node.data('exp', [
-                [normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max), pathwayData.found],
+                [pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, pathwayData.found],
                 [undefined, pathwayData.total - pathwayData.found]
               ])
             }
@@ -485,11 +489,36 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             'font-size': extract(style.properties.shadow.fontSize) / 2,
             'text-outline-width': extract(style.properties.shadow.fontPadding) / 2
           })
-          this.reactomeStyle.loadAnalysis(cy, hasExpression ? 'bidirectional' : 'unidirectional');
+
+          const validGroups: Set<PaletteGroup> = new Set();
+          if (result.summary.type === 'GSA_REGULATION') {
+            validGroups.add('diverging')
+          } else if (result.summary.type === 'EXPRESSION') {
+            validGroups.add('diverging')
+            validGroups.add('sequential')
+            validGroups.add('continuous')
+          } else if (result.summary.type === 'OVERREPRESENTATION') {
+            validGroups.add('sequential')
+          }
+
+          for (let summary of this.analysis.paletteOptions.values()) {
+            summary.scale.padding(0.1)
+            summary.classes(result.summary.type === 'GSA_REGULATION' ? 5 : 0);
+            summary.domain(min, max);
+          }
+
+          this.analysis.palettes.forEach(group => group.valid = validGroups.has(group.name))
+          this.analysis.palette = this.analysis.paletteOptions.get(hasExpression ? 'RdBu' : 'GnBu')!;
+          this.reactomeStyle.loadAnalysis(cy, this.analysis.palette.scale);
         })
       })
 
     })
+  }
+
+  changePalette() {
+    console.log(this.analysis.palette)
+    if (this.analysis.palette) this.reactomeStyle.loadAnalysis(this.cy, this.analysis.palette.scale);
   }
 
   updateStyle() {
@@ -692,4 +721,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   analyse(example: Examples) {
     this.analysis.example(example).subscribe();
   }
+
+  protected readonly style = style;
+  protected readonly brewer = brewer;
+  protected readonly MatFormField = MatFormField;
+  protected readonly group = group;
 }

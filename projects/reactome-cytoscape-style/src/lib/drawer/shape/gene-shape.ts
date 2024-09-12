@@ -8,8 +8,7 @@ export const gene: DrawerProvider = (properties, {
   drug,
   interactor,
   disease,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const t = extract(properties.global.thickness);
   const dHeight = extract(properties.gene.decorationHeight);
@@ -32,8 +31,8 @@ export const gene: DrawerProvider = (properties, {
   const t2 = t * 2;
   return {
     background: {
-      "background-image": `${gradient || ''}
-          <path fill="${gradient ? 'url(#gradient)' : fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      "background-image": `
+          <path fill="${fill}" class="gradient" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
       ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t2}"` : ''}  d="
             M ${0} ${dHeight}
@@ -51,7 +50,7 @@ export const gene: DrawerProvider = (properties, {
       "background-position-y": -t / 2,
       "background-width": width + t,
       "background-height": height + t,
-
+      requireGradient: true
     },
     decorators: [
       {

@@ -7,8 +7,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {
   drug,
   disease,
   interactor,
-  lossOfFunction,
-  gradient
+  lossOfFunction
 }) => {
   const fill = !drug ?
     extract(properties.complex.fill) :
@@ -33,8 +32,8 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {
 
   return {
     background: {
-      "background-image": `${gradient || ''}
-      <path fill="${gradient ? 'url(#gradient)' : fill}" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
+      "background-image": `
+      <path fill="${fill}" class="gradient" stroke-linecap="round" transform="translate(${t_2} ${t_2})"
       ${stroke ? `stroke="${stroke}" stroke-width="${t}"` : ''}
       ${lossOfFunction ? `stroke-dasharray="${t} ${t * 2}"` : ''}
       d="
@@ -57,6 +56,7 @@ export const genomeEncodedEntity: DrawerProvider = (properties, {
       "background-position-y": -t_2,
       "background-width": width + t,
       "background-height": height + t,
+    requireGradient: true
     },
     hover: {
       "background-image": `

@@ -8,8 +8,7 @@ export const entitySet: DrawerProvider = (properties, {
   drug,
   disease,
   lossOfFunction,
-  interactor,
-  gradient
+  interactor
 }) => {
   const select = extract(properties.global.selectNode);
   const hover = extract(properties.global.hoverNode);
@@ -83,15 +82,13 @@ export const entitySet: DrawerProvider = (properties, {
   return {
     background: {
       "background-image": `
-       ${defs}${gradient || ''}
+       ${defs}
        <use href="#curly" fill="${fill}" stroke="${fill}" stroke-width="${t2}" stroke-linejoin="round"/>
-       ${gradient ? `<!--<use href="#curly" fill="url(#gradient)" clip-path="url(#inside)" />-->` : ''}
-       ${gradient ? `<rect x="${r * 1.5}" y="${t}" width="${width - 2 * r * 1.5}" height="${height - t2}" rx="${r}" fill="url(#gradient)"/>` : ''}
        `,
       "background-position-x": -r,
       "background-width": width + 2 * r,
       "background-clip": "none",
-      "bounds-expansion": 2 * t
+      "bounds-expansion": 2 * t,
     },
     hover: {
       "background-image": `
@@ -167,6 +164,14 @@ export const entitySet: DrawerProvider = (properties, {
         "background-width": width + 2 * r,
       },
     ],
+    analysis: {
+      'background-image': `<rect x="${r * 1.5}" y="${t}" width="${width - 2 * r * 1.5}" rx="${r}" height="${height - t2}" class="gradient"/>`,
+      "background-position-x": -r,
+      "background-width": width + 2 * r,
+      "background-clip": "none",
+      "bounds-expansion": 2 * t,
+      requireGradient: true
+    }
     // analysis: {
     //   'background-image': `${defs}${gradient}
     //   <use href="#curly" fill="url(#gradient)" clip-path="url(#inside)"/>

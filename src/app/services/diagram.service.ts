@@ -3,7 +3,6 @@ import {catchError, forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Graph} from "../model/graph.model";
-// @ts-ignore
 import Reactome, {Style} from "reactome-cytoscape-style";
 import legend from "../../assets/json/legend.json"
 import {array} from "vectorious";
@@ -263,7 +262,7 @@ export class DiagramService {
         }
 
         idToGraphNodes.forEach(node => {
-          let leaves = new Set<Graph.Node >();
+          let leaves = new Set<Graph.Node>();
           getLeaves(node, leaves);
           node.leaves = [...leaves];
         })
