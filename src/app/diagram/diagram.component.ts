@@ -121,7 +121,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.cys[0] = this.cy;
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
-        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([`../${e.target.data('graph.stId')}`], {queryParamsHandling: "preserve", relativeTo: this.route}))
+        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([`../${e.target.data('graph.stId')}`], {
+          queryParamsHandling: "preserve",
+          relativeTo: this.route
+        }))
 
         this.event.setSubpathwaysColors(new Map(
           this.cy?.nodes('.Shadow').map(node => [node.data('reactomeId'), node.data('color')])
@@ -129,7 +132,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
         this.loadCompare(elements, container);
 
-        this.avoidSideEffect( () => this.stateToDiagram());
+        this.avoidSideEffect(() => this.stateToDiagram());
       })
   }
 
@@ -588,6 +591,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     const resource = this.state.get('overlay');
     if (resource) {
+      console.log('Resource not null', resource)
       this.interactorsComponent?.getInteractors(resource)
     }
 

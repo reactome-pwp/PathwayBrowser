@@ -5,41 +5,41 @@
     <as-split-area [size]="20">
       <div class="left-panel">
         <div class="search"><p>search-box</p></div>
-<!--        <div class="sidebar">-->
+        <!--        <div class="sidebar">-->
 
-          <div class="species-interactor-container">
-            <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
-              <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
-              <div class="species-content">
-                <span>Species</span>
-                <span>{{ currentSpecies?.shortName }}</span>
-              </div>
-              <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
+        <div class="species-interactor-container">
+          <div class="species" (click)="toggleVisibility('species')" [ngClass]="{'selected': visibility.species}">
+            <mat-icon class="custom-icon" svgIcon="species"></mat-icon>
+            <div class="species-content">
+              <span>Species</span>
+              <span>{{ currentSpecies?.shortName }}</span>
             </div>
-            <div class="interactor" (click)="toggleVisibility('interactor')"
-                 [ngClass]="{'selected': visibility.interactor}">
-              <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
-              <div class="overlay-content">
-                <span>Overlay</span>
-                <!--todo: fix the space for long name-->
-                <span *ngIf="currentInteractorResource?.name">{{ currentInteractorResource?.name }}</span>
-              </div>
-              <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
+            <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
+          </div>
+          <div class="interactor" (click)="toggleVisibility('interactor')"
+               [ngClass]="{'selected': visibility.interactor}">
+            <mat-icon class="custom-icon" svgIcon="overlay"></mat-icon>
+            <div class="overlay-content">
+              <span>Overlay</span>
+              <!--todo: fix the space for long name-->
+              <span *ngIf="currentInteractorResource?.name">{{ currentInteractorResource?.name }}</span>
             </div>
-          </div>
-
-          <div [style.display]="visibility.species ? 'block':'none'">
-            <cr-species [id]="diagramId" [visibility]="visibility"></cr-species>
-          </div>
-          <div [style.display]="visibility.interactor ? 'block':'none'">
-            <cr-interactors #interactors [cy]="diagram.cy" [cys]="diagram.cys"
-                            (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
-          </div>
-          <div class="event-hierarchy">
-            <cr-event-hierarchy [id]="diagramId" [eventSplit]="sideSplit"></cr-event-hierarchy>
+            <mat-icon class="custom-icon">arrow_drop_down</mat-icon>
           </div>
         </div>
-<!--      </div>-->
+
+        <div [style.display]="visibility.species ? 'block':'none'">
+          <cr-species [id]="diagramId" [visibility]="visibility"></cr-species>
+        </div>
+        <div [style.display]="visibility.interactor ? 'block':'none'">
+          <cr-interactors #interactors [cy]="diagram.cy" [cys]="diagram.cys"
+                          (initialiseReplaceElements)="diagram.initialiseReplaceElements()"></cr-interactors>
+        </div>
+        <div class="event-hierarchy">
+          <cr-event-hierarchy [id]="diagramId" [eventSplit]="sideSplit"></cr-event-hierarchy>
+        </div>
+      </div>
+      <!--      </div>-->
     </as-split-area>
 
     <as-split-area [size]="80">
@@ -52,7 +52,7 @@
             <button mat-menu-item>GSA</button>
           </mat-menu>
 
-          <mat-slide-toggle color="primary" [(ngModel)]=" dark.isDark">Dark mode</mat-slide-toggle>
+          <mat-slide-toggle color="primary" [(ngModel)]="dark.isDark">Dark mode</mat-slide-toggle>
 
         </div>
         <div class="content">
