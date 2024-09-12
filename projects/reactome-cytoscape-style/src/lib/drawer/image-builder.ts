@@ -22,7 +22,7 @@ import chroma from "chroma-js";
 
 export const imageBuilder = (properties: Properties, style: Style) => memoize(
   (node: cytoscape.NodeSingular): Aggregated<Image> => {
-    console.time(`build-image-${node.id()}`)
+    // console.time(`build-image-${node.id()}`)
     let layers: Image[] = [];
     const clazz = node.classes().find(clazz => classToDrawers.has(clazz as Node)) as Node
     if (!clazz) return aggregate(layers, defaultBg);
@@ -86,7 +86,7 @@ export const imageBuilder = (properties: Properties, style: Style) => memoize(
     aggregated['bounds-expansion'] = [Math.max(...aggregated['bounds-expansion'] as number[], 0)]
 
 
-    console.timeEnd(`build-image-${node.id()}`)
+    // console.timeEnd(`build-image-${node.id()}`)
     return aggregated;
   }, node => `${node.id()}-${node.classes().toString()}-s:${node.selected()}`
 )

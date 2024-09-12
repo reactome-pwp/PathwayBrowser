@@ -789,10 +789,7 @@ export class Style {
   }
 
   loadAnalysis(cy: cytoscape.Core, palette: Scale) {
-    console.log(cy, palette)
-
     this.currentPalette = palette;
-
     resetGradients()
     this.update(cy);
   }
