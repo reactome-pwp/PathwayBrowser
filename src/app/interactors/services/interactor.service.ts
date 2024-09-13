@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import cytoscape, {NodeCollection, NodeSingular} from "cytoscape";
 import {catchError, map, Observable, of, Subject, switchMap} from "rxjs";
 import {

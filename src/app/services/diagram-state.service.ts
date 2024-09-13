@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject, distinctUntilChanged, firstValueFrom, map, Observable, tap} from "rxjs";
 import {isArray, isBoolean, isNumber} from "lodash";
-import {HttpClient} from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {environment} from "../../environments/environment";
 
 

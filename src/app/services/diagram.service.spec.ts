@@ -1,7 +1,7 @@
 import {TestBed} from '@angular/core/testing';
 
 import {DiagramService} from './diagram.service';
-import {HttpClient, HttpClientModule} from "@angular/common/http";
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import {concatMap, delay, from, interval, tap, zip} from "rxjs";
 
 describe('DiagramService', () => {
@@ -10,9 +10,10 @@ describe('DiagramService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule],
-      teardown: {destroyAfterEach: false}
-    });
+    teardown: { destroyAfterEach: false },
+    imports: [],
+    providers: [provideHttpClient(withInterceptorsFromDi())]
+});
     service = TestBed.inject(DiagramService);
     client = TestBed.inject(HttpClient);
   });

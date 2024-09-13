@@ -4,7 +4,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AppComponent} from './app.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
-import {HttpClientModule} from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import {DiagramComponent} from './diagram/diagram.component';
 import {RouterOutlet} from "@angular/router";
 import {AppRoutingModule} from "./app-routing.module";
@@ -42,24 +42,21 @@ import {MatMenuModule} from "@angular/material/menu";
 import { DiagramHomeComponent } from './diagram-home/diagram-home.component';
 
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    DiagramComponent,
-    DiagramIteratorComponent,
-    CustomInteractorDialogComponent,
-    InteractorsComponent,
-    ViewportComponent,
-    SpeciesComponent,
-    EventHierarchyComponent,
-    DetailsComponent,
-    DiagramHomeComponent
-  ],
-    imports: [
-        BrowserModule,
+@NgModule({ declarations: [
+        AppComponent,
+        DiagramComponent,
+        DiagramIteratorComponent,
+        CustomInteractorDialogComponent,
+        InteractorsComponent,
+        ViewportComponent,
+        SpeciesComponent,
+        EventHierarchyComponent,
+        DetailsComponent,
+        DiagramHomeComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
         FormsModule,
         CommonModule,
-        HttpClientModule,
         RouterOutlet,
         AppRoutingModule,
         // NoopAnimationsModule,
@@ -87,10 +84,6 @@ import { DiagramHomeComponent } from './diagram-home/diagram-home.component';
         MatRippleModule,
         MatTreeModule,
         MatTooltipModule,
-        MatMenuModule
-    ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+        MatMenuModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule {
 }

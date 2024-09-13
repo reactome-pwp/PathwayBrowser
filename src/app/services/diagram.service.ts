@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {catchError, forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
-import {HttpClient} from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {Diagram, Edge, Node, NodeConnector, Position, Prop, Rectangle} from "../model/diagram.model";
 import {Graph} from "../model/graph.model";
 import Reactome, {Style} from "reactome-cytoscape-style";

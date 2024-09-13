@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import {BehaviorSubject, map, Observable, tap} from "rxjs";
 import {environment} from "../../environments/environment";
 import {OrthologousMap, Species} from "../model/species.model";

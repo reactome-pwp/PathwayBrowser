@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {catchError, distinctUntilChanged, map, Observable, of, switchMap, tap} from "rxjs";
-import {HttpClient} from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {Analysis} from "../model/analysis.model";
 import {DiagramStateService} from "./diagram-state.service";
