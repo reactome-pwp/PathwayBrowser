@@ -37,10 +37,6 @@ $bg-color: map.get(p.$primary-colors, 990);
 //
 // To learn more about "base" theme styles visit our theming guide:
 // https://material.angular.io/guide/theming#theming-dimensions
-//
-// TODO(v17): Please move these @include statements to the preferred place in your Sass, and pass
-// your theme to them. This will ensure the correct values for your app are included.
-@include mat.all-component-bases(/* TODO(v17): pass $your-theme here */);
 
 
 
@@ -117,6 +113,9 @@ $bg-color: map.get(p.$primary-colors, 010);
 
 $color-config: mat.get-color-config($light-theme);
 
+@include mat.all-component-bases($light-theme);
+
+
 
 
 // Apply the dark theme only when the user prefers dark themes.
@@ -153,9 +152,13 @@ $color-config: mat.get-color-config($light-theme);
   @include mat.menu-color($dark-theme);
   @include mat.list-theme($dark-theme);
 
+  @include mat.all-component-bases($dark-theme);
+
 }
 
 @include variables.theme($palettes);
+
+
 
 
 
