@@ -74,7 +74,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       // @ts-ignore
       // Mat tree has a bug causing children to not be rendered in the UI without first setting the data to null
       // This is a workaround to add child data to tree and update the view. see details: https://github.com/angular/components/issues/11381
-      this.treeDataSource.data = null; //todo: check performance issue
+      this.treeDataSource.data = []; //todo: check performance issue
       this.treeDataSource.data = events;
       this.adjustWidths();
     });
@@ -352,7 +352,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
    * Adjust widths when loading mat tree data at the initialization.
    */
   adjustWidths() {
-    const treeNodes = this.el.nativeElement.querySelectorAll('.mat-tree-node');
+    const treeNodes = this.el.nativeElement.querySelectorAll('.tree-node');
     treeNodes.forEach((node: HTMLElement) => {
       this.adjustWidth(node);
     });
@@ -372,12 +372,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   private calculateAndSetWidth(node: HTMLElement, hasEvents: boolean): number {
-    const left = node.querySelector('.left') as HTMLElement;
     const right = node.querySelector('.right') as HTMLElement;
     const parentWidth = node.clientWidth; // inner width of mat tree node in pixels
     const rightWidth = hasEvents ? right.offsetWidth : right.offsetWidth + this._GRADIENT_WIDTH; // 10 is the width of the gradient
-    left.style.width = `calc(${parentWidth}px - ${rightWidth}px)`;
     return parentWidth - rightWidth;
+    // return 0;
   }
 
 
@@ -392,7 +391,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   onNameHover($event: MouseEvent, event: Event) {
-    const targetParentNode = ($event.target as HTMLElement).closest('.mat-tree-node') as HTMLElement;
+    const targetParentNode = ($event.target as HTMLElement).closest('.tree-node') as HTMLElement;
     const leftDivWidth = this.getLeftDivElWidth(targetParentNode, event);
     const nameElement = $event.target as HTMLElement;
     const contentWidth = this.calculateContentWidth(nameElement, event);

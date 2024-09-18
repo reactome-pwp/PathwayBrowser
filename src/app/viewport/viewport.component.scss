@@ -94,6 +94,10 @@
   align-items: center;
 }
 
+.custom-icon::ng-deep svg * {
+  fill: var(--on-surface-variant);
+}
+
 .selected .custom-icon::ng-deep svg * {
   fill: var(--primary);
 }

@@ -1,13 +1,12 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
 import cytoscape from "cytoscape";
-import {ReactomeEvent, ReactomeEventTypes, Style} from "reactome-cytoscape-style";
+import {ReactomeEvent, ReactomeEventTypes, Style, extract} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
 import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
-import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
 import {AnalysisService, Examples, PaletteGroup} from "../services/analysis.service";
 import {Graph} from "../model/graph.model";
 import {isDefined} from "../services/utils";

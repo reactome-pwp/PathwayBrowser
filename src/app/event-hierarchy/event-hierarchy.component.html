@@ -3,8 +3,9 @@
     <ng-container class="icon-container">
       <mat-icon class='home-icon' svgIcon="home"></mat-icon>
     </ng-container>
-    <div class="gradient-holder-left"></div>
     <nav class="breadcrumb">
+      <div class="gradient-holder-left"></div>
+
       <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
         <!--        <span class="gutter">></span>-->
         <ng-container *ngIf="!last">
@@ -18,8 +19,9 @@
           <span class="breadcrumb-item"> {{ breadcrumb.displayName }}</span>
         </ng-container>
       </ng-container>
+
+      <div class="gradient-holder-right"></div>
     </nav>
-    <div class="gradient-holder-right"></div>
   </div>
 
   <div id="events-container">
@@ -29,65 +31,67 @@
                      [ngClass]="{'has-sibling': hasRootSiblingForLeafNode(node)}">
         <!-- use a disabled button to provide padding for table leaf -->
         <!--    <button mat-icon-button disabled class="button-size"></button>-->
-        <div class="left">
-          <button mat-button (click)="onTreeEventSelect(node)"
-                  [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
-            <mat-icon class='custom-icon'
-                      [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
-                      [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
-            <div class="name-container">
-              <div class="font name"
-                   (mouseover)="onNameHover($event ,node)"
-                   (mouseleave)="onNameHoverLeave($event, node)"
-                   (wheel)="onScroll($event, node)">
-                {{ node.displayName }}
+        <div class="tree-node child-less">
+          <div class="left">
+            <button mat-button (click)="onTreeEventSelect(node)"
+                    [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}" class="button">
+              <mat-icon class='custom-icon'
+                        [matTooltip]="node.schemaClass === 'Reaction' ? 'Reaction' : 'Black Box Event'"
+                        [svgIcon]="node.schemaClass === 'Reaction' ? 'reaction' : 'transition'"></mat-icon>
+              <div class="name-container">
+                <div class="font name"
+                     (mouseover)="onNameHover($event ,node)"
+                     (mouseleave)="onNameHoverLeave($event, node)"
+                     (wheel)="onScroll($event, node)">
+                  {{ node.displayName }}
+                </div>
               </div>
-            </div>
-          </button>
-        </div>
+            </button>
+          </div>
 
-        <div class="right">
-          <div class="tag-container">
-            <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'" (mouseover)="onTagHover(node)"
-                 (mouseleave)="onTagHoverLeave(node)">
-              <span class='initial'>U</span>
-              <span class="body">PDATED</span>
-            </div>
-            <div class="tag" *ngIf="node.releaseStatus === 'NEW'" (mouseover)="onTagHover(node)"
-                 (mouseleave)="onTagHoverLeave(node)">
-              <span class='initial'>N</span>
-              <span class="body">EW</span>
-            </div>
+          <div class="right">
+            <div class="tag-container">
+              <div class="tag" *ngIf="node.releaseStatus === 'UPDATED'" (mouseover)="onTagHover(node)"
+                   (mouseleave)="onTagHoverLeave(node)">
+                <span class='initial'>U</span>
+                <span class="body">PDATED</span>
+              </div>
+              <div class="tag" *ngIf="node.releaseStatus === 'NEW'" (mouseover)="onTagHover(node)"
+                   (mouseleave)="onTagHoverLeave(node)">
+                <span class='initial'>N</span>
+                <span class="body">EW</span>
+              </div>
 
-            <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease" (mouseover)="onTagHover(node)"
-                 (mouseleave)="onTagHoverLeave(node)">
-              <span class='initial'>D</span>
-              <span class="body">ISEASE</span>
-            </div>
+              <div class="tag" *ngIf="node.isInDisease" [class.disease]="node.isInDisease" (mouseover)="onTagHover(node)"
+                   (mouseleave)="onTagHoverLeave(node)">
+                <span class='initial'>D</span>
+                <span class="body">ISEASE</span>
+              </div>
 
-            <div class="tag" *ngIf="node.isInferred" (mouseover)="onTagHover(node)"
-                 (mouseleave)="onTagHoverLeave(node)">
-              <span class='initial'>I</span>
-              <span class="body">NFERRED</span>
-            </div>
+              <div class="tag" *ngIf="node.isInferred" (mouseover)="onTagHover(node)"
+                   (mouseleave)="onTagHoverLeave(node)">
+                <span class='initial'>I</span>
+                <span class="body">NFERRED</span>
+              </div>
 
+            </div>
           </div>
         </div>
       </mat-tree-node>
 
       <!-- This is the tree node template for expandable nodes -->
       <mat-nested-tree-node *matTreeNodeDef="let node; when: eventService.hasChild">
-        <div class="mat-tree-node">
+        <div class="tree-node">
           <div class="left">
             <button #treeControlButton mat-icon-button class="button-size no-hover-effect"
                     [attr.aria-label]="'Toggle ' + node.name" (click)="onTreeEventSelect(node)">
-              <mat-icon class="mat-icon-rtl-mirror"
+              <mat-icon class="mat-icon-rtl-mirror custom-icon"
                         [svgIcon]="treeControl.isExpanded(node) ? 'arrow-down' : 'arrow-right'"></mat-icon>
             </button>
 
             <button mat-button (click)="onTreeEventSelect(node)" class="button"
                     [ngClass]="{'highlight': node.isSelected, 'hovered': node.isHovered}">
-              <mat-icon #eventIcon class='custom-icon'
+              <mat-icon #eventIcon class='custom-icon' [class.ehld]="node.hasEHLD"
                         [matTooltip]="node.hasEHLD? 'Pathway with an enhanced diagram ' : 'Pathway'"
                         [svgIcon]="node.hasEHLD  ? 'pathway-ehld' : 'pathway'"></mat-icon>
               <div class="name-container">

@@ -15,3 +15,7 @@
 .spinner-color::ng-deep circle {
     stroke: var(--on-primary) !important;
 }
+
+.file {
+  color: var(--on-surface);
+}

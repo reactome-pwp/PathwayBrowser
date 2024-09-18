@@ -19,9 +19,9 @@
         </section>
 
         <mat-form-field *ngIf="selectedValue === 'form'" class="full-width">
-          <ngx-mat-file-input formControlName="form" (change)="onFileChange($event)"  [multiple]=false>
-            <mat-icon ngxMatFileInputIcon>folder</mat-icon>
+          <ngx-mat-file-input class="file" placeholder="Upload file" formControlName="form" (change)="onFileChange($event)">
           </ngx-mat-file-input>
+          <mat-icon matSuffix>folder</mat-icon>
           <mat-hint><strong>Upload a file stored locally on your computer.</strong></mat-hint>
         </mat-form-field>
 

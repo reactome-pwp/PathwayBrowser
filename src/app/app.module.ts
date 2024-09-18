@@ -4,7 +4,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AppComponent} from './app.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import {provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 import {DiagramComponent} from './diagram/diagram.component';
 import {RouterOutlet} from "@angular/router";
 import {AppRoutingModule} from "./app-routing.module";
@@ -23,7 +23,6 @@ import {MatDialogModule} from "@angular/material/dialog";
 import {MatTabsModule} from "@angular/material/tabs";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatRadioModule} from "@angular/material/radio";
-import {NgxMatFileInputModule} from "@angular-material-components/file-input";
 import {MatIconModule} from "@angular/material/icon";
 import {MatListModule} from "@angular/material/list";
 import {MatExpansionModule} from "@angular/material/expansion";
@@ -37,9 +36,11 @@ import {MatRippleModule} from "@angular/material/core";
 import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.component';
 import {MatTreeModule} from "@angular/material/tree";
 import {MatTooltipModule} from "@angular/material/tooltip";
-import { DetailsComponent } from './details/details.component';
+import {DetailsComponent} from './details/details.component';
 import {MatMenuModule} from "@angular/material/menu";
-import { DiagramHomeComponent } from './diagram-home/diagram-home.component';
+import {DiagramHomeComponent} from './diagram-home/diagram-home.component';
+import {MaterialFileInputModule} from "ngx-custom-material-file-input";
+import {CdkNestedTreeNode} from "@angular/cdk/tree";
 
 
 @NgModule({ declarations: [
@@ -55,35 +56,34 @@ import { DiagramHomeComponent } from './diagram-home/diagram-home.component';
         DiagramHomeComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
-        FormsModule,
-        CommonModule,
-        RouterOutlet,
-        AppRoutingModule,
-        // NoopAnimationsModule,
-        MatButtonModule,
-        MatSlideToggleModule,
-        CdkDragHandle,
-        CdkDrag,
-        MatInputModule,
-        MatSelectModule,
-        ReactiveFormsModule,
-        MatProgressSpinnerModule,
-        BrowserAnimationsModule,
-        MatDialogModule,
-        MatTabsModule,
-        MatCheckboxModule,
-        MatRadioModule,
-        NgxMatFileInputModule,
-        MatIconModule,
-        MatListModule,
-        MatExpansionModule,
-        MatGridListModule,
-        AngularSplitModule,
-        MatCardModule,
-        MatIconModule,
-        MatRippleModule,
-        MatTreeModule,
-        MatTooltipModule,
-        MatMenuModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+    FormsModule,
+    CommonModule,
+    RouterOutlet,
+    AppRoutingModule,
+    // NoopAnimationsModule,
+    MatButtonModule,
+    MatSlideToggleModule,
+    CdkDragHandle,
+    CdkDrag,
+    MatInputModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+    MatProgressSpinnerModule,
+    BrowserAnimationsModule,
+    MatDialogModule,
+    MatTabsModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatIconModule,
+    MatListModule,
+    MatExpansionModule,
+    MatGridListModule,
+    AngularSplitModule,
+    MatCardModule,
+    MatIconModule,
+    MatRippleModule,
+    MatTreeModule,
+    MatTooltipModule,
+    MatMenuModule, MaterialFileInputModule, CdkNestedTreeNode], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule {
 }

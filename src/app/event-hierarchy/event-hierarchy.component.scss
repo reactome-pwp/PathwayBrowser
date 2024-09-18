@@ -20,6 +20,7 @@
   white-space: nowrap;
   --transparent-surface: oklch(from var(--surface) l c h / 0);
 
+
   .breadcrumb {
     display: flex;
     flex-direction: row;
@@ -92,7 +93,7 @@
   .gradient-holder-left {
     position: absolute;
     width: 10px;
-    left: 22px;
+    left: 0;
     top: 0;
     bottom: 0;
     background: linear-gradient(270deg, var(--surface) 0%, var(--transparent-surface) 100%);
@@ -104,7 +105,7 @@
   .gradient-holder-right {
     position: absolute;
     width: 10px;
-    right: 10px;
+    right: 0;
     top: 0;
     bottom: 0;
     background: linear-gradient(270deg, var(--surface) 0%, var(--transparent-surface) 100%);
@@ -117,9 +118,9 @@
 }
 
 .home-icon {
-  width: 16px;
+  width: 18px;
   height: 18px;
-  padding: 0 3.5px 0 4px;
+  margin-left: 9px;
 }
 
 
@@ -131,6 +132,8 @@
 
 .mat-tree {
   background: var(--surface);
+  --mat-text-button-horizontal-padding: 5px;
+  --mat-text-button-with-icon-horizontal-padding: 5px;
 }
 
 /*
@@ -160,25 +163,39 @@
  * Leaf nodes need to have padding so as to align with other non-leaf nodes
  * under the same parent.
  */
-.example-tree div[role=group] > .mat-tree-node {
+.example-tree div[role=group] > .tree-node {
   padding-left: 8px;
 }
 
 
-.mat-tree-node {
+.tree-node {
   height: 26px;
   position: relative;
-  width: auto;
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Items are positioned with space between them */
+  align-items: flex-start; /* Align items at the start of the cross axis (top in this case) */
+
+  &.child-less .left {
+    & > *:first-child {
+      margin-left: 4px;
+    }
+  }
 
   .left {
     display: flex;
     overflow: hidden;
+    flex: 0 1 auto; /* Default flex properties for left element */
+
+    & > *:first-child {
+      margin-left: 8px;
+    }
   }
 
   .right {
     z-index: 99;
-    position: absolute;
-    right: 0;
+    position: relative;
+    flex: 0 1 auto; /* Default flex properties for right element */
     height: 100%;
     display: flex;
   }
@@ -201,9 +218,15 @@
 
 .custom-icon {
   z-index: 1; // Ensure to display tooltip : https://github.com/angular/components/issues/28888
-  height: 17px !important;
-  width: 17px !important;
   flex-shrink: 0; // Ensure the icon does not shrink
+
+  &::ng-deep svg * {
+    fill: var(--on-surface);
+  }
+
+  &.ehld::ng-deep svg * {
+    fill: var(--primary);
+  }
 }
 
 .button-size {
@@ -247,7 +270,7 @@
  * Branch line helper
  */
 ul {
-  margin: 8px;
+  margin: 17px;
   padding: 0;
   border-left: 1px solid var(--outline-variant);
 }
@@ -277,7 +300,7 @@ ul {
     content: '';
     position: absolute;
     width: 10px; // This valued is used to calculate left DIV width, remember to update it in the component adjustWidth method when you change it
-    left: -9px;
+    left: -10px;
     height: 100%;
     background: linear-gradient(270deg, var(--surface) 0%, var(--transparent-surface) 100%);
   }
@@ -416,9 +439,9 @@ ul {
   scrollbar-width: none;  /* Firefox */
 }
 
-.has-sibling {
-  margin-left: 12px;
-}
+//.has-sibling {
+//  margin-left: 12px;
+//}
 
 //.has-no-sibling {
 //   margin-left: 4px;

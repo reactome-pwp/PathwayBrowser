@@ -6,6 +6,12 @@
       "signature": "6a8a37cfc081a7497735bc476504ac6a",
       "file": true,
       "replaced": "^3.28.0"
+    },
+    "ngx-reactome-style": {
+      "version": "0.0.18",
+      "signature": "f88d6aacddf2be136c6591846253c654",
+      "file": true,
+      "replaced": "0.0.18"
     }
   }
 }
