@@ -118,7 +118,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         this.cys[0] = this.cy;
         this.reactomeStyle.bindToCytoscape(this.cy);
         this.reactomeStyle.clearCache();
-        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([e.target.data('graph.stId')], {queryParamsHandling: "preserve"}))
+        this.cy.on('dblclick', '.Pathway', (e) => this.router.navigate([`PathwayBrowser`, e.target.data('graph.stId')], {queryParamsHandling: "preserve"}))
 
         this.event.setSubpathwaysColors(new Map(
           this.cy?.nodes('.Shadow').map(node => [node.data('reactomeId'), node.data('color')])
