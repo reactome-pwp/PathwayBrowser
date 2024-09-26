@@ -102,7 +102,7 @@ export class EventService {
     )
   }
 
-  fetchChildrenEvents(event: Event, treeNodes: Event[]): Observable<[Event, Event, Map<number, string>]> {
+  fetchChildrenEvents(event: Event): Observable<[Event, Event, Map<number, string>]> {
     return this.fetchEnhancedEventData(event.stId).pipe(
       switchMap(result => {
         if (result.hasEvent) {
@@ -111,7 +111,6 @@ export class EventService {
             child.parent = event;
             return child;
           });
-          this.setTreeData(treeNodes); // Update tree data
           return this.subpathwaysColors$.pipe(
             map(colors => [event, result, colors || new Map<number, string>()] as [Event, Event, Map<number, string>])
           );

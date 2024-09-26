@@ -106,12 +106,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.loadTreeEvent$.pipe(
       switchMap(treeEvent => {
         this.collapseSiblingEvent(treeEvent);
-        return this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data);
+        return this.eventService.fetchChildrenEvents(treeEvent);
       }),
       untilDestroyed(this)
-    ).subscribe(([event, enhancedResult, colors]) => {
-      this.eventService.setCurrentEventAndObj(event, enhancedResult);
-      this.eventService.setSubpathwayColors(event, colors);
+    ).subscribe(([treeEvent, enhancedResult, colors]) => {
+      this.eventService.setCurrentEventAndObj(treeEvent, enhancedResult);
+      this.eventService.setSubpathwayColors(treeEvent, colors);
+      this.eventService.setTreeData(this.treeDataSource.data);
     });
 
   }

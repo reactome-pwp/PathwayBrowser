@@ -37,7 +37,7 @@ import {MatRippleModule} from "@angular/material/core";
 import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.component';
 import {MatTreeModule} from "@angular/material/tree";
 import {MatTooltipModule} from "@angular/material/tooltip";
-import { DetailsComponent } from './details/details.component';
+import {DetailsComponent} from './details/details.component';
 
 
 @NgModule({

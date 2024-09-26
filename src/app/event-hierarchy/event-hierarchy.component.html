@@ -136,7 +136,8 @@
         <!-- There is inline padding applied to this div using styles.
             This padding value depends on the mat-icon-button width.  -->
         <ul>
-          <div [class.example-tree-invisible]="!treeControl.isExpanded(node)" role="group" class="group">
+        <!--  The official docs are still using the [class.example-tree-invisible] instead of the *ngIf, but it causes layout shifts or empty space issues -->
+          <div *ngIf="treeControl.isExpanded(node)" role="group" class="group">
             <ng-container matTreeNodeOutlet></ng-container>
           </div>
         </ul>
