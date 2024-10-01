@@ -240,7 +240,7 @@ export class DiagramService {
         // create a node id - graph node mapping
         const dbIdToGraphNode = new Map<number, Graph.Node>(graph.nodes.map(node => ([node.dbId, node]) || []))
         const mappingList: [number, Graph.Node][] = graph.nodes.flatMap(node => {
-          if (node.children && node.children.length === 1) { // Consider homomer complex like their constituents for interactors
+          if (node.children && node.children.length === 1 && node.diagramIds?.length !== 1) { // Consider homomer complex like their constituents for interactors
             return node.diagramIds?.map(id => [id, dbIdToGraphNode.get(node.children[0])])
               .filter(entry => entry[1] !== undefined) as [number, Graph.Node][]
           } else {
