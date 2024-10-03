@@ -183,6 +183,7 @@ export class EventService {
   }
 
 
+  // Subpathway and interacting pathway
   private handlePathwaySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>, treeNodes: Event[]): Observable<Event[]> {
     // Interacting pathway, not visible in the tree view
     if (!this.isEventVisible(event, allVisibleTreeNodes)) {
@@ -207,8 +208,8 @@ export class EventService {
     return allVisibleTreeNodes.map(e => e.stId).includes(event.stId);
   }
 
-  private isPathwayWithDiagram(event: Event): boolean {
-    return this.eventHasChild(event) && event.hasDiagram;
+  isPathwayWithDiagram(event: Event): boolean {
+    return this.eventHasChild(event) && event.hasDiagram && event.schemaClass === 'Pathway';
   }
 
   clearAllSelectedEvents(events: Event[]) {
@@ -373,7 +374,7 @@ export class EventService {
     }
   }
 
-  private getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
+  getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
     const pathIds = this.state.get('path');
     let finalAncestor: Event[];
     // When path is given through URL, this link is from Location in PWB on detail page
@@ -495,5 +496,11 @@ export class EventService {
   isReaction(event: Event) {
     return (['Reaction', 'BlackBoxEvent', 'CellDevelopmentStep'].includes(event.schemaClass));
   }
+
+  getPathwayWithDiagram(event: Event): Event | undefined {
+    const parents = [...event.ancestors].reverse();
+    return parents.find(p => p.hasDiagram);
+  }
+
 
 }
