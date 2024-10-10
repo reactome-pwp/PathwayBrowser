@@ -38,6 +38,7 @@ import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.compone
 import {MatTreeModule} from "@angular/material/tree";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {DetailsComponent} from './details/details.component';
+import { EhldComponent } from './ehld/ehld.component';
 
 
 @NgModule({
@@ -50,7 +51,8 @@ import {DetailsComponent} from './details/details.component';
     ViewportComponent,
     SpeciesComponent,
     EventHierarchyComponent,
-    DetailsComponent
+    DetailsComponent,
+    EhldComponent
   ],
   imports: [
     BrowserModule,
