@@ -1,11 +1,33 @@
-import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {
+  AfterViewInit, ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  Output,
+  Renderer2,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
-import cytoscape from "cytoscape";
+import cytoscape, {ElementsDefinition} from "cytoscape";
 // @ts-ignore
 import {Interactivity, ReactomeEvent, Style} from "reactome-cytoscape-style";
 import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
-import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
+import {
+  catchError,
+  delay,
+  distinctUntilChanged,
+  EMPTY,
+  filter,
+  forkJoin, map,
+  Observable, of,
+  share,
+  Subject, switchMap,
+  take,
+  tap
+} from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
@@ -17,6 +39,8 @@ import {Analysis} from "../model/analysis.model";
 import {Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {EventService} from "../services/event.service";
+import {DomSanitizer} from "@angular/platform-browser";
+import {Event} from "../model/event.model";
 
 
 @UntilDestroy({checkProperties: true})
@@ -28,13 +52,15 @@ import {EventService} from "../services/event.service";
 export class DiagramComponent implements AfterViewInit, OnChanges {
   title = 'pathway-browser';
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('ehld') ehldContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
   @Input('interactor') interactorsComponent?: InteractorsComponent;
 
+
   comparing: boolean = false;
-
-
+  svgContent = '';
+  hasEHLD: boolean = false;
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
@@ -42,7 +68,10 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               private state: DiagramStateService,
               private analysis: AnalysisService,
               private event: EventService,
-              private router: Router
+              private router: Router,
+              private sanitizer: DomSanitizer,
+              private renderer: Renderer2,
+              private cdr: ChangeDetectorRef
   ) {
   }
 
@@ -101,14 +130,39 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   }
 
-  loadDiagram() {
-    if (!this.cytoscapeContainer) return;
 
-    const container = this.cytoscapeContainer!.nativeElement;
 
-    this.diagram.getDiagram(this.diagramId)
-      .subscribe(elements => {
-        this.comparing = elements.nodes.some(node => node.data['isFadeOut']) || elements.edges.some(edge => edge.data['isFadeOut'])
+  private loadDiagram(): void {
+    this.event.fetchEnhancedEventData(this.diagramId).pipe(
+      switchMap((event) => {
+        // If event has EHLD
+        if (event.hasEHLD) {
+          this.hasEHLD = true;
+          return this.loadEhldSvg();
+        } else {
+          this.hasEHLD = false;
+        }
+        // If it is a subpathway without diagram
+        if (!this.event.isPathwayWithDiagram(event)) {
+          return this.loadSubpathway(event);
+        }
+        // pathway with a diagram
+        return this.loadElvDiagram();
+      }),
+      catchError(() => of(null))
+    ).subscribe();
+  }
+
+
+  loadElvDiagram(): Observable<ElementsDefinition> {
+    if (!this.cytoscapeContainer) return EMPTY; // Prevent execution if the container is not present
+
+    const container = this.cytoscapeContainer.nativeElement;
+    return this.diagram.getDiagram(this.diagramId).pipe(
+      tap(elements => {
+        this.comparing = elements.nodes.some(node => node.data['isFadeOut']) ||
+          elements.edges.some(edge => edge.data['isFadeOut']);
+
         this.cy = cytoscape({
           container: container,
           elements: elements,
@@ -128,6 +182,112 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
         this.avoidSideEffect( () => this.stateToDiagram());
       })
+    );
+  }
+
+
+  private loadEhldSvg(): Observable<string> {
+    return this.diagram.getEHLDSvg(this.diagramId).pipe(
+      tap(svgContent => {
+        if (svgContent) {
+          const sanitizedSvg = this.sanitizer.bypassSecurityTrustHtml(svgContent);
+          this.svgContent = sanitizedSvg as string;
+
+          if (this.svgContent) {
+            this.cdr.detectChanges();
+            console.log("add Hover listener")
+            this.addHoverListenerToSvg();
+          }
+
+        } else {
+          console.error('Error loading EHLD SVG');
+        }
+      })
+    )
+  }
+
+
+  private addHoverListenerToSvg(): void {
+    const svgElement = this.ehldContainer!.nativeElement.querySelectorAll('g[id^="REGION"]') as NodeListOf<SVGGElement>;;
+
+    svgElement.forEach((element: SVGGElement) => {
+      element.addEventListener('mouseover', () => {
+        this.applyShadow(element);
+        console.log('SVG hover detected');
+      })
+
+      element.addEventListener('mouseout', () => {
+        this.removeShadow(element);
+        console.log('SVG hover ended');
+      })
+    })
+  }
+
+  applyShadow(svgElement: SVGGElement, ) {
+    const filterId = 'hoveringFilter';
+    const svgNameSpace = 'http://www.w3.org/2000/svg';
+
+    // Check if the filter already exists; if not, create it
+    let existingFilter = document.getElementById(filterId);
+    if (!existingFilter) {
+      // Create the filter element
+      const filter = this.renderer.createElement('filter', svgNameSpace);
+      filter.setAttribute('id', filterId);
+      filter.setAttribute('x', '0');
+      filter.setAttribute('y', '0');
+
+      // Create the feDropShadow element
+      const dropShadow = this.renderer.createElement('feDropShadow', svgNameSpace);
+      dropShadow.setAttribute('dx', '0'); // X offset
+      dropShadow.setAttribute('dy', '0'); // Y offset
+      dropShadow.setAttribute('stdDeviation', '7'); // Blur amount
+      dropShadow.setAttribute('flood-color', '#006782'); // Shadow color, primary
+      dropShadow.setAttribute('flood-opacity', '0.8');
+
+      // Append the feDropShadow to the filter
+      this.renderer.appendChild(filter, dropShadow);
+
+      // Append the filter to the SVG element
+      const svgParent = svgElement.closest('svg');
+      const defs = svgParent!.querySelector('defs')
+      if (defs) {
+        this.renderer.appendChild(defs, filter);
+      }
+    }
+    // Apply the filter to the SVG element
+    svgElement.style.filter = `url(#${filterId})`;
+  }
+
+  removeShadow(svgElement: SVGGElement): void {
+    svgElement.style.filter = 'none';
+  }
+
+
+  loadSubpathway(event: Event){
+    return this.event.fetchEventAncestors(this.diagramId).pipe(
+      map(ancestors => this.event.getFinalAncestors(ancestors)),
+      switchMap((ancestors) => {
+        console.log('diagramId ', this.diagramId);
+        console.log('diagramId ', [...ancestors]);
+        const pathwayWithDiagram = [...ancestors].find(p => p.hasDiagram);
+        if (pathwayWithDiagram) {
+          const newDiagramId = pathwayWithDiagram.stId;
+          if (newDiagramId !== this.diagramId) {
+            this.diagramId = newDiagramId;
+            console.log('new diagramId ', this.diagramId);
+
+            this.router.navigate(['PathwayBrowser', this.diagramId], {
+              queryParamsHandling: "preserve"
+            }).then(() => {
+              this.state.set('select', event.stId); // Select the current event
+            });
+
+            return this.loadElvDiagram();
+          }
+        }
+        return of(null)
+      })
+    );
   }
 
   public initialiseReplaceElements() {

@@ -1,6 +1,7 @@
 <div class="variables" [class.dark]="dark.isDark" #container>
 
-  <div id="cytoscape" #cytoscape></div>
+  <div id="cytoscape" #cytoscape [style.display]="!hasEHLD ? 'flex': 'none'"></div>
+  <div id="ehld" #ehld [innerHTML]="svgContent" [style.display]="hasEHLD ? 'flex': 'none'"></div>
   <div id="disease-container" class="drag-container" #compareContainer [style.display]="comparing ? 'flex': 'none'">
     <div id="handle-limits" (mouseup)="dragEnd()" (mouseleave)="dragEnd()"
          (mousemove)="dragMove($event, compareContainer, container)" [class.active]="compareDragging">

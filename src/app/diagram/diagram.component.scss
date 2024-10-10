@@ -96,6 +96,11 @@
   background: var(--surface);
 }
 
+#ehld {
+  position: absolute;
+  inset: 0 0 0 0;
+  background: var(--surface);
+}
 
 #legend-boundary {
   --legend-width: 400px;

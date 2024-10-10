@@ -2,10 +2,11 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap} from "rxjs";
+import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap, take} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {DiagramStateService} from "./diagram-state.service";
 import {NestedTreeControl} from "@angular/cdk/tree";
+import {Router} from "@angular/router";
 
 
 @Injectable({
@@ -36,7 +37,7 @@ export class EventService {
   private _loadTreeEvent = new Subject<Event>();
   loadTreeEvent$ = this._loadTreeEvent.asObservable();
 
-  constructor(private http: HttpClient, private state: DiagramStateService) {
+  constructor(private http: HttpClient, private state: DiagramStateService,private router: Router) {
   }
 
   setTreeData(events: Event[]) {
@@ -387,6 +388,20 @@ export class EventService {
       // take the first ancestor if no path is given
       finalAncestor = ancestors[0];
       this.expandAllAncestors(ancestors[0], treeControl);
+    }
+    return finalAncestor;
+  }
+
+
+  getFinalAncestors(ancestors: Event[][]) {
+    const pathIds = this.state.get('path');
+    let finalAncestor: Event[];
+    // When path is given through URL, this link is from Location in PWB on detail page
+    if (pathIds && ancestors.length > 1) {
+      finalAncestor = this.findMatchingAncestor(ancestors, pathIds)
+    } else {
+      // take the first ancestor if no path is given
+      finalAncestor = ancestors[0];
     }
     return finalAncestor;
   }
