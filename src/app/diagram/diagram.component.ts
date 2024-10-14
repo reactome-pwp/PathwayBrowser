@@ -47,9 +47,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
   @Input('interactor') interactorsComponent?: InteractorsComponent;
+  @Input('id') diagramId: string = '';
 
 
   comparing: boolean = false;
+  isInitialLoad: boolean = false;
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
@@ -57,9 +59,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               private state: DiagramStateService,
               private analysis: AnalysisService,
               private event: EventService,
-              private router: Router,
-              private ehld: EhldService,
+              private router: Router
   ) {
+    this.isInitialLoad = Boolean(!this.router.getCurrentNavigation()?.previousNavigation);
   }
 
   cy!: cytoscape.Core;
@@ -67,7 +69,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   cyCompare!: cytoscape.Core;
   reactomeStyleCompare!: Style;
   legend!: cytoscape.Core;
-
   cys: cytoscape.Core[] = [];
 
 
@@ -116,19 +117,20 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   }
 
 
-
   private loadDiagram(): void {
     this.event.fetchEnhancedEventData(this.diagramId).pipe(
       switchMap((event) => {
-        // If it is a subpathway without diagram
-        // if (!this.event.isPathwayWithDiagram(event)) {
-        //   return this.loadSubpathway(event);
-        // }
-        // pathway with a diagram
+        // If the diagramId is a subpathway without diagram, and it is a first load then load parent diagram
+        if (!this.event.isPathwayWithDiagram(event) && this.isInitialLoad) {
+          return this.loadSubpathwayWithDiagram(event);
+        }
+        // Pathway with a diagram
         return this.loadElvDiagram();
       }),
       catchError(() => of(null))
-    ).subscribe();
+    ).subscribe(() => {
+      this.isInitialLoad = false;
+    });
   }
 
 
@@ -158,7 +160,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
         this.loadCompare(elements, container);
 
-        this.avoidSideEffect( () => this.stateToDiagram());
+        this.avoidSideEffect(() => this.stateToDiagram());
       })
     );
   }
@@ -529,8 +531,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             const pathwayData = analysisPathwayMap.get(dbId);
             if (!pathwayData) {
               node.data('exp', [undefined]);
-            }
-            else {
+            } else {
               console.log(dbId, normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max))
               node.data('exp', [
                 [normalize(pathwayData.exp[analysisIndex] || 1 - pathwayData.pValue, min, max), pathwayData.found],
