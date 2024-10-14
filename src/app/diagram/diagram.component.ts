@@ -23,7 +23,7 @@ import {
 } from "rxjs";
 import {ReactomeEventTypes} from "../../../projects/reactome-cytoscape-style/src/lib/model/reactome-event.model";
 import {DiagramStateService} from "../services/diagram-state.service";
-import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import {UntilDestroy} from "@ngneat/until-destroy";
 import {extract} from "../../../projects/reactome-cytoscape-style/src/lib/properties-utils";
 import {AnalysisService, Examples} from "../services/analysis.service";
 import {Graph} from "../model/graph.model";
@@ -33,7 +33,6 @@ import {Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {EventService} from "../services/event.service";
 import {Event} from "../model/event.model";
-import {EhldService} from "../services/ehld.service";
 
 
 @UntilDestroy({checkProperties: true})
@@ -45,7 +44,6 @@ import {EhldService} from "../services/ehld.service";
 export class DiagramComponent implements AfterViewInit, OnChanges {
   title = 'pathway-browser';
   @ViewChild('cytoscape') cytoscapeContainer?: ElementRef<HTMLDivElement>;
-  @ViewChild('ehld') ehldContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
   @Input('interactor') interactorsComponent?: InteractorsComponent;
@@ -73,16 +71,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   cys: cytoscape.Core[] = [];
 
 
-  @Input('id') diagramId: string = '';
-  hasEHLD: boolean = false;
-
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['diagramId'] && !this.hasEHLD) {
-      if (this.cy) {
-        this.cy.destroy()
-      }
-    }
-    this.loadDiagram();
+    if (changes['diagramId']) this.loadDiagram();
   }
 
 
@@ -121,10 +111,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         // this.ratio = bb.w / bb.h;
       });
 
-    this.ehld.hasEHLD$.pipe(untilDestroyed(this)).subscribe((hasEHLD) => {
-      this.hasEHLD = hasEHLD;
-    });
-
     this.loadDiagram();
 
   }
@@ -147,7 +133,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   loadElvDiagram(): Observable<ElementsDefinition> {
-    if (this.hasEHLD) return EMPTY
     if (!this.cytoscapeContainer) return EMPTY; // Prevent execution if the container is not present
 
     const container = this.cytoscapeContainer.nativeElement;

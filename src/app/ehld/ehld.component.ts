@@ -34,7 +34,7 @@ export class EhldComponent implements AfterViewInit {
     this.ehldService.hasEHLD$.pipe(untilDestroyed(this)).subscribe((hasEHLD) => {
       this.hasEHLD = hasEHLD;
       if (this.diagramId && this.hasEHLD) {
-        this.clearSvgContent();
+        // this.clearSvgContent();
         this.loadEhldSvg().subscribe({
           next: () => {
             console.log('EHLD SVG loaded successfully.');
@@ -46,9 +46,6 @@ export class EhldComponent implements AfterViewInit {
       }
     });
 
-  }
-  private clearSvgContent(): void {
-    this.svgContent = '';  // Clear the previous SVG from the DOM
   }
 
   private loadEhldSvg(): Observable<string> {
