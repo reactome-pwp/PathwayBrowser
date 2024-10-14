@@ -18,7 +18,7 @@ import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 export class ViewportComponent implements AfterViewInit,OnChanges  {
 
 
-  @ViewChild('diagram') diagram!: DiagramComponent;
+  @ViewChild('diagram') diagram: DiagramComponent | undefined;
   @ViewChild('interactors') interactors!: InteractorsComponent;
   @Input('id') diagramId: string = '';
   hasEHLD: boolean = false;
