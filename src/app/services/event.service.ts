@@ -210,7 +210,7 @@ export class EventService {
   }
 
   isPathwayWithDiagram(event: Event): boolean {
-    return this.eventHasChild(event) && event.hasDiagram && event.schemaClass === 'Pathway';
+    return this.eventHasChild(event) && event.hasDiagram && ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
   }
 
   clearAllSelectedEvents(events: Event[]) {
