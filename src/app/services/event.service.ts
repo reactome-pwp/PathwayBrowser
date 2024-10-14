@@ -376,36 +376,25 @@ export class EventService {
   }
 
   getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
-    const pathIds = this.state.get('path');
-    let finalAncestor: Event[];
-    // When path is given through URL, this link is from Location in PWB on detail page
-    if (pathIds && ancestors.length > 1) {
-      finalAncestor = this.findMatchingAncestor(ancestors, pathIds)
-      if (finalAncestor) {
-        this.expandAllAncestors(finalAncestor, treeControl);
-      }
-    } else {
-      // take the first ancestor if no path is given
-      finalAncestor = ancestors[0];
-      this.expandAllAncestors(ancestors[0], treeControl);
+    const finalAncestor = this.getFinalAncestor(ancestors);
+    if (finalAncestor) {
+      this.expandAllAncestors(finalAncestor, treeControl);
     }
     return finalAncestor;
   }
 
-
-  getFinalAncestors(ancestors: Event[][]) {
+  getFinalAncestor(ancestors: Event[][]): Event[] {
     const pathIds = this.state.get('path');
     let finalAncestor: Event[];
     // When path is given through URL, this link is from Location in PWB on detail page
     if (pathIds && ancestors.length > 1) {
-      finalAncestor = this.findMatchingAncestor(ancestors, pathIds)
+      finalAncestor = this.findMatchingAncestor(ancestors, pathIds);
     } else {
-      // take the first ancestor if no path is given
+      // Take the first ancestor if no path is given
       finalAncestor = ancestors[0];
     }
     return finalAncestor;
   }
-
 
   findMatchingAncestor(ancestors: Event[][], pathIds: string[]): Event[] {
     for (const ancestorArray of ancestors) {

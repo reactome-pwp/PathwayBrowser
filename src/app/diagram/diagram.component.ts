@@ -165,18 +165,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     );
   }
 
-  loadSubpathway(event: Event){
+  loadSubpathwayWithDiagram(event: Event) {
     return this.event.fetchEventAncestors(this.diagramId).pipe(
-      map(ancestors => this.event.getFinalAncestors(ancestors)),
+      map(ancestors => this.event.getFinalAncestor(ancestors)),
       switchMap((ancestors) => {
-        console.log('diagramId ', this.diagramId);
         const pathwayWithDiagram = [...ancestors].find(p => p.hasDiagram);
         if (pathwayWithDiagram) {
           const newDiagramId = pathwayWithDiagram.stId;
           if (newDiagramId !== this.diagramId) {
             this.diagramId = newDiagramId;
-            console.log('new diagramId ', this.diagramId);
-
             this.router.navigate(['PathwayBrowser', this.diagramId], {
               queryParamsHandling: "preserve"
             }).then(() => {
