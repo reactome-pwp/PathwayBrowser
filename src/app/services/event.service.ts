@@ -166,47 +166,45 @@ export class EventService {
   }
 
   private handleReactionSelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
-    if (!this.isEventVisible(event, allVisibleTreeNodes)) {
+    const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
+    if (treeNode !== undefined) {
+      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+        map(([treeData, event]) => {
+          this.setCurrentEventAndObj(treeNode, event);
+          return treeData;
+        })
+      );
+    } else {
       return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
         map((treeData) => {
           this.setCurrentEventAndObj(event, event);
           return treeData;
         })
       );
-    } else {
-      return this.handleExistingEventSelection(event, treeControl, allVisibleTreeNodes).pipe(
-        map(([treeData, event]) => {
-          this.setCurrentEventAndObj(event, event);  //todo: this.setCurrentEventAndObj(treeEvent, event)?
-          return treeData;
-        })
-      );
     }
   }
 
-
   // Subpathway and interacting pathway
   private handlePathwaySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>, treeNodes: Event[]): Observable<Event[]> {
-    // Interacting pathway, not visible in the tree view
-    if (!this.isEventVisible(event, allVisibleTreeNodes)) {
+    const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
+    if (treeNode !== undefined) {
+      // Subpathway, already in the tree view
+      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+        map(([treeData, event]) => {
+          this.setCurrentEventAndObj(event, event);
+          this.loadTreeEvent(event)//todo: this.setCurrentEventAndObj(treeEvent, event)?
+          return treeData;
+        })
+      );
+    } else {
+      // Interacting pathway, not visible in the tree view
       this.clearAllSelectedEvents(treeNodes);
       return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
         map(treeData => {
           return treeData;
         })
       );
-    } else {
-      // Subpathway, already in the tree view
-      return this.handleExistingEventSelection(event, treeControl, allVisibleTreeNodes).pipe(
-        map(([treeData, event]) => {
-          this.setCurrentEventAndObj(event, event); //todo: this.setCurrentEventAndObj(treeEvent, event)?
-          return treeData;
-        })
-      );
     }
-  }
-
-  private isEventVisible(event: Event, allVisibleTreeNodes: Event[]): boolean {
-    return allVisibleTreeNodes.map(e => e.stId).includes(event.stId);
   }
 
   isPathwayWithDiagram(event: Event): boolean {
