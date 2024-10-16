@@ -104,7 +104,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.subpathwayColors = colors;
     })
 
-    this.eventService.loadTreeEvent$.pipe(
+    this.eventService.loadEventChildren$.pipe(
       switchMap(treeEvent => {
         this.collapseSiblingEvent(treeEvent);
         return this.eventService.fetchChildrenEvents(treeEvent);
@@ -140,10 +140,6 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     return !!parent.hasEvent && parent.hasEvent.some(sibling => sibling !== event && this.eventService.eventHasChild(sibling));
   }
 
-
-  loadChildrenTreeEvents(treeEvent: Event) {
-    this.eventService.loadTreeEvent(treeEvent);
-  }
 
   ngOnDestroy(): void {
     clearTimeout(this.scrollTimeout);
@@ -226,7 +222,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
     if (isSelected) {
       event.isSelected = true;
-      this.loadChildrenTreeEvents(event);
+      this.eventService.loadEventChildren(event);
       this.treeControl.toggle(event);
     } else {
       event.isSelected = false;

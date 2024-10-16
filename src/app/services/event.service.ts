@@ -34,8 +34,8 @@ export class EventService {
   private _subpathwaysColors = new BehaviorSubject<Map<number, string>>(new Map<number, string>());
   subpathwaysColors$ = this._subpathwaysColors.asObservable();
 
-  private _loadTreeEvent = new Subject<Event>();
-  loadTreeEvent$ = this._loadTreeEvent.asObservable();
+  private _loadEventChildren = new Subject<Event>();
+  loadEventChildren$ = this._loadEventChildren.asObservable();
 
   constructor(private http: HttpClient, private state: DiagramStateService,private router: Router) {
   }
@@ -65,8 +65,8 @@ export class EventService {
     this._subpathwaysColors.next(colorMap);
   }
 
-  loadTreeEvent(event: Event) {
-    this._loadTreeEvent.next(event);
+  loadEventChildren(event: Event) {
+    this._loadEventChildren.next(event);
   }
 
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
@@ -192,7 +192,7 @@ export class EventService {
       return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
         map(([treeData, event]) => {
           this.setCurrentEventAndObj(event, event);
-          this.loadTreeEvent(event)//todo: this.setCurrentEventAndObj(treeEvent, event)?
+          this.loadEventChildren(treeNode)//todo: this.setCurrentEventAndObj(treeEvent, event)?
           return treeData;
         })
       );

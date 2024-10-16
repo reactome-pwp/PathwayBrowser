@@ -52,7 +52,7 @@
             <div *asSplitGutter="let isDragged = isDragged" class="custom-gutter" [class.dragged]="isDragged"></div>
             <as-split-area [size]="80">
 
-              <cr-ehld *ngIf="hasEHLD" [diagramId]="diagramId"></cr-ehld>
+              <cr-ehld *ngIf="hasEHLD" [id]="diagramId"></cr-ehld>
               <cr-diagram *ngIf="!hasEHLD" #diagram [id]="diagramId" [interactor]="interactors"></cr-diagram>
 
             </as-split-area>
