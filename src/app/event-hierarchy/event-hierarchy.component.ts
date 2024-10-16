@@ -209,6 +209,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     // Disable unselected status for TLP for having a selected obj in details panel
     if (event.schemaClass === this._TOP) return;
 
+    //Disable unselected status for reaction
+    if(!event.hasEvent) return;
+
     this.selectAllParents(event, this.treeDataSource.data);
     this.toggleEventExpansion(event, false);
     this.updateBreadcrumbsForEventDeselection(event);
