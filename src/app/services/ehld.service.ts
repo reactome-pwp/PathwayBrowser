@@ -1,4 +1,4 @@
-import {Injectable, Renderer2, RendererFactory2} from '@angular/core';
+import {ElementRef, Injectable, Renderer2, RendererFactory2} from '@angular/core';
 import {BehaviorSubject, catchError, Observable, of} from "rxjs";
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
@@ -208,6 +208,22 @@ export class EhldService {
       }
     }
     return null;
+  }
+
+
+  setStIdToSVGGElementMap(container: ElementRef<HTMLDivElement> | undefined) {
+    const map = new Map<string, SVGGElement>();
+    const svgElement = container!.nativeElement.querySelectorAll('g[id^="REGION"]') as NodeListOf<SVGGElement>;
+    svgElement.forEach(svgElement => {
+      const idAttr = svgElement.getAttribute('id');
+      if (idAttr) {
+        const stId = this.getStableId(idAttr);
+        if (stId) {
+          map.set(stId, svgElement);
+        }
+      }
+    })
+    return map
   }
 
 

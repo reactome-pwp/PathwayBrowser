@@ -3,6 +3,8 @@ import {Observable, tap} from "rxjs";
 import {EhldService} from "../services/ehld.service";
 import {DomSanitizer} from "@angular/platform-browser";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import {DiagramStateService} from "../services/diagram-state.service";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -15,25 +17,31 @@ import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 export class EhldComponent implements AfterViewInit {
 
   @ViewChild('ehld') ehldContainer?: ElementRef<HTMLDivElement>;
-  @Input() diagramId: string = '';
+  @Input('id') diagramId: string = '';
 
   hasEHLD: boolean = false;
   svgContent: string = '';
-  private selectedElement: SVGGElement | null = null;
+  selectedElement: SVGGElement | undefined = undefined;
+  selectedIdFromUrl = '';
+  stIdToSVGGElement: Map<string, SVGGElement> = new Map<string, SVGGElement>();
 
   constructor(private ehldService: EhldService,
               private sanitizer: DomSanitizer,
-              private cdr: ChangeDetectorRef) {
+              private cdr: ChangeDetectorRef,
+              private stateService: DiagramStateService,
+              private router: Router,) {
   }
 
+  selecting = this.stateService.onChange.select$.pipe(
+    tap(value => this.selectedIdFromUrl = value))
+    .subscribe();
 
   ngAfterViewInit(): void {
-
 
     this.ehldService.hasEHLD$.pipe(untilDestroyed(this)).subscribe((hasEHLD) => {
       this.hasEHLD = hasEHLD;
       if (this.diagramId && this.hasEHLD) {
-        // this.clearSvgContent();
+        // todo remove log message
         this.loadEhldSvg().subscribe({
           next: () => {
             console.log('EHLD SVG loaded successfully.');
@@ -57,9 +65,15 @@ export class EhldComponent implements AfterViewInit {
           if (this.svgContent) {
             this.cdr.detectChanges();
             this.addEventListenerToSvg();
+            // set initial selection element
+            this.stIdToSVGGElement = this.ehldService.setStIdToSVGGElementMap(this.ehldContainer);
+            this.selectedElement = this.stIdToSVGGElement.get(this.selectedIdFromUrl)
+            if (this.selectedElement) {
+              this.ehldService.applyOutline(this.selectedElement);
+            }
           }
         } else {
-          console.error('Error loading EHLD SVG');
+          throw new Error('Error loading EHLD SVG');
         }
       })
     )
@@ -71,15 +85,12 @@ export class EhldComponent implements AfterViewInit {
 
     svgElement.forEach((element: SVGGElement) => {
       element.addEventListener('mouseover', () => {
-        console.log('SVG hover detected');
         if (element !== this.selectedElement) {
           this.ehldService.applyShadow(element);
         }
-
       })
 
       element.addEventListener('mouseout', () => {
-        console.log('SVG hover ended');
         if (element !== this.selectedElement) {
           this.ehldService.removeShadow(element);
         }
@@ -94,7 +105,7 @@ export class EhldComponent implements AfterViewInit {
         const idAttr = this.selectedElement?.getAttribute('id');
         if (idAttr) {
           const stId = this.ehldService.getStableId(idAttr);
-          console.log("stId ", stId)
+          if (stId) this.stateService.set('select', stId);
         }
 
         this.ehldService.applyOutline(element);
