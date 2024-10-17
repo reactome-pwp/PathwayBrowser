@@ -5,6 +5,7 @@ import {DomSanitizer} from "@angular/platform-browser";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {Router} from "@angular/router";
+import SvgPanZoom from 'svg-pan-zoom';
 
 
 @Component({
@@ -24,6 +25,7 @@ export class EhldComponent implements AfterViewInit {
   selectedElement: SVGGElement | undefined = undefined;
   selectedIdFromUrl = '';
   stIdToSVGGElement: Map<string, SVGGElement> = new Map<string, SVGGElement>();
+  panZoom?: SvgPanZoom.Instance;
 
   constructor(private ehldService: EhldService,
               private sanitizer: DomSanitizer,
@@ -41,10 +43,9 @@ export class EhldComponent implements AfterViewInit {
     this.ehldService.hasEHLD$.pipe(untilDestroyed(this)).subscribe((hasEHLD) => {
       this.hasEHLD = hasEHLD;
       if (this.diagramId && this.hasEHLD) {
-        // todo remove log message
         this.loadEhldSvg().subscribe({
           next: () => {
-            console.log('EHLD SVG loaded successfully.');
+            this.initializePanAndZoom();
           },
           error: () => {
             console.error('Error loading EHLD SVG');
@@ -54,6 +55,26 @@ export class EhldComponent implements AfterViewInit {
     });
 
   }
+
+  // Example of zooming: https://stackblitz.com/edit/svg-pan-zoom?file=src%2Fapp%2Fapp.component.html,src%2Fapp%2Fapp.component.ts,src%2Fapp%2Fapp.module.ts
+  // SVG pan zoom documentation: https://github.com/bumbu/svg-pan-zoom?tab=readme-ov-file
+  initializePanAndZoom(){
+    const svgElement = this.ehldContainer!.nativeElement.querySelector('svg');
+    if (svgElement) {
+      // Disable default tooltips to be shown when hovering on svg element
+      svgElement.querySelectorAll('title').forEach(item=>{
+        item.innerHTML = '';
+      });
+      svgElement.setAttribute('width', '100%');
+      svgElement.setAttribute('height', '100%');
+      this.panZoom = SvgPanZoom(svgElement, {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        maxZoom: 1000,
+      });
+    }
+  }
+
 
   private loadEhldSvg(): Observable<string> {
     return this.ehldService.getEHLDSvg(this.diagramId).pipe(
