@@ -97,6 +97,7 @@ export class AnalysisService {
 
   loadAnalysis(token?: string, params?: Partial<Analysis.Parameters>): Observable<Analysis.Result> {
     console.log('load analysis')
+    if (token) this.state.set('analysis', token);
     return this.http.get<Analysis.Result>(`${environment.host}/AnalysisService/token/${token || this.state.get('analysis')}`, {params}).pipe(
       tap(result => this.result = result)
     )

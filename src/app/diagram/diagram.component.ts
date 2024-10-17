@@ -33,7 +33,7 @@ import {EventService} from "../services/event.service";
 import {Event} from "../model/event.model";
 
 
-import {brewer} from "chroma-js";
+import {brewer, scale} from "chroma-js";
 import {group, style} from "@angular/animations";
 import {MatFormField} from "@angular/material/form-field";
 import {DarkService} from "../services/dark.service";
@@ -568,14 +568,16 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
           }
 
           for (let summary of this.analysis.paletteOptions.values()) {
-            summary.scale.padding(0.1)
+            summary.scale.padding(0.2)
             summary.classes(result.summary.type === 'GSA_REGULATION' ? 5 : 0);
             summary.domain(min, max);
           }
 
           this.analysis.palettes.forEach(group => group.valid = validGroups.has(group.name))
-          this.analysis.palette = this.analysis.paletteOptions.get(hasExpression ? 'RdBu' : 'GnBu')!;
-          this.reactomeStyle.loadAnalysis(cy, this.analysis.palette.scale);
+          // TODO revert this after demo
+          // this.analysis.palette = this.analysis.paletteOptions.get(hasExpression ? 'RdBu' : 'GnBu')!;
+          this.analysis.palette = this.analysis.paletteOptions.get('GnBu')!;
+          this.reactomeStyle.loadAnalysis(cy, hasExpression ? scale(['#1532b3','#808080','#e5e61d']) : this.analysis.palette.scale);
         })
       })
 

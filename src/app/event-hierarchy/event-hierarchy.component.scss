@@ -128,6 +128,7 @@
   overflow-y: scroll;
   height: 100%;
   overflow-x: hidden;
+  scrollbar-color: var(--primary) transparent;
 }
 
 .mat-tree {
@@ -224,7 +225,8 @@
     fill: var(--on-surface);
   }
 
-  &.ehld::ng-deep svg * {
+  &.ehld::ng-deep svg *,
+  &.primary::ng-deep svg *{
     fill: var(--primary);
   }
 }
