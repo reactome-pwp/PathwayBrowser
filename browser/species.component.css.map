@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/species/species.component.scss"],
+  "sourcesContent": ["#species-container {\n  width: 100%;\n  background: var(--surface-variant);\n\n}\n\n.species {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  padding: 2px;\n  gap: 8px;\n  border-radius: 10px;\n  color: var(--on-surface-variant);\n}\n\n.selection-list {\n  padding: 10px;\n}\n\nmat-list-option{\n  padding: 2px;\n  border-radius: 10px;\n}\n\nmat-list-option[aria-selected=\"true\"],\nmat-list-option[aria-selected=\"true\"] .species,\nmat-list-option[aria-selected=\"true\"] .species::ng-deep svg * {\n  background: var(--primary);\n  color: var(--on-primary);\n  fill: var(--on-primary);\n}\n\n.custom-icon {\n  height: 32px;\n  width: 32px;\n}\n"],
+  "mappings": ";AAAA,CAAA;AACE,SAAA;AACA,cAAA,IAAA;;AAIF,CAAA;AACE,WAAA;AACA,kBAAA;AACA,eAAA;AACA,WAAA;AACA,OAAA;AACA,iBAAA;AACA,SAAA,IAAA;;AAGF,CAAA;AACE,WAAA;;AAGF;AACE,WAAA;AACA,iBAAA;;AAGF,eAAA,CAAA;AAAA,eAAA,CAAA,oBAAA,CAnBA;AAmBA,eAAA,CAAA,oBAAA,CAnBA,OAmBA,UAAA,IAAA;AAGE,cAAA,IAAA;AACA,SAAA,IAAA;AACA,QAAA,IAAA;;AAGF,CAAA;AACE,UAAA;AACA,SAAA;;",
+  "names": []
+}

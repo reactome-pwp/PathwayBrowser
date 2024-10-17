@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/interactors/custom-interactor-dialog/custom-interactor-dialog.component.scss"],
+  "sourcesContent": [".margin {\n  margin: 0 10px;\n}\n\n.full-width {\n  width: 100%;\n}\n\n.button-row {\n  display: flex;\n  justify-content: space-around;\n  gap: 8px;\n}\n\n.spinner-color::ng-deep circle {\n    stroke: var(--on-primary) !important;\n}\n\n.file {\n  color: var(--on-surface);\n}\n"],
+  "mappings": ";AAAA,CAAA;AACE,UAAA,EAAA;;AAGF,CAAA;AACE,SAAA;;AAGF,CAAA;AACE,WAAA;AACA,mBAAA;AACA,OAAA;;AAGF,CAAA,aAAA,UAAA;AACI,UAAA,IAAA;;AAGJ,CAAA;AACE,SAAA,IAAA;;",
+  "names": []
+}
