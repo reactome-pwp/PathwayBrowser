@@ -37,6 +37,7 @@ import {EventHierarchyComponent} from './event-hierarchy/event-hierarchy.compone
 import {MatTreeModule} from "@angular/material/tree";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {DetailsComponent} from './details/details.component';
+import { EhldComponent } from './ehld/ehld.component';
 import {MatMenuModule} from "@angular/material/menu";
 import {DiagramHomeComponent} from './diagram-home/diagram-home.component';
 import {MaterialFileInputModule} from "ngx-custom-material-file-input";
@@ -53,6 +54,8 @@ import {CdkNestedTreeNode} from "@angular/cdk/tree";
     ViewportComponent,
     SpeciesComponent,
     EventHierarchyComponent,
+    DetailsComponent,
+    EhldComponent,
     DetailsComponent,
     DiagramHomeComponent
   ],

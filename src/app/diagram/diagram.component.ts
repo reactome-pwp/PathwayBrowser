@@ -1,10 +1,26 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramService} from "../services/diagram.service";
-import cytoscape from "cytoscape";
-import {ReactomeEvent, ReactomeEventTypes, Style, extract} from "reactome-cytoscape-style";
-import {DarkService} from "../services/dark.service";
+import {extract, ReactomeEvent, ReactomeEventTypes, Style} from "reactome-cytoscape-style";
+import cytoscape, {ElementsDefinition} from "cytoscape";
+// @ts-ignore
+// import {DarkService} from "../services/dark.service";
 import {InteractorService} from "../interactors/services/interactor.service";
-import {delay, distinctUntilChanged, filter, forkJoin, Observable, share, Subject, take} from "rxjs";
+import {
+  catchError,
+  delay,
+  distinctUntilChanged,
+  EMPTY,
+  filter,
+  forkJoin,
+  map,
+  Observable,
+  of,
+  share,
+  Subject,
+  switchMap,
+  take,
+  tap
+} from "rxjs";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {UntilDestroy} from "@ngneat/until-destroy";
 import {AnalysisService, Examples, PaletteGroup} from "../services/analysis.service";
@@ -14,11 +30,13 @@ import {Analysis} from "../model/analysis.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {EventService} from "../services/event.service";
+import {Event} from "../model/event.model";
 
 
 import {brewer} from "chroma-js";
 import {group, style} from "@angular/animations";
 import {MatFormField} from "@angular/material/form-field";
+import {DarkService} from "../services/dark.service";
 
 
 @UntilDestroy({checkProperties: true})
@@ -33,9 +51,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   @ViewChild('cytoscapeCompare') compareContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('legend') legendContainer?: ElementRef<HTMLDivElement>;
   @Input('interactor') interactorsComponent?: InteractorsComponent;
+  @Input('id') diagramId: string = '';
+
 
   comparing: boolean = false;
-
+  isInitialLoad: boolean = true;
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
@@ -46,6 +66,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
               private router: Router,
               private route: ActivatedRoute
   ) {
+    this.isInitialLoad = Boolean(!this.router.getCurrentNavigation()?.previousNavigation);
   }
 
   cy!: cytoscape.Core;
@@ -53,14 +74,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
   cyCompare!: cytoscape.Core;
   reactomeStyleCompare!: Style;
   legend!: cytoscape.Core;
-
   cys: cytoscape.Core[] = [];
 
 
-  @Input('id') diagramId: string = '';
-
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['diagramId']) this.loadDiagram();
+    if (changes['diagramId'] && !this.isInitialLoad) {
+      this.loadDiagram();
+    }
   }
 
 
@@ -103,14 +123,34 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
   }
 
-  loadDiagram() {
-    if (!this.cytoscapeContainer) return;
 
-    const container = this.cytoscapeContainer!.nativeElement;
+  private loadDiagram(): void {
+    this.event.fetchEnhancedEventData(this.diagramId).pipe(
+      switchMap((event) => {
+        // If the diagramId is a subpathway without diagram, and it is a first load then load parent diagram
+        // For instance: ../PathwayBrowser/R-HSA-69541
+        if (!this.event.isPathwayWithDiagram(event) && this.isInitialLoad) {
+          return this.loadSubpathwayWithDiagram(event);
+        }
+        // Pathway with a diagram
+        return this.loadElvDiagram();
+      }),
+      catchError(() => of(null))
+    ).subscribe(() => {
+      this.isInitialLoad = false;
+    });
+  }
 
-    this.diagram.getDiagram(this.diagramId)
-      .subscribe(elements => {
-        this.comparing = elements.nodes.some(node => node.data['isFadeOut']) || elements.edges.some(edge => edge.data['isFadeOut'])
+
+  loadElvDiagram(): Observable<ElementsDefinition> {
+    if (!this.cytoscapeContainer) return EMPTY; // Prevent execution if the container is not present
+
+    const container = this.cytoscapeContainer.nativeElement;
+    return this.diagram.getDiagram(this.diagramId).pipe(
+      tap(elements => {
+        this.comparing = elements.nodes.some(node => node.data['isFadeOut']) ||
+          elements.edges.some(edge => edge.data['isFadeOut']);
+
         this.cy = cytoscape({
           container: container,
           elements: elements,
@@ -133,6 +173,30 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
         this.avoidSideEffect(() => this.stateToDiagram());
       })
+    );
+  }
+
+  loadSubpathwayWithDiagram(event: Event) {
+    return this.event.fetchEventAncestors(this.diagramId).pipe(
+      map(ancestors => this.event.getFinalAncestor(ancestors)),
+      switchMap((ancestors) => {
+        const pathwayWithDiagram = [...ancestors].find(p => p.hasDiagram);
+        if (pathwayWithDiagram) {
+          const newDiagramId = pathwayWithDiagram.stId;
+          if (newDiagramId !== this.diagramId) {
+            this.diagramId = newDiagramId;
+            this.router.navigate(['PathwayBrowser', this.diagramId], {
+              queryParamsHandling: "preserve"
+            }).then(() => {
+              this.state.set('select', event.stId);
+            });
+
+            return this.loadElvDiagram();
+          }
+        }
+        return of(null)
+      })
+    );
   }
 
   public initialiseReplaceElements() {

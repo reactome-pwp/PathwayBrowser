@@ -2,10 +2,11 @@ import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
 import { HttpClient } from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap} from "rxjs";
+import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap, take} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {DiagramStateService} from "./diagram-state.service";
 import {NestedTreeControl} from "@angular/cdk/tree";
+import {Router} from "@angular/router";
 
 
 @Injectable({
@@ -33,10 +34,10 @@ export class EventService {
   private _subpathwaysColors = new BehaviorSubject<Map<number, string>>(new Map<number, string>());
   subpathwaysColors$ = this._subpathwaysColors.asObservable();
 
-  private _loadTreeEvent = new Subject<Event>();
-  loadTreeEvent$ = this._loadTreeEvent.asObservable();
+  private _loadEventChildren = new Subject<Event>();
+  loadEventChildren$ = this._loadEventChildren.asObservable();
 
-  constructor(private http: HttpClient, private state: DiagramStateService) {
+  constructor(private http: HttpClient, private state: DiagramStateService,private router: Router) {
   }
 
   setTreeData(events: Event[]) {
@@ -64,8 +65,8 @@ export class EventService {
     this._subpathwaysColors.next(colorMap);
   }
 
-  loadTreeEvent(event: Event) {
-    this._loadTreeEvent.next(event);
+  loadEventChildren(event: Event) {
+    this._loadEventChildren.next(event);
   }
 
   fetchTlpBySpecies(taxId: string): Observable<Event[]> {
@@ -165,51 +166,49 @@ export class EventService {
   }
 
   private handleReactionSelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
-    if (!this.isEventVisible(event, allVisibleTreeNodes)) {
+    const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
+    if (treeNode !== undefined) {
+      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+        map(([treeData, event]) => {
+          this.setCurrentEventAndObj(treeNode, event);
+          return treeData;
+        })
+      );
+    } else {
       return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
         map((treeData) => {
           this.setCurrentEventAndObj(event, event);
           return treeData;
         })
       );
-    } else {
-      return this.handleExistingEventSelection(event, treeControl, allVisibleTreeNodes).pipe(
-        map(([treeData, event]) => {
-          this.setCurrentEventAndObj(event, event);  //todo: this.setCurrentEventAndObj(treeEvent, event)?
-          return treeData;
-        })
-      );
     }
   }
 
-
   // Subpathway and interacting pathway
   private handlePathwaySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>, treeNodes: Event[]): Observable<Event[]> {
-    // Interacting pathway, not visible in the tree view
-    if (!this.isEventVisible(event, allVisibleTreeNodes)) {
+    const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
+    if (treeNode !== undefined) {
+      // Subpathway, already in the tree view
+      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+        map(([treeData, event]) => {
+          this.setCurrentEventAndObj(event, event);
+          this.loadEventChildren(treeNode)//todo: this.setCurrentEventAndObj(treeEvent, event)?
+          return treeData;
+        })
+      );
+    } else {
+      // Interacting pathway, not visible in the tree view
       this.clearAllSelectedEvents(treeNodes);
       return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
         map(treeData => {
           return treeData;
         })
       );
-    } else {
-      // Subpathway, already in the tree view
-      return this.handleExistingEventSelection(event, treeControl, allVisibleTreeNodes).pipe(
-        map(([treeData, event]) => {
-          this.setCurrentEventAndObj(event, event); //todo: this.setCurrentEventAndObj(treeEvent, event)?
-          return treeData;
-        })
-      );
     }
   }
 
-  private isEventVisible(event: Event, allVisibleTreeNodes: Event[]): boolean {
-    return allVisibleTreeNodes.map(e => e.stId).includes(event.stId);
-  }
-
   isPathwayWithDiagram(event: Event): boolean {
-    return this.eventHasChild(event) && event.hasDiagram && event.schemaClass === 'Pathway';
+    return this.eventHasChild(event) && event.hasDiagram && ['TopLevelPathway', 'Pathway', 'CellLineagePath'].includes(event.schemaClass);
   }
 
   clearAllSelectedEvents(events: Event[]) {
@@ -375,22 +374,25 @@ export class EventService {
   }
 
   getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
-    const pathIds = this.state.get('path');
-    let finalAncestor: Event[];
-    // When path is given through URL, this link is from Location in PWB on detail page
-    if (pathIds && ancestors.length > 1) {
-      finalAncestor = this.findMatchingAncestor(ancestors, pathIds)
-      if (finalAncestor) {
-        this.expandAllAncestors(finalAncestor, treeControl);
-      }
-    } else {
-      // take the first ancestor if no path is given
-      finalAncestor = ancestors[0];
-      this.expandAllAncestors(ancestors[0], treeControl);
+    const finalAncestor = this.getFinalAncestor(ancestors);
+    if (finalAncestor) {
+      this.expandAllAncestors(finalAncestor, treeControl);
     }
     return finalAncestor;
   }
 
+  getFinalAncestor(ancestors: Event[][]): Event[] {
+    const pathIds = this.state.get('path');
+    let finalAncestor: Event[];
+    // When path is given through URL, this link is from Location in PWB on detail page
+    if (pathIds && ancestors.length > 1) {
+      finalAncestor = this.findMatchingAncestor(ancestors, pathIds);
+    } else {
+      // Take the first ancestor if no path is given
+      finalAncestor = ancestors[0];
+    }
+    return finalAncestor;
+  }
 
   findMatchingAncestor(ancestors: Event[][], pathIds: string[]): Event[] {
     for (const ancestorArray of ancestors) {

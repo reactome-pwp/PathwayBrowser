@@ -34,6 +34,7 @@
     "ngx-custom-material-file-input": "^18.0.0",
     "ngx-reactome-style": "file:.yalc/ngx-reactome-style",
     "rxjs": "~7.8.0",
+    "svg-pan-zoom": "^3.6.1",
     "tslib": "^2.3.0",
     "vectorious": "^6.1.12",
     "zone.js": "~0.14.10"

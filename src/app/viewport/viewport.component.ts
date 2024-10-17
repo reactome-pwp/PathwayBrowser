@@ -1,12 +1,12 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
 import {DiagramComponent} from "../diagram/diagram.component";
 import {ResourceAndType} from "../interactors/model/interactor.model";
 import {InteractorsComponent} from "../interactors/interactors.component";
 import {Species} from "../model/species.model";
-import {ActivatedRoute, Router} from "@angular/router";
 import {SpeciesService} from "../services/species.service";
 import {InteractorService} from "../interactors/services/interactor.service";
-import {Subscription} from "rxjs";
+import {EhldService} from "../services/ehld.service";
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {AnalysisService} from "../services/analysis.service";
 import {DarkService} from "../services/dark.service";
 
@@ -16,48 +16,54 @@ import {DarkService} from "../services/dark.service";
   templateUrl: './viewport.component.html',
   styleUrls: ['./viewport.component.scss']
 })
-export class ViewportComponent implements AfterViewInit, OnDestroy {
+@UntilDestroy()
+export class ViewportComponent implements AfterViewInit, OnChanges {
 
 
-  @ViewChild('diagram') diagram!: DiagramComponent;
+  @ViewChild('diagram') diagram: DiagramComponent | undefined;
   @ViewChild('interactors') interactors!: InteractorsComponent;
   @Input('id') diagramId: string = '';
+  hasEHLD: boolean = false;
 
   currentInteractorResource: ResourceAndType | undefined = {name: null, type: null};
   currentSpecies: Species | undefined = undefined;
-
-  currentResourceSubscription!: Subscription;
-  currentSpeciesSubscription!: Subscription;
-
 
   visibility = {
     species: false,
     interactor: false
   }
 
-  constructor(private router: Router, private route: ActivatedRoute,
-              private speciesService: SpeciesService, private interactorService: InteractorService,
-              private cdRef: ChangeDetectorRef, public analysis: AnalysisService,
-              public dark: DarkService) {
+  constructor(private speciesService: SpeciesService,
+              private interactorService: InteractorService,
+              private cdRef: ChangeDetectorRef,
+              public analysis: AnalysisService,
+              public dark: DarkService,
+              private ehldService: EhldService
+  ) {
   }
 
   ngAfterViewInit(): void {
 
-    this.currentSpeciesSubscription = this.speciesService.currentSpecies$.subscribe(species => {
+    this.speciesService.currentSpecies$.pipe(untilDestroyed(this)).subscribe(species => {
       this.currentSpecies = species;
       // Updated the content after ngAfterContentChecked to avoid ExpressionChangedAfterItHasBeenCheckedError
       this.cdRef.detectChanges();
     });
 
-    this.currentResourceSubscription = this.interactorService.currentInteractorResource$.subscribe(resource => {
+    this.interactorService.currentInteractorResource$.pipe(untilDestroyed(this)).subscribe(resource => {
       this.currentInteractorResource = resource;
     });
+
+    this.ehldService.hasEHLD$.pipe(untilDestroyed(this)).subscribe((hasEHLD) => {
+      this.hasEHLD = hasEHLD;
+    });
+
+    if (this.diagramId) {
+      this.checkHasEHLD();
+    }
+
   }
 
-  ngOnDestroy(): void {
-    this.currentSpeciesSubscription.unsubscribe();
-    this.currentResourceSubscription.unsubscribe();
-  }
 
   toggleVisibility(type: string) {
     if (type === 'species') {
@@ -69,6 +75,25 @@ export class ViewportComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  private checkHasEHLD(): void {
+    this.ehldService.hasEHLD(this.diagramId).subscribe({
+        next: (hasEHLD: boolean) => {
+          this.hasEHLD = hasEHLD;
+          this.ehldService.setHasEHLD(this.hasEHLD);
+          this.cdRef.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error fetching EHLD status:', error);
+          this.hasEHLD = false;
+        }
+      }
+    );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['diagramId']) this.checkHasEHLD();
+  }
 
   protected readonly console = console;
 }
+

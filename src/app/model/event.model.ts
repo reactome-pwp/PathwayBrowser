@@ -9,6 +9,7 @@ export interface Event extends DatabaseObject {
   schemaClass: string
   hasEvent?: Event[];
   hasDiagram: boolean;
+  hasEHLD?:boolean;
   isSelected?: boolean;
   isHovered?: boolean;
   isInferred?: boolean;

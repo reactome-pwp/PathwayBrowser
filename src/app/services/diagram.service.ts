@@ -790,6 +790,10 @@ export class DiagramService {
       , edges
     })
   }
+
+  getEHLDSvg(id: number | string): Observable<string> {
+    return this.http.get(`${environment.host}/download/current/ehld/${id}.svg`, { responseType: 'text' });
+  }
 }
 
 function samePoint(p1: Position, p2: Position) {
