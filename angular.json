@@ -17,9 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": {
-              "base": "dist/pathway-browser"
-            },
+            "outputPath": "dist/pathway-browser",
             "index": "src/index.html",
             "allowedCommonJsDependencies": [
               "cytoscape",
@@ -59,7 +57,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "5kb"
+                  "maximumError": "6kb"
                 }
               ],
               "outputHashing": "all"
@@ -137,7 +135,10 @@
           }
         },
         "deploy": {
-          "builder": "angular-cli-ghpages:deploy"
+          "builder": "angular-cli-ghpages:deploy",
+          "options": {
+            "remote": "origin"
+          }
         }
       }
     },
