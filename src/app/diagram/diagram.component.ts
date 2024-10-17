@@ -51,7 +51,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   comparing: boolean = false;
-  isInitialLoad: boolean = false;
+  isInitialLoad: boolean = true;
 
   constructor(private diagram: DiagramService,
               public dark: DarkService,
@@ -73,7 +73,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['diagramId']) this.loadDiagram();
+    if (changes['diagramId'] && !this.isInitialLoad) {
+      this.loadDiagram();
+    }
   }
 
 
@@ -121,6 +123,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     this.event.fetchEnhancedEventData(this.diagramId).pipe(
       switchMap((event) => {
         // If the diagramId is a subpathway without diagram, and it is a first load then load parent diagram
+        // For instance: ../PathwayBrowser/R-HSA-69541
         if (!this.event.isPathwayWithDiagram(event) && this.isInitialLoad) {
           return this.loadSubpathwayWithDiagram(event);
         }
@@ -177,7 +180,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             this.router.navigate(['PathwayBrowser', this.diagramId], {
               queryParamsHandling: "preserve"
             }).then(() => {
-              this.state.set('select', event.stId); // Select the current event
+              this.state.set('select', event.stId);
             });
 
             return this.loadElvDiagram();
