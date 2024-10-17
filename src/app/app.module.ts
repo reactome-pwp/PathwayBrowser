@@ -43,19 +43,22 @@ import {MaterialFileInputModule} from "ngx-custom-material-file-input";
 import {CdkNestedTreeNode} from "@angular/cdk/tree";
 
 
-@NgModule({ declarations: [
-        AppComponent,
-        DiagramComponent,
-        DiagramIteratorComponent,
-        CustomInteractorDialogComponent,
-        InteractorsComponent,
-        ViewportComponent,
-        SpeciesComponent,
-        EventHierarchyComponent,
-        DetailsComponent,
-        DiagramHomeComponent
-    ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+@NgModule({
+  declarations: [
+    AppComponent,
+    DiagramComponent,
+    DiagramIteratorComponent,
+    CustomInteractorDialogComponent,
+    InteractorsComponent,
+    ViewportComponent,
+    SpeciesComponent,
+    EventHierarchyComponent,
+    DetailsComponent,
+    DiagramHomeComponent
+  ],
+  bootstrap: [AppComponent],
+  imports: [
+    BrowserModule,
     FormsModule,
     CommonModule,
     RouterOutlet,
@@ -84,6 +87,7 @@ import {CdkNestedTreeNode} from "@angular/cdk/tree";
     MatRippleModule,
     MatTreeModule,
     MatTooltipModule,
-    MatMenuModule, MaterialFileInputModule, CdkNestedTreeNode], providers: [provideHttpClient(withInterceptorsFromDi())] })
+    MatMenuModule, MaterialFileInputModule, CdkNestedTreeNode], providers: [provideHttpClient(withInterceptorsFromDi())]
+})
 export class AppModule {
 }

@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from 
 import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
-import {filter, fromEvent, switchMap, take, tap} from "rxjs";
+import {concatMap, filter, fromEvent, switchMap, take, tap} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
@@ -106,12 +106,13 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.eventService.loadTreeEvent$.pipe(
       switchMap(treeEvent => {
         this.collapseSiblingEvent(treeEvent);
-        return this.eventService.fetchChildrenEvents(treeEvent, this.treeDataSource.data);
+        return this.eventService.fetchChildrenEvents(treeEvent);
       }),
       untilDestroyed(this)
-    ).subscribe(([event, enhancedResult, colors]) => {
-      this.eventService.setCurrentEventAndObj(event, enhancedResult);
-      this.eventService.setSubpathwayColors(event, colors);
+    ).subscribe(([treeEvent, enhancedResult, colors]) => {
+      this.eventService.setCurrentEventAndObj(treeEvent, enhancedResult);
+      this.eventService.setSubpathwayColors(treeEvent, colors);
+      this.eventService.setTreeData(this.treeDataSource.data);
     });
 
   }
@@ -119,6 +120,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   getTopLevelPathways(taxId: string): void {
     this.eventService.fetchTlpBySpecies(taxId).pipe(
       tap(results => this.eventService.setTreeData(results)),
+      // Wait for the treeData$ to emit the new value and take only the first emission after setting the data
+      concatMap(() => this.eventService.treeData$.pipe(take(1))),
       switchMap(() => {
         const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
         return this.eventService.fetchEnhancedEventData(idToUse);
@@ -291,7 +294,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     if (this.eventService.eventHasChild(event)) {
       if (event.schemaClass !== 'TopLevelPathway') {
         const eventParent = event.parent;
-        const parentWithDiagram = this.getPathwayWithDiagram(event);
+        const parentWithDiagram = this.eventService.getPathwayWithDiagram(event);
         this.diagramId = parentWithDiagram!.stId;
         this.navigateToPathway(eventParent);
       } else {
@@ -307,14 +310,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       this.diagramId = event.stId;
     } else {
       // Subpathway and reaction
-      const parentWithDiagram = this.getPathwayWithDiagram(event);
+      const parentWithDiagram = this.eventService.getPathwayWithDiagram(event);
       this.diagramId = parentWithDiagram!.stId;
     }
-  }
-
-  private getPathwayWithDiagram(event: Event): Event | undefined {
-    const parents = [...event.ancestors].reverse();
-    return parents.find(p => p.hasDiagram);
   }
 
 

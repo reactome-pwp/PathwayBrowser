@@ -239,7 +239,7 @@ export class DiagramService {
         // create a node id - graph node mapping
         const dbIdToGraphNode = new Map<number, Graph.Node>(graph.nodes.map(node => ([node.dbId, node]) || []))
         const mappingList: [number, Graph.Node][] = graph.nodes.flatMap(node => {
-          if (node.children && node.children.length === 1) { // Consider homomer complex like their constituents for interactors
+          if (node.children && node.children.length === 1 && node.diagramIds?.length !== 1) { // Consider homomer complex like their constituents for interactors
             return node.diagramIds?.map(id => [id, dbIdToGraphNode.get(node.children[0])])
               .filter(entry => entry[1] !== undefined) as [number, Graph.Node][]
           } else {
@@ -475,7 +475,7 @@ export class DiagramService {
 
 
         /**
-         * iterate nodes connectors to get all edges information based on the connector type.
+         * Edges: iterate nodes connectors to get all edges information based on the connector type.
          *
          */
         const edges: cytoscape.EdgeDefinition[] =
@@ -516,6 +516,8 @@ export class DiagramService {
                 if (reaction.isDisease) classes.push('disease');
                 if (node.trivial) classes.push('trivial');
                 if (eventIdToSubPathwayId.has(reaction.reactomeId)) classes.push('shadow');
+
+                let subpathways = [...subpathwayStIdToEventIds.entries()].flatMap(([subpathwayId, events]) => events.includes(reaction.reactomeId) ? [subpathwayId] : []);
 
                 let d = dist(from, to);
                 if (equal(from, reactionP) || equal(to, reactionP)) d -= REACTION_RADIUS;
@@ -558,6 +560,7 @@ export class DiagramService {
                     reactionId: reaction.id,
                     isFadeOut: reaction.isFadeOut,
                     isBackground: reaction.isFadeOut,
+                    subpathways,
                     replacedBy, replacement
                   },
                   classes: classes
