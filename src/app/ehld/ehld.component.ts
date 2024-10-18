@@ -134,6 +134,25 @@ export class EhldComponent implements AfterViewInit {
         console.log('SVG selected');
       });
 
+      element.addEventListener('dblclick', () => {
+        console.log('SVG double clicked detected');
+        const idAttr = this.selectedElement?.getAttribute('id');
+        if (idAttr) {
+          const stId = this.ehldService.getStableId(idAttr);
+          if (stId) {
+            this.diagramId = stId;
+            console.log("this.diagramId updated value is ", this.diagramId)
+            // this.diagramId$.next(stId);
+            this.router.navigate(['PathwayBrowser', this.diagramId], {
+              queryParamsHandling: "preserve"
+            }).then(() => {
+              this.stateService.set('select', '');
+            });
+          }
+        }
+
+      })
+
     })
   }
 
