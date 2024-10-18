@@ -71,6 +71,7 @@ export class EhldComponent implements AfterViewInit {
         zoomEnabled: true,
         controlIconsEnabled: false,
         maxZoom: 1000,
+        dblClickZoomEnabled: false
       });
     }
   }
