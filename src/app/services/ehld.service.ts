@@ -14,7 +14,7 @@ export class EhldService {
 
   public renderer: Renderer2;
 
-
+  // https://codepen.io/brucebentley/pen/orGPRg
   // Copy this color from diagram GWT
   filterColour = {
     YELLOW:
@@ -22,7 +22,7 @@ export class EhldService {
       "0 1 0 1 0 " +
       "0 0 0 0 0 " +
       "0 0 0 1 0 ",
-
+    //#0000ff
     BLUE:
       "0 0 0 0 0 " +
       "0 0 0 0 0 " +
@@ -33,6 +33,12 @@ export class EhldService {
       "1 0 0 1 0 " +
       "0 0 0 0 0 " +
       "0 0 1 1 0 " +
+      "0 0 0 1 0 ",
+    //#6eb3e4
+    SELECT:
+      "0.4 0 0 0 0 " +
+      "0 0.7 0 0 0 " +
+      "0 0 0.89 0 0 " +
       "0 0 0 1 0 "
   };
 
@@ -131,6 +137,7 @@ export class EhldService {
       const colorMatrix = this.renderer.createElement('feColorMatrix', this._SVG_NAMESPACE);
       colorMatrix.setAttribute('in', 'SourceGraphic');
       colorMatrix.setAttribute('type', 'matrix');
+      colorMatrix.setAttribute('color-interpolation-filters', 'sRGB');
       colorMatrix.setAttribute('values', this.filterColour.BLUE);
       colorMatrix.setAttribute('result', 'colorMatrixOut');
 
