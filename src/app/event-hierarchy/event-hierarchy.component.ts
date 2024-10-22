@@ -3,8 +3,7 @@ import {Event} from "../model/event.model";
 import {EventService} from "../services/event.service";
 import {SpeciesService} from "../services/species.service";
 import {concatMap, filter, fromEvent, switchMap, take, tap} from "rxjs";
-import {NestedTreeControl} from "@angular/cdk/tree";
-import {MatTreeNestedDataSource} from "@angular/material/tree";
+import {MatTree, MatTreeNestedDataSource} from "@angular/material/tree";
 import {DiagramStateService} from "../services/diagram-state.service";
 import {SplitComponent} from "angular-split";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
@@ -23,6 +22,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   @Input('eventSplit') split!: SplitComponent;
   @ViewChild('treeControlButton', {read: ElementRef}) treeControlButton!: ElementRef;
   @ViewChild('eventIcon', {read: ElementRef}) eventIcon!: ElementRef;
+  @ViewChild(MatTree) tree!: MatTree<Event, string>;
 
 
   private _SCROLL_SPEED = 50; // pixels per second
@@ -32,7 +32,8 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private _isInitialLoad = true; // skip the first load
   private _TOP = 'TopLevelPathway'
 
-  treeControl = new NestedTreeControl<Event, string>(event => event.hasEvent, {trackBy: event => event.stId});
+  childrenAccessor = (node:Event) => node.hasEvent ?? [];
+
   treeDataSource = new MatTreeNestedDataSource<Event>();
 
   breadcrumbs: Event[] = [];
@@ -55,7 +56,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       return this.eventService.fetchEnhancedEventData(idToUse)
     }),
     switchMap((enhancedEvent) => {
-      return this.eventService.adjustTreeFromDiagramSelection(enhancedEvent, this.diagramId, this.subpathwayColors, this.treeControl, this.treeDataSource.data);
+      return this.eventService.adjustTreeFromDiagramSelection(enhancedEvent, this.diagramId, this.subpathwayColors, this.tree, this.treeDataSource.data);
     }),
     untilDestroyed(this),
   ).subscribe();
@@ -119,6 +120,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   }
 
   getTopLevelPathways(taxId: string): void {
+    const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
     this.eventService.fetchTlpBySpecies(taxId).pipe(
       tap(results => this.eventService.setTreeData(results)),
       // Wait for the treeData$ to emit the new value and take only the first emission after setting the data
@@ -167,9 +169,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
     this.selectAllParents(navEvent, this.treeDataSource.data);
     navEvent.isSelected = true;
     // Collapse all descendant nodes except the selected path if it has child events
-    this.treeControl.collapseDescendants(navEvent);
+    this.tree.collapseDescendants(navEvent);
     // Expand the path to the selected event
-    this.treeControl.expand(navEvent);
+    this.tree.expand(navEvent);
     this.updateBreadcrumbs(navEvent);
 
     this.setDiagramId(navEvent);
@@ -217,17 +219,17 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
   private toggleEventExpansion(event: Event, isSelected: boolean) {
     // Collapse all events when selecting any tlps
     if (event.schemaClass === this._TOP) {
-      this.treeControl.collapseAll();
+      this.tree.collapseAll();
     }
 
     if (isSelected) {
       event.isSelected = true;
       this.eventService.loadEventChildren(event);
-      this.treeControl.toggle(event);
+      this.tree.toggle(event);
     } else {
       event.isSelected = false;
-      this.treeControl.toggle(event);
-      this.treeControl.collapseDescendants(event);
+      this.tree.toggle(event);
+      this.tree.collapseDescendants(event);
       this.eventService.fetchEnhancedEventData(event.parent.stId).pipe(untilDestroyed(this)).subscribe(result => {
         this.eventService.setCurrentObj(result);
       })
@@ -243,9 +245,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       let eventParent = event.parent;
       // Loop through the parent's children to collapse any expanded siblings
       eventParent.hasEvent?.forEach(childEvent => {
-        if (childEvent !== event && this.treeControl.isExpanded(childEvent)) {
-          this.treeControl.collapse(childEvent);
-          this.treeControl.collapseDescendants(childEvent);
+        if (childEvent !== event && this.tree.isExpanded(childEvent)) {
+          this.tree.collapse(childEvent);
+          this.tree.collapseDescendants(childEvent);
           childEvent.isSelected = false;
         }
       })
@@ -379,7 +381,7 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
 
 
   onTagHover(event: Event) {
-    if (event.isSelected || (this.treeControl.isExpanded(event) && event.hasEvent)) return;
+    if (event.isSelected || (this.tree.isExpanded(event) && event.hasEvent)) return;
     event.isHovered = true
   }
 

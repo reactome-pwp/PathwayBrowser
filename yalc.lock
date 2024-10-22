@@ -8,8 +8,7 @@
       "replaced": "^3.28.0"
     },
     "ngx-reactome-style": {
-      "version": "0.0.18",
-      "signature": "f88d6aacddf2be136c6591846253c654",
+      "signature": "601dce71aaf2ad8a291a987fe3c753c7",
       "file": true,
       "replaced": "0.0.18"
     }

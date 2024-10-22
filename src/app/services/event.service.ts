@@ -1,12 +1,11 @@
 import {Injectable} from '@angular/core';
 import {environment} from "../../environments/environment";
-import { HttpClient } from "@angular/common/http";
+import {HttpClient} from "@angular/common/http";
 import {Event} from "../model/event.model";
-import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap, take} from "rxjs";
+import {BehaviorSubject, combineLatest, forkJoin, map, mergeMap, Observable, of, Subject, switchMap} from "rxjs";
 import {JSOGDeserializer} from "../utils/JSOGDeserializer";
 import {DiagramStateService} from "./diagram-state.service";
-import {NestedTreeControl} from "@angular/cdk/tree";
-import {Router} from "@angular/router";
+import {MatTree} from "@angular/material/tree";
 
 
 @Injectable({
@@ -37,7 +36,7 @@ export class EventService {
   private _loadEventChildren = new Subject<Event>();
   loadEventChildren$ = this._loadEventChildren.asObservable();
 
-  constructor(private http: HttpClient, private state: DiagramStateService,private router: Router) {
+  constructor(private http: HttpClient, private state: DiagramStateService) {
   }
 
   setTreeData(events: Event[]) {
@@ -77,7 +76,7 @@ export class EventService {
 
   fetchEventAncestors(stId: string): Observable<Event[][]> {
     let url = `${this._ANCESTORS}${stId}/ancestors`;
-    return this.http.get<Event[][]>(url)
+    return this.http.get<Event[][]>(url).pipe(map(ancestorsOptions => ancestorsOptions.map(ancestorsOption => ancestorsOption.reverse())))
   }
 
 
@@ -135,26 +134,26 @@ export class EventService {
    *  - Interacting pathway, rebuild the tree, clear previous selection, update currentTreeEvent(interacting pathway) and currentObj(interacting pathway), selection and expandedTree status
    *
    */
-  adjustTreeFromDiagramSelection(enhancedEvent: Event, diagramId: string, subpathwayColors: Map<number, string>, treeControl: NestedTreeControl<Event, string>, treeNodes: Event[]): Observable<Event[]> {
+  adjustTreeFromDiagramSelection(enhancedEvent: Event, diagramId: string, subpathwayColors: Map<number, string>, tree: MatTree<Event, string>, treeNodes: Event[]): Observable<Event[]> {
     // All visible tree nodes
-    const allVisibleTreeNodes = this.getAllVisibleTreeNodes(treeControl, treeNodes);
+    const allVisibleTreeNodes = this.getAllVisibleTreeNodes(tree, treeNodes);
     if (this.isEntity(enhancedEvent)) {
-      return this.handleEntitySelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, treeControl);
+      return this.handleEntitySelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, tree);
     } else if (this.isReaction(enhancedEvent)) {
-      return this.handleReactionSelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, treeControl, subpathwayColors);
+      return this.handleReactionSelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, tree, subpathwayColors);
     } else if (this.isPathwayWithDiagram(enhancedEvent)) {
-      // treeControl.collapseAll(); //todo: should we collapse all?
-      return this.handlePathwaySelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, treeControl, subpathwayColors, allVisibleTreeNodes);
+      // tree.collapseAll(); //todo: should we collapse all?
+      return this.handlePathwaySelectionFromDiagram(enhancedEvent, diagramId, allVisibleTreeNodes, tree, subpathwayColors, allVisibleTreeNodes);
     } else {
       return of(this.treeData$.value)
     }
   }
 
 
-  private handleEntitySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>): Observable<Event[]> {
+  private handleEntitySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], tree: MatTree<Event, string>): Observable<Event[]> {
     const diagramTreeEvent = allVisibleTreeNodes.find(node => node.stId === diagramId);
     if (diagramTreeEvent) {
-      return this.handleExistingEventSelection(diagramTreeEvent, treeControl, allVisibleTreeNodes).pipe(
+      return this.handleExistingEventSelection(diagramTreeEvent, tree, allVisibleTreeNodes).pipe(
         map(([treeData, treeEvent]) => {
           this.setCurrentEventAndObj(diagramTreeEvent, event);
           return treeData;
@@ -165,17 +164,17 @@ export class EventService {
     }
   }
 
-  private handleReactionSelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
+  private handleReactionSelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], tree: MatTree<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
     const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
     if (treeNode !== undefined) {
-      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+      return this.handleExistingEventSelection(treeNode, tree, allVisibleTreeNodes).pipe(
         map(([treeData, event]) => {
           this.setCurrentEventAndObj(treeNode, event);
           return treeData;
         })
       );
     } else {
-      return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
+      return this.buildTreeWithSelectedEvent(event, diagramId, true, tree, subpathwayColors).pipe(
         map((treeData) => {
           this.setCurrentEventAndObj(event, event);
           return treeData;
@@ -185,11 +184,11 @@ export class EventService {
   }
 
   // Subpathway and interacting pathway
-  private handlePathwaySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>, treeNodes: Event[]): Observable<Event[]> {
+  private handlePathwaySelectionFromDiagram(event: Event, diagramId: string, allVisibleTreeNodes: Event[], tree: MatTree<Event, string>, subpathwayColors: Map<number, string>, treeNodes: Event[]): Observable<Event[]> {
     const treeNode = allVisibleTreeNodes.find(node => node.stId === event.stId);
     if (treeNode !== undefined) {
       // Subpathway, already in the tree view
-      return this.handleExistingEventSelection(treeNode, treeControl, allVisibleTreeNodes).pipe(
+      return this.handleExistingEventSelection(treeNode, tree, allVisibleTreeNodes).pipe(
         map(([treeData, event]) => {
           this.setCurrentEventAndObj(event, event);
           this.loadEventChildren(treeNode)//todo: this.setCurrentEventAndObj(treeEvent, event)?
@@ -199,7 +198,7 @@ export class EventService {
     } else {
       // Interacting pathway, not visible in the tree view
       this.clearAllSelectedEvents(treeNodes);
-      return this.buildTreeWithSelectedEvent(event, diagramId, true, treeControl, subpathwayColors).pipe(
+      return this.buildTreeWithSelectedEvent(event, diagramId, true, tree, subpathwayColors).pipe(
         map(treeData => {
           return treeData;
         })
@@ -220,21 +219,21 @@ export class EventService {
     });
   }
 
-  buildTree(event: Event, diagramId: string, treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
+  buildTree(event: Event, diagramId: string, tree: MatTree<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
     if (this.isEntity(event)) {
-      return this.buildTreeWithSelectedEntity(event, diagramId, treeControl, subpathwayColors);
+      return this.buildTreeWithSelectedEntity(event, diagramId, tree, subpathwayColors);
     } else {
-      return this.buildTreeWithSelectedEvent(event, diagramId, false, treeControl, subpathwayColors);
+      return this.buildTreeWithSelectedEvent(event, diagramId, false, tree, subpathwayColors);
     }
   }
 
   // Build tree with diagram event ancestors
-  private buildTreeWithSelectedEntity(event: Event, diagramId: string, treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
+  private buildTreeWithSelectedEntity(event: Event, diagramId: string, tree: MatTree<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
     this.setCurrentObj(event);
-    return  this.fetchEnhancedEventData(diagramId).pipe(
+    return this.fetchEnhancedEventData(diagramId).pipe(
       switchMap(() => this.fetchEventAncestors(diagramId)),
-      map(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
-      switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors)),
+      map(ancestors => this.getFinalAncestor(ancestors)),
+      switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors, tree)),
       map(([colors, tree]) => {
         this.setTreeData(tree);
         return tree
@@ -250,13 +249,13 @@ export class EventService {
    * @param isFromDiagram  Behaves differently based on the calling method, avoid the check for isPathwayWithDiagram(event) when calling it from handlePathwaySelectionFromDiagram,
    *                       we want to open the ancestors in the tree view when select an interacting pathway in diagram, but not when first load for an interacting pathway from URL.
    */
-  private buildTreeWithSelectedEvent(event: Event, diagramId: string, isFromDiagram: boolean, treeControl: NestedTreeControl<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
+  private buildTreeWithSelectedEvent(event: Event, diagramId: string, isFromDiagram: boolean, tree: MatTree<Event, string>, subpathwayColors: Map<number, string>): Observable<Event[]> {
     // When selected event is a subpathway or interacting pathway
     const idToBuild = isFromDiagram ? event.stId : (this.isPathwayWithDiagram(event) ? diagramId : event.stId);
     this.setCurrentObj(event);
     return this.fetchEventAncestors(idToBuild).pipe(
-      map(ancestors => this.getAndExpandAncestors(ancestors, treeControl)),
-      switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors)),
+      map(ancestors => this.getFinalAncestor(ancestors)),
+      switchMap(ancestors => this.buildTreeWithAncestors(ancestors, diagramId, event.stId, subpathwayColors, tree)),
       map(([colors, tree]) => {
         this.setTreeData(tree);
         return tree
@@ -265,14 +264,13 @@ export class EventService {
   }
 
   // Select any reaction, subpathway and interacting pathway from diagram
-  private handleExistingEventSelection(event: Event, treeControl: NestedTreeControl<Event, string>, flatTreeNodes: Event[]): Observable<[Event[], Event]> {
+  private handleExistingEventSelection(event: Event, tree: MatTree<Event, string>, flatTreeNodes: Event[]): Observable<[Event[], Event]> {
     return this.fetchEventAncestors(event.stId).pipe(
       map(ancestors => {
         console.log('ancestors in handleExisting Event selection', ancestors);
-        const finalAncestor = this.getAndExpandAncestors(ancestors, treeControl);
+        const finalAncestor = this.getFinalAncestor(ancestors);
         // Create a Set to store the stIds from ancestors for quick lookup
         const ancestorStIds = new Set(finalAncestor.map(ancestor => ancestor.stId));
-        console.log('ancestorStIds ', ancestorStIds);
         // Loop through the treeNodes and check if the stId exists in the Set
         flatTreeNodes.forEach(treeNode => {
           treeNode.isSelected = ancestorStIds.has(treeNode.stId);
@@ -281,16 +279,17 @@ export class EventService {
         event.parent = finalAncestor[finalAncestor.length - 2];
         this.setTreeData(this.treeData$.value);
         this.setBreadcrumbs(finalAncestor);
+        this.expandAllAncestors(finalAncestor, tree)
 
         return [this.treeData$.value, event];
       })
     )
   }
 
-  private buildTreeWithAncestors(ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
+  private buildTreeWithAncestors(ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>, tree:MatTree<Event, string>) {
     return combineLatest([
       this.subpathwaysColors$,
-      this.buildNestedTree(this.treeData$.value, ancestors, diagramId, selectedIdFromUrl, subpathwayColors)
+      this.buildNestedTree(this.treeData$.value, ancestors, diagramId, selectedIdFromUrl, subpathwayColors, tree)
     ]);
   }
 
@@ -307,9 +306,10 @@ export class EventService {
    * @param selectedIdFromUrl The selected event id
    * @param subpathwayColors colors maps, dbId as key, colors as value, `{69481 => "#cc0000"}`
    *
+   * @param matTree
    */
-  buildNestedTree(roots: Event[], ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>) {
-    console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors);
+  buildNestedTree(roots: Event[], ancestors: Event[], diagramId: string, selectedIdFromUrl: string, subpathwayColors: Map<number, string>, matTree: MatTree<Event, string>) {
+    console.log('BuildNestedTree with data ', roots, 'and ancestors ', ancestors, "selecting URL ", selectedIdFromUrl);
     const tree = [...roots];
     const nestedTree = ancestors.reduce((acc, event, index, array) => {
       const isLast = index === array.length - 1;
@@ -325,6 +325,7 @@ export class EventService {
                   this.setBreadcrumbs([...child.ancestors])
                   return child;
                 });
+                matTree.expand(existingEvent);
                 // Highlight selected event
                 if (selectedIdFromUrl) {
                   existingEvent.hasEvent?.forEach(child => {
@@ -373,14 +374,6 @@ export class EventService {
     }
   }
 
-  getAndExpandAncestors(ancestors: Event[][], treeControl: NestedTreeControl<Event, string>) {
-    const finalAncestor = this.getFinalAncestor(ancestors);
-    if (finalAncestor) {
-      this.expandAllAncestors(finalAncestor, treeControl);
-    }
-    return finalAncestor;
-  }
-
   getFinalAncestor(ancestors: Event[][]): Event[] {
     const pathIds = this.state.get('path');
     let finalAncestor: Event[];
@@ -408,8 +401,10 @@ export class EventService {
   }
 
 
-  expandAllAncestors(ancestors: Event[], treeControl: NestedTreeControl<Event, string>) {
-    ancestors.reverse().forEach(ancestor => treeControl.expand(ancestor));
+  expandAllAncestors(ancestors: Event[], tree: MatTree<Event, string>) {
+    ancestors.forEach(a => {
+      tree.expand(a);
+    })
   }
 
 
@@ -431,13 +426,13 @@ export class EventService {
 
 
   // Flatten tree and return all visible tree nodes
-  getAllVisibleTreeNodes(treeControl: NestedTreeControl<Event, string>, treeNodes: Event[]): Event[] {
+  getAllVisibleTreeNodes(tree: MatTree<Event, string>, treeNodes: Event[]): Event[] {
     const visibleTreeNodes: Event[] = [];
     const addVisibleNodes = (node: Event) => {
       // Add the current node to the visible nodes
       visibleTreeNodes.push(node);
       // If the node is expanded, recursively check its children
-      if (treeControl.isExpanded(node) && node.hasEvent) {
+      if (tree.isExpanded(node) && node.hasEvent) {
         node.hasEvent.forEach(child => addVisibleNodes(child));
       }
     };
@@ -448,12 +443,12 @@ export class EventService {
   }
 
   // A collection of all expanded tree node and its children
-  getExpandedTreeWithChildrenNodes(treeControl: NestedTreeControl<Event, string>, treeNodes: Event[]) {
+  getExpandedTreeWithChildrenNodes(tree: MatTree<Event, string>, treeNodes: Event[]) {
     const expandedTreeNodes: Event[] = [];
-    const tlpStId = treeControl.expansionModel.selected[0];
+    const tlpStId = tree._getExpansionModel().selected[0];
     const addVisibleNodes = (node: Event) => {
       expandedTreeNodes.push(node);
-      if (treeControl.isExpanded(node) && node.hasEvent) {
+      if (tree.isExpanded(node) && node.hasEvent) {
         node.hasEvent.forEach(child => addVisibleNodes(child));
       }
     };
