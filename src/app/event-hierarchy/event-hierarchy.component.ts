@@ -59,7 +59,9 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       return this.eventService.adjustTreeFromDiagramSelection(enhancedEvent, this.diagramId, this.subpathwayColors, this.tree, this.treeDataSource.data);
     }),
     untilDestroyed(this),
-  ).subscribe();
+  ).subscribe((e) => {
+    document.querySelector(`[st-id='${this.selectedIdFromUrl}']`)?.scrollIntoView({ behavior: 'smooth' });
+  });
 
   ngAfterViewInit(): void {
 
@@ -125,12 +127,11 @@ export class EventHierarchyComponent implements AfterViewInit, OnDestroy {
       tap(results => this.eventService.setTreeData(results)),
       // Wait for the treeData$ to emit the new value and take only the first emission after setting the data
       concatMap(() => this.eventService.treeData$.pipe(take(1))),
-      switchMap(() => {
-        const idToUse = this.selectedIdFromUrl ? this.selectedIdFromUrl : this.diagramId;
-        return this.eventService.fetchEnhancedEventData(idToUse);
-      }),
-      switchMap(event => this.eventService.buildTree(event, this.diagramId, this.treeControl, this.subpathwayColors))
-    ).subscribe();
+      switchMap(() => this.eventService.fetchEnhancedEventData(idToUse)),
+      switchMap(event => this.eventService.buildTree(event, this.diagramId, this.tree, this.subpathwayColors))
+    ).subscribe(() => {
+      document.querySelector(`[st-id='${idToUse}']`)?.scrollIntoView({ behavior: 'smooth' });
+    });
   }
 
   // if a leaf node has sibling which is a root node
